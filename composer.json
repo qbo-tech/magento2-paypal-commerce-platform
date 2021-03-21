@@ -1,0 +1,23 @@
+{
+    "name": "qbo/module-paypal-commerce-platform",
+    "description": "Paypal Commerce Platform for Magento 2 (PPCP)",
+    "type": "magento2-module",
+    "license": "OSL-3.0",
+    "authors": [
+        {
+            "name": "Qbo Digital",
+            "email": "info@qbo.tech"
+        }
+    ],
+    "require": {
+        "paypal/paypal-checkout-sdk": "1.0.1"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "PayPal\\CommercePlatform\\": ""
+        }
+    }
+}
