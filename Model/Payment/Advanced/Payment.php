@@ -5,7 +5,7 @@ use Magento\Payment\Model\InfoInterface;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\CommercePlatform\Model\Payment\PayPalAbstract
 {
-    const CODE                         = 'paypal_advanced';
+    const CODE                         = 'paypalcp';
 
     const PAYMENT_REVIEW_STATE         = 'pending';
     const PENDING_PAYMENT_NOTIFICATION = 'This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.';
@@ -89,8 +89,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
     public function isAvailable(
         \Magento\Quote\Api\Data\CartInterface $quote = null
     ) {
-        $this->_logger->debug(__METHOD__);
-
         $isAvailable = parent::isAvailable($quote);
 
         $this->_logger->debug(__METHOD__ . ' | isAvailable ' . $isAvailable);
@@ -185,8 +183,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
         }
         $status = $this->_response->result->status;
 
-        if ($status == self::FAILED_STATE_CODE) {
-            throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
+        if ($status == self::FAILED_STATE_CODE) { //TOOD COMPLETED O PENDING
+            //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
         }
 
         if($this->_response->result->id){

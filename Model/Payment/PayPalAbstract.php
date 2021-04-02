@@ -5,5 +5,10 @@ abstract class PayPalAbstract extends \Magento\Payment\Model\Method\AbstractMeth
 {
     const COMMERCE_PLATFORM_CODE = 'paypalcp';
 
-    protected $_code = "paypalcheckout";
+    /** const xml path */
+
+    const XML_PATH_ACTIVE = 'payment/paypalcp/active';
+
+    protected $_code = self::COMMERCE_PLATFORM_CODE;
+
 }

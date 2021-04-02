@@ -10,32 +10,22 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
     const URL_ACCESS_TOKEN = 'https://api.sandbox.paypal.com/v1/oauth2/token';
     const URL_GENERATE_CLIENT_TOKEN = 'https://api.sandbox.paypal.com/v1/identity/generate-token';
-
+/*
     const XML_PATH_CONFIG_PREFIX = 'payment/paypalcp';
+*/
+    const SDK_CONFIG_CLIENT_ID  = 'client_id';
+    const SDK_CONFIG_CURRENCY   = 'currency';
+    const SDK_CONFIG_DEBUG      = 'debug';
+    const SDK_CONFIG_COMPONENTS = 'components';
+    const SDK_CONFIG_LOCALE     = 'locale';
+    const SDK_CONFIG_INTENT     = 'intent';
 
-    const XML_PATH_CONFIG_CLIENT_ID  = 'client_id';
-    const XML_PATH_CONFIG_CURRENCY   = 'currency';
-    const XML_PATH_CONFIG_DEBUG      = 'debug';
-    const XML_PATH_CONFIG_COMPONENTS = 'components';
-    const XML_PATH_CONFIG_LOCALE     = 'locale';
-    const XML_PATH_CONFIG_INTENT     = 'intent';
-
-    /**
-     * Button customization style options
-     */
-    const XML_PATH_CONFIG_LAYOUT  = 'payment/paypalcp/checkout_button/layout';
-    const XML_PATH_CONFIG_COLOR   = 'payment/paypalcp/checkout_button/color';
-    const XML_PATH_CONFIG_SHAPE   = 'payment/paypalcp/checkout_button/shape';
-    const XML_PATH_CONFIG_LABEL   = 'payment/paypalcp/checkout_button/label';
-    const XML_PATH_CONFIG_TAGLINE = 'payment/paypalcp/checkout_button/tagline';
 
     protected $_payment_code = \PayPal\CommercePlatform\Model\Payment\PayPalAbstract::COMMERCE_PLATFORM_CODE;
-    protected $_params = [
-        'currency' => 'MXN',
-    ];
+    protected $_params = [];
 
-    /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
-    protected $_scopeConfig;
+    /** @var \PayPal\CommercePlatform\Model\Config */
+    protected $_paypalConfig;
 
     /** @var \Magento\Customer\Model\Session */
     protected $_customerSession;
@@ -43,34 +33,43 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     /** @var \Magento\Framework\Session\SessionManagerInterface $session */
     protected $_session;
 
+    /** @var \Psr\Log\LoggerInterface */
+    protected $_logger;
+
     public function __construct(
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Session\SessionManagerInterface $session
+        \Magento\Framework\Session\SessionManagerInterface $session,
+        \Psr\Log\LoggerInterface $logger
     ) {
-        $this->_scopeConfig     = $scopeConfig;
+        $this->_paypalConfig    = $paypalConfig;
         $this->_customerSession = $customerSession;
         $this->_session         = $session;
+        $this->_logger          = $logger;
+
+        $this->_params['currency'] = $this->_paypalConfig->getCurrency();
     }
 
     public function getConfig()
     {
-
+/*
         $clientId = 'AT6lRUtL67ziOZ2BRJ6g_5s0qo1BmKcdqXxjB5n9IRwlfy-i-UXCV1Bf0VeWRAhLPtsFdZDqPXKfzG-o';
         $clientSecret = 'EF4ELYtqJKj9ixVpvQIAugwaqaZwqDZ-erCEYkbWnDrkeTjhI2o2j7y1IDXzs01WOcRCAiACTQrY7TZJ';
+ */
+        $authorizationBasic = 'Basic ' . base64_encode($this->_paypalConfig->getClientId() . ':' . $this->_paypalConfig->getSecretId());
 
-        $authorizationBasic = 'Basic ' . base64_encode($clientId . ':' . $clientSecret);
+        $this->_logger->debug(__METHOD__. ' | ' . $this->_paypalConfig->getClientId() . ':' . $this->_paypalConfig->getSecretId());
 
-        return [
+        $config = [
             'payment' => [
                 $this->_payment_code => [
                     'urlSdk' => $this->getUrlSdk(),
                     'style'  => [
-                        'layout'  => $this->getStoreConfig(self::XML_PATH_CONFIG_LAYOUT),
-                        'color'   => $this->getStoreConfig(self::XML_PATH_CONFIG_COLOR),
-                        'shape'   => $this->getStoreConfig(self::XML_PATH_CONFIG_SHAPE),
-                        'label'   => $this->getStoreConfig(self::XML_PATH_CONFIG_LABEL),
-                        //'tagline' => $this->getStoreConfig(self::XML_PATH_CONFIG_TAGLINE),
+                        'layout'  => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LAYOUT),
+                        'color'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_COLOR),
+                        'shape'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
+                        'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
+                        //'tagline' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_TAGLINE),
                     ],
                     'urlAccessToken' => self::URL_ACCESS_TOKEN,
                     'urlGenerateClientToken' => self::URL_GENERATE_CLIENT_TOKEN,
@@ -79,6 +78,10 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                 ]
             ]
         ];
+
+        $this->_logger->debug(__METHOD__ . ' | config ' . print_r($config, true));
+
+        return $config;
     }
 
     public function getUrlSdk()
@@ -92,32 +95,32 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
      * Get payment store config
      * @return string
      */
-    public function getStoreConfig($configPath)
+/*     public function getStoreConfig($configPath)
     {
         $value =  $this->_scopeConfig->getValue(
             $configPath,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
         return $value;
-    }
-
+    } */
+/*
     public function getPaypalCPConfig($configPath)
     {
         return $this->getStoreConfig(self::XML_PATH_CONFIG_PREFIX . '/' . $configPath);
     }
-
+ */
     private function buildParams()
     {
         //intent=authorize&currency=MXN&debug=true&components=hosted-fields,buttons&locale=es_MX&client-id=ATKh1gdUgHyPWMy6QRIp0XfGB92ZsX67HEnJeFB_j82p9u3j6w4s4C39Fgg8SkkRpn3MirI_TtVmhdNf
 
         $this->_params = [
-            'client-id'  => $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID) ?? 'AT6lRUtL67ziOZ2BRJ6g_5s0qo1BmKcdqXxjB5n9IRwlfy-i-UXCV1Bf0VeWRAhLPtsFdZDqPXKfzG-o',
+            'client-id'  => $this->_paypalConfig->getClientId(), //(self::SDK_CONFIG_CLIENT_ID) ?? 'AT6lRUtL67ziOZ2BRJ6g_5s0qo1BmKcdqXxjB5n9IRwlfy-i-UXCV1Bf0VeWRAhLPtsFdZDqPXKfzG-o',
 
-            self::XML_PATH_CONFIG_CURRENCY   => $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID) ?? 'MXN',
-            self::XML_PATH_CONFIG_DEBUG      => $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID),
-            self::XML_PATH_CONFIG_COMPONENTS => $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID) ?? 'hosted-fields,buttons',
-            self::XML_PATH_CONFIG_LOCALE     => $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID) ?? 'es_MX',
-            self::XML_PATH_CONFIG_INTENT     => $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID) ?? 'capture',
+            self::SDK_CONFIG_CURRENCY   => $this->_paypalConfig->getCurrency(), //(\PayPal\CommercePlatform\Model\Config:: $this->getPaypalCPConfig(self::XML_PATH_CONFIG_CLIENT_ID) ?? 'MXN',
+            self::SDK_CONFIG_DEBUG      => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_DEBUG) ? self::SDK_CONFIG_DEBUG : null,
+            self::SDK_CONFIG_COMPONENTS => 'hosted-fields,buttons',
+            self::SDK_CONFIG_LOCALE     => 'es_MX',
+            self::SDK_CONFIG_INTENT     => 'capture',
         ];
     }
 }

@@ -4,10 +4,13 @@ namespace PayPal\CommercePlatform\Model\Paypal;
 class Api
 {
 
-    const PATH_SANDBOX_FLAG = 'payment/paypal_advanced/sandbox_flag';
+    const PATH_SANDBOX_FLAG = 'sandbox_flag';
 
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $_scopeConfig;
+
+    /** @var \PayPal\CommercePlatform\Model\Config */
+    //protected $_paypalConfig;
 
     /** @var \PayPalCheckoutSdk\Core\PayPalHttpClient */
     protected $_paypalClient;
@@ -26,22 +29,24 @@ class Api
 
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \Magento\Checkout\Model\Session $checkoutSession,
         \PayPalCheckoutSdk\Orders\OrdersCreateRequest $orderCreateRequest,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Psr\Log\LoggerInterface $logger
     ) {
-        $this->_logger      = $logger;
-        $this->_scopeConfig = $scopeConfig;
+        $this->_logger       = $logger;
+        $this->_scopeConfig  = $scopeConfig;
+        //$this->_paypalConfig = $paypalConfig;
 
 
-        $clientId     = 'AT6lRUtL67ziOZ2BRJ6g_5s0qo1BmKcdqXxjB5n9IRwlfy-i-UXCV1Bf0VeWRAhLPtsFdZDqPXKfzG-o';
-        $clientSecret = 'EF4ELYtqJKj9ixVpvQIAugwaqaZwqDZ-erCEYkbWnDrkeTjhI2o2j7y1IDXzs01WOcRCAiACTQrY7TZJ';
+        //$clientId     = 'AT6lRUtL67ziOZ2BRJ6g_5s0qo1BmKcdqXxjB5n9IRwlfy-i-UXCV1Bf0VeWRAhLPtsFdZDqPXKfzG-o';
+        //$clientSecret = 'EF4ELYtqJKj9ixVpvQIAugwaqaZwqDZ-erCEYkbWnDrkeTjhI2o2j7y1IDXzs01WOcRCAiACTQrY7TZJ';
 
-        $isSandbox   = $this->_scopeConfig->getValue(self::PATH_SANDBOX_FLAG);
-        $environment = $isSandbox ? \PayPalCheckoutSdk\Core\SandboxEnvironment::class : \PayPalCheckoutSdk\Core\ProductionEnvironment::class;
+        //$isSandbox   = $paypalConfig->isSandbox(); //$this->_scopeConfig->getValue(self::PATH_SANDBOX_FLAG);
+        $environment = $paypalConfig->isSandbox() ? \PayPalCheckoutSdk\Core\SandboxEnvironment::class : \PayPalCheckoutSdk\Core\ProductionEnvironment::class;
 
-        $this->_paypalClient = new \PayPalCheckoutSdk\Core\PayPalHttpClient(new $environment($clientId, $clientSecret));
+        $this->_paypalClient = new \PayPalCheckoutSdk\Core\PayPalHttpClient(new $environment($paypalConfig->getClientId(), $paypalConfig->getSecretId()));
     }
 
     /**

@@ -2,11 +2,11 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <payment><!-- payment/paypalcheckout/active   -->
-            <paypal_advanced>
+            <paypalcp>
                 <active>1</active>
                 <model>PayPal\CommercePlatform\Model\Payment\Advanced\Payment</model>
                 <order_status>pending_payment</order_status>
-                <title>PayPal Checkout</title>
+                <title>PayPal Checkout Mexico</title>
                 <allowspecific>0</allowspecific>
                 <payment_action>authorize_capture</payment_action>
                 <sandbox_flag>1</sandbox_flag>
@@ -18,10 +18,11 @@
                 <sort_order>1</sort_order>
                 <installments_active>0</installments_active>
                 <client_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-                <client_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <currency>MXN</currency>
                 <min_order_total>0.50</min_order_total>
                 <profile_experience_id/>
-            </paypal_advanced>
+            </paypalcp>
             <paypal_basic>
                 <active>1</active>
                 <model>PayPal\CommercePlatform\Model\Payment\SPB\Payment</model>
@@ -33,7 +34,8 @@
                 <status_pending>1</status_pending>
                 <installments_active>0</installments_active>
                 <client_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-                <client_secret backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <currency>MXN</currency>
                 <min_order_total>0.50</min_order_total>
             </paypal_basic>
         </payment>

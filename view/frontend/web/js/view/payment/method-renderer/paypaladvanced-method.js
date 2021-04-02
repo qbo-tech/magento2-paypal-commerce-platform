@@ -4,20 +4,94 @@ define(
         'mage/storage',
         'jquery',
         'paypalSdkAdapter',
-        'Magento_Customer/js/customer-data'
+        'Magento_Checkout/js/action/select-payment-method',
+        'Magento_Checkout/js/checkout-data',
+        'Magento_Checkout/js/model/quote'
     ],
-    function (Component, storage, $, paypalSdkAdapter, customerData) {
+    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote) {
         'use strict';
+        console.log('paypal_advance-method');
+
         return Component.extend({
             defaults: {
                 template: 'PayPal_CommercePlatform/payment/paypaladvanced-form'
             },
-            /* initialize: function () {
-              this._super();
+
+/*             initialize: function () {
+                var self = this;
+                this._super();
             }, */
             componentName: "paypalSdkComponent",
+            paypalMethod: 'paypalcp',
             orderId: null,
             paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
+            selectedMethod: null,
+
+            getCode: function(method) {
+                console.log('paypaladvanced-mthod#super', this._super());
+                console.log('paypaladvanced-mthod#mthod', method);
+
+                return method;
+            },
+
+            isSelected: function () {
+                var self = this;
+
+                console.log('isSelected#', quote.paymentMethod())
+                console.log('isSelected#', self.paypalMethod)
+
+                if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalMethod)){
+                    console.log('return#', self.selectedMethod)
+
+                    return self.selectedMethod;
+                }
+
+                return quote.paymentMethod() ? quote.paymentMethod().method : null;
+            },
+
+            selectPaymentMethodSpb: function () {
+                //var data = this.getData();
+                //data.method =
+                this.selectedMethod = "paypalcp_spb";
+                /* selectPaymentMethodAction(data);
+                checkoutData.setSelectedPaymentMethod(this.item.method);
+                console.log('selectPaymentMethodSpb#data', data); */
+                return true;
+            },
+
+            selectPaymentMethodHf: function () {
+                /* var data = this.getData();
+                data.method = */
+                this.selectedMethod = "paypalcp_hf";
+                /* selectPaymentMethodAction(data);
+                checkoutData.setSelectedPaymentMethod(this.item.method);
+                */
+                console.log('selectPaymentMethodHf#data', data);
+                return true;
+            },
+
+            selectedPayPalMethod: function(method){
+                var data = this.getData();
+
+                this.selectedMethod = method;
+                data.method = this.paypalMethod;
+
+                selectPaymentMethodAction(data);
+                checkoutData.setSelectedPaymentMethod(this.item.method);
+                console.log('selectPaymentMethodSpb#data', data);
+/*
+                var self = this;
+
+                console.log('isSelected#', quote.paymentMethod())
+
+                if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalPaymentMethod)) {
+                    console.log('isSelected#', self.selectedMethod)
+
+                    return self.selectedMethod;
+                }
+
+                return quote.paymentMethod() ? quote.paymentMethod().method : null; */
+            },
 
             /**
              * Renders the PayPal card fields
@@ -118,7 +192,7 @@ define(
             },
             getData: function () {
                 var data = {
-                    'method': this.getCode(),
+                    'method': 'paypalcp',//this.selectedMethod,
                     'additional_data': {
                         'order_id': this.orderId,
                     }

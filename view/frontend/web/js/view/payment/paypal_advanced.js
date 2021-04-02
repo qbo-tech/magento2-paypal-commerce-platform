@@ -8,9 +8,12 @@ define(
         rendererList
     ) {
         'use strict';
+
+        console.log('paypal_adv');
+
         rendererList.push(
             {
-                type: 'paypal_advanced',
+                type: 'paypalcp',
                 component: 'PayPal_CommercePlatform/js/view/payment/method-renderer/paypaladvanced-method'
             }
         );
