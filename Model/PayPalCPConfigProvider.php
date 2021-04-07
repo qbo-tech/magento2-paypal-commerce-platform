@@ -52,10 +52,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
     public function getConfig()
     {
-/*
-        $clientId = 'AT6lRUtL67ziOZ2BRJ6g_5s0qo1BmKcdqXxjB5n9IRwlfy-i-UXCV1Bf0VeWRAhLPtsFdZDqPXKfzG-o';
-        $clientSecret = 'EF4ELYtqJKj9ixVpvQIAugwaqaZwqDZ-erCEYkbWnDrkeTjhI2o2j7y1IDXzs01WOcRCAiACTQrY7TZJ';
- */
         $authorizationBasic = 'Basic ' . base64_encode($this->_paypalConfig->getClientId() . ':' . $this->_paypalConfig->getSecretId());
 
         $this->_logger->debug(__METHOD__. ' | ' . $this->_paypalConfig->getClientId() . ':' . $this->_paypalConfig->getSecretId());
@@ -91,24 +87,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return self::BASE_URL_SDK . http_build_query($this->_params);
     }
 
-    /**
-     * Get payment store config
-     * @return string
-     */
-/*     public function getStoreConfig($configPath)
-    {
-        $value =  $this->_scopeConfig->getValue(
-            $configPath,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
-        return $value;
-    } */
-/*
-    public function getPaypalCPConfig($configPath)
-    {
-        return $this->getStoreConfig(self::XML_PATH_CONFIG_PREFIX . '/' . $configPath);
-    }
- */
     private function buildParams()
     {
         //intent=authorize&currency=MXN&debug=true&components=hosted-fields,buttons&locale=es_MX&client-id=ATKh1gdUgHyPWMy6QRIp0XfGB92ZsX67HEnJeFB_j82p9u3j6w4s4C39Fgg8SkkRpn3MirI_TtVmhdNf

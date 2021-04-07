@@ -62,6 +62,11 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/enable_bcdc</config_path>
                     </field>
+                    <field id="enable_items" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enviar Items (Line Items)</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/paypalcp/enable_items</config_path>
+                    </field>
                     <field id="order_status" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>New Order Status</label>
                         <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
@@ -75,12 +80,12 @@
                             <config_path>payment/paypalcp/enable_acdc</config_path>
                         </field>
                         <field id="enable_installaments" type="select" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                            <label>Enable Installments</label>
+                            <label>Enable MSI</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_installaments</config_path>
                         </field>
                         <field id="enable_remember_card" type="select" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                            <label>Remember my Card (Vaulting)</label>
+                            <label>Recordar Tarjeta (Vaulting)</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_remember_card</config_path>
                         </field>

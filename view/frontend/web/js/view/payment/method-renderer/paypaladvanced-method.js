@@ -6,9 +6,11 @@ define(
         'paypalSdkAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
-        'Magento_Checkout/js/model/quote'
+        'Magento_Checkout/js/model/quote',
+        'ko',
+        'Magento_Checkout/js/model/totals'
     ],
-    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote) {
+    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals) {
         'use strict';
         console.log('paypal_advance-method');
 
@@ -17,17 +19,21 @@ define(
                 template: 'PayPal_CommercePlatform/payment/paypaladvanced-form'
             },
 
-/*             initialize: function () {
-                var self = this;
-                this._super();
-            }, */
+            /*             initialize: function () {
+                            var self = this;
+                            this._super();
+                        }, */
             componentName: "paypalSdkComponent",
             paypalMethod: 'paypalcp',
             orderId: null,
             paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
+            customerId: window.checkoutConfig.payment.paypalcp.customerId,
             selectedMethod: null,
+            installmentOptions: ko.observableArray(),
+            selectedInstallments: ko.observable(),
 
-            getCode: function(method) {
+
+            getCode: function (method) {
                 console.log('paypaladvanced-mthod#super', this._super());
                 console.log('paypaladvanced-mthod#mthod', method);
 
@@ -40,7 +46,7 @@ define(
                 console.log('isSelected#', quote.paymentMethod())
                 console.log('isSelected#', self.paypalMethod)
 
-                if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalMethod)){
+                if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalMethod)) {
                     console.log('return#', self.selectedMethod)
 
                     return self.selectedMethod;
@@ -49,28 +55,7 @@ define(
                 return quote.paymentMethod() ? quote.paymentMethod().method : null;
             },
 
-            selectPaymentMethodSpb: function () {
-                //var data = this.getData();
-                //data.method =
-                this.selectedMethod = "paypalcp_spb";
-                /* selectPaymentMethodAction(data);
-                checkoutData.setSelectedPaymentMethod(this.item.method);
-                console.log('selectPaymentMethodSpb#data', data); */
-                return true;
-            },
-
-            selectPaymentMethodHf: function () {
-                /* var data = this.getData();
-                data.method = */
-                this.selectedMethod = "paypalcp_hf";
-                /* selectPaymentMethodAction(data);
-                checkoutData.setSelectedPaymentMethod(this.item.method);
-                */
-                console.log('selectPaymentMethodHf#data', data);
-                return true;
-            },
-
-            selectedPayPalMethod: function(method){
+            selectedPayPalMethod: function (method) {
                 var data = this.getData();
 
                 this.selectedMethod = method;
@@ -79,26 +64,18 @@ define(
                 selectPaymentMethodAction(data);
                 checkoutData.setSelectedPaymentMethod(this.item.method);
                 console.log('selectPaymentMethodSpb#data', data);
-/*
-                var self = this;
-
-                console.log('isSelected#', quote.paymentMethod())
-
-                if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalPaymentMethod)) {
-                    console.log('isSelected#', self.selectedMethod)
-
-                    return self.selectedMethod;
-                }
-
-                return quote.paymentMethod() ? quote.paymentMethod().method : null; */
             },
 
             /**
              * Renders the PayPal card fields
              *
              */
-            renderHostedFields: function() {
+            renderHostedFields: function () {
                 var self = this;
+
+                //var grandTotal = totals.getSegment('grand_total').value
+
+                console.log('getTotals#', totals.getSegment('grand_total'));
 
                 if ((typeof paypal === 'undefined')) {
                     return;
@@ -126,15 +103,61 @@ define(
                     fields: {
                         number: {
                             selector: '#card-number',
-                            placeholder: 'card number'
+                            placeholder: 'Número de tarjeta'
                         },
                         cvv: {
                             selector: '#cvv',
-                            placeholder: 'card security number'
+                            placeholder: 'Código de seguridad '
                         },
                         expirationDate: {
                             selector: '#expiration-date',
                             placeholder: 'mm / yy'
+                        }
+                    },
+                    installments: {
+                        onInstallmentsRequested: function () {
+                            return {
+                                amount: '500',//String(totals.getSegment('grand_total').value),
+                                currencyCode: 'MXN'
+                            };
+                        },
+                        onInstallmentsAvailable: function (installments) {
+                            var qualifyingOptions = installments && installments.financing_options && installments.financing_options.filter(function (financialOption) {
+                                return financialOption.product === 'CARD_ISSUER_INSTALLMENTS';
+                            });
+
+                            var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
+                            if (!hasCardIssuerInstallment) {
+/*                                 appendOption({ type: 'no_installments_option' });
+ */                                return;
+                            }
+
+                            qualifyingOptions.forEach(function (financialOption) {
+/*                                 appendOption({ type: 'default_option' });
+ */
+                                var options = [];
+                                financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
+
+                                    var option = {
+                                        value: qualifyingFinancingOption.monthly_payment.value,
+                                        currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
+                                        interval: qualifyingFinancingOption.credit_financing.interval,
+                                        term: qualifyingFinancingOption.credit_financing.term,
+                                        interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
+                                        discount_percentage: qualifyingFinancingOption.discount_percentage
+                                    };
+
+                                    options.push(option);
+
+                                    console.log('financialOption.qualifying_financing_options#option', option)
+                                });
+
+                                self.installmentOptions(options);
+                            });
+                        },
+                        onInstallmentsError: function () {
+                            console.log('Error while fetching installments');
+                            appendOption({ type: 'error_option' });
                         }
                     },
                     createOrder: function () {
@@ -173,6 +196,21 @@ define(
                             cardholderName: document.getElementById('card-holder-name').value,
                             vault: $('#vault').is(':checked')
                         };
+                        console.log('self.selectedInstallments()', self.selectedInstallments());
+
+                        const installment = self.selectedInstallments();
+
+                        console.log('installment', installment);
+
+                        if (installment && installment !== '') {
+
+                            submitOptions.installments = {
+                                term: installment.term,
+                                intervalDuration: installment.interval_duration
+                            };
+                        }
+
+                        console.log('submitOptions', submitOptions);
 
                         hf.submit(submitOptions)
                             .then(function (payload) {
@@ -192,7 +230,7 @@ define(
             },
             getData: function () {
                 var data = {
-                    'method': 'paypalcp',//this.selectedMethod,
+                    'method': this.paypalMethod,
                     'additional_data': {
                         'order_id': this.orderId,
                     }
@@ -200,7 +238,7 @@ define(
 
                 return data;
             },
-            renderSmartButton: function(){
+            renderSmartButton: function () {
                 var self = this;
 
                 paypal.Buttons({
@@ -214,49 +252,6 @@ define(
                     createOrder: function () {
                         console.log('### paypal_advanced-method#renderButton#createOrder');
 
-                        /* var ret = storage.post(
-                            '/paypalcheckout/order', {}, false
-                        ).fail(
-                            function (response) {
-                                console.log("Failed saving cards:" + response);
-                                //self.errorProcessor.process(response, self.messageContainer);
-                                message: $.mage.__('An error ocurred while saving card.');
-                            }
-                        ) *//* .done(
-                            function (result) {
-                                console.log("Saved cards:" + JSON.stringify(result));
-                                var message = {
-                                    message: $.mage.__('Card successfully saved.')
-                                };
-                                return result;
-
-                                //TODO: Let or not the user know about saved card before placing order ? Let merchant decide with config ?
-                                //self.messageContainer.addSuccessMessage(message);
-                            }
-                        ) *//* .done(
-                            function (data) {
-                                console.log("### paypal_advanced-method#renderButton#createOrder#data:" + JSON.stringify(data));
-                                var message = {
-                                    message: $.mage.__('Card successfully saved.')
-                                };
-                                console.log("### paypal_advanced-method#renderButton#createOrder#data.result.id:" + data.result.id);
-
-                                return data.result.id;
-
-                                //TODO: Let or not the user know about saved card before placing order ? Let merchant decide with config ?
-                                //self.messageContainer.addSuccessMessage(message);
-                            }
-                        );
-
-                        console.log('###ret###', ret);
-
-                        return ret.done(function (data) {
-                            console.log('###ret#data', data);
-                            return data.result.id;
-                        });
-
-                        return ret; */
-
                         return fetch('/paypalcheckout/order', {
                             method: 'post',
                             headers: {
@@ -268,7 +263,7 @@ define(
                             return res.json();
                         }).then(function (data) {
                             console.log('###paypal_advanced-method#renderButton#createOrder# data.result =', data.result);
-                            return data.result.id; // Use the key sent by your server's response, ex. 'id' or 'token'
+                            return data.result.id;
                         });
 
                     },
@@ -284,7 +279,7 @@ define(
                 }).render('#paypal-button-container');
 
             },
-            rendersPayments: function(){
+            rendersPayments: function () {
                 var self = this;
 
                 console.log('#rendersPayments#');
@@ -293,13 +288,13 @@ define(
                 self.renderSmartButton();
 
             },
-            completeRender: function (){
+            completeRender: function () {
                 var self = this;
                 console.log('ON completeRender', paypalSdkAdapter);
 
-                paypalSdkAdapter.loadSdk(function () { self.rendersPayments()});
+                paypalSdkAdapter.loadSdk(function () { self.rendersPayments() });
             },
-            enableCheckout: function(){
+            enableCheckout: function () {
                 $('#submit').prop('disabled', false);
             }
         });

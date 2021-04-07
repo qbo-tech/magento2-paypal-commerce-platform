@@ -1,8 +1,8 @@
 <div class="payment-method" data-bind="css: {'_active': ( 'paypalcp_spb' == isSelected())}, attr: {isSel: isSelected()}">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode('paypalcp_spb')}, value: getCode('paypalcp_spb'), checked: isChecked, click: selectedPayPalMethod('paypalcp_spb'), visible: isRadioButtonVisible()" />
-        <label class="label" data-bind="attr: {'for': getCode('paypalcp_spb')}"><span data-bind="text: getTitle()"></span></label>
+            data-bind="attr: {'id': getCode('paypalcp_spb')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_spb'), visible: isRadioButtonVisible()" />
+        <label class="label" data-bind="attr: {'for': getCode('paypalcp_spb')}"><span data-bind="text: 'PayPal'"></span></label>
     </div>
     <div class="payment-method-content">
         <!--         ko foreach: getRegion('messages') -->
@@ -10,7 +10,7 @@
         <!-- /ko -->
         <!--         /ko -->
 
-        <div id="paypal-button-container"></div>
+        <div id="paypal-button-container" style="min-height: 50px;"></div>
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
             <!--                 ko template: getTemplate() -->
@@ -26,8 +26,8 @@
 <div class="payment-method" data-bind="css: {'_active': ( 'paypalcp_hf' == isSelected())}, attr: {ischek: isSelected(), gcode: getCode()}">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode('paypalcp_hf')}, value: getCode('paypalcp_hf'), checked: isChecked, click: selectedPayPalMethod('paypalcp_hf'), visible: isRadioButtonVisible()" />
-        <label class="label" data-bind="attr: {'for': getCode('paypalcp_hf')}"><span data-bind="text: getTitle()"></span></label>
+            data-bind="attr: {'id': getCode('paypalcp_hf')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_hf'), visible: isRadioButtonVisible()" />
+        <label class="label" data-bind="attr: {'for': getCode('paypalcp_hf')}"><span data-bind="text: 'Pago con tarjeta de Crédito/Débito'"></span></label>
         <div class="payment-method-content">
             <!--         ko foreach: getRegion('messages') -->
             <!--         ko template: getTemplate() -->
@@ -56,44 +56,56 @@
                     <form id="card-form">
 
                         <div class="form-group">
-                            <label for='card-number'>Card Number</label>
+                            <label for='card-number'>Número de tarjeta</label>
                             <div class='form-control' id='card-number'></div>
                         </div>
                         <div class="form-group" style="width:48%; display: inline-block;">
-                            <label for='expiration-date'>Expiration Date</label>
+                            <label for='expiration-date'>Fecha de Vencimineto</label>
                             <div class='form-control' id='expiration-date'></div>
                         </div>
                         <div class="form-group" style="width:48%; display: inline-block;">
-                            <label for='cvv'>CVV</label>
+                            <label for='cvv'>Código de seguridad</label>
                             <div class='form-control' id='cvv'></div>
                         </div>
 
                         <div class="form-group" style="width: 95%;">
-                            <label for='card-holder-name'>Name on card</label>
+                            <label for='card-holder-name'>Nombre del titular de tarjeta</label>
                             <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off"
-                                placeholder="card holder name" class='form-control' />
+                                placeholder="Nombre del titular" class='form-control' />
                         </div>
                             <div class="form-group">
-                                <label for='installments'>Instalments</label>
-                                <select class="form-control" name="installments" id="installments" disabled>
-                                    <option value="">No installment available. Fill out the card number</option>
+                                <label for='installments'>Pagos a meses sin intereses</label>
+                                <select class="form-control" style="font-size: 14px;" name="installments" id="installments"
+                                data-bind="
+                                    options: installmentOptions,
+                                    optionsText: function(i) {
+                                        return [
+                                            i.value,
+                                            i.currency_code,
+                                            'x',
+                                            i.term,
+                                            i.interval
+                                        ].join(' ');
+                                    },
+                                    value: selectedInstallments
+                                ">
+                                    <option value="">Ingresa tu número de tarjeta</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="width:50%; display: inline-block; float:left">
-                                <input type='checkbox' id='vault' name='vault'> &nbsp; <label for='vault'>Remember this
-                                    Card</label>
+                            <div class="form-group" style="margin: 10px" data-bind="visible: window.checkoutConfig.payment.paypalcp.customerId != null">
+                                <input type='checkbox' id='vault' name='vault' style="display: inline;"><label for='vault'>Recordar tarjeta</label>
                             </div>
-                        <button value="submit" id="submit" class="btn">Pay</button>
+                        <button value="submit" id="submit" class="btn">Pagar</button>
                     </form>
                 </div>
             </div>
             </div>
             <div id="paypal-button-container"></div>
             <div class="checkout-agreements-block">
-                <!--             ko foreach: $parent.getRegion('before-place-order') -->
-                <!--                 ko template: getTemplate() -->
-                <!-- /ko -->
-                <!--             /ko -->
+                <!--    ko foreach: $parent.getRegion('before-place-order') -->
+                <!--        ko template: getTemplate() -->
+                <!--        /ko -->
+                <!--    /ko -->
             </div>
             <div class="actions-toolbar">
                 <div class="primary" data-bind="attr: {'id': getCode('Express_button')}"></div>

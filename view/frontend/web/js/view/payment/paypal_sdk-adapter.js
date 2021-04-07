@@ -12,6 +12,7 @@ define([
 
             paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
             onLoadedCallback: '',
+            customerId: window.checkoutConfig.payment.paypalcp.customerId,
 
             loadSdk: function (callbackOnLoaded) {
                 var self = this;
@@ -23,26 +24,18 @@ define([
 
                 if ((typeof paypal === 'undefined')) {
 
-                    var clientToken = paypalTokenAdapter.generateClientToken('testVault1');
+                    var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
 
                     console.log('finish generateToken', clientToken);
 
                     if (clientToken) {
                         var objCallback = {
                             completeCallback: function (resultIndicator, successIndicator) {
-                                console.log('Payment complete');
-                                if (window.checkoutConfig.banamexObject) {
-                                    window.checkoutConfig.banamexObject.processOncomplete(resultIndicator, successIndicator);
-                                } else {
-                                    console.log('Error onCompleteCallback paypal');
-                                }
+                                console.log('completeCallback complete');
                             },
                             errorCallback: function () {
-                                if (window.checkoutConfig.banamexObject) {
-                                    window.checkoutConfig.banamexObject.errorCallback();
-                                } else {
-                                    console.log('error on paypal');
-                                }
+                                console.error('Payment errorCallback');
+
                             },
                             cancelCallback: function () {
                                 console.log('Payment cancelled');
@@ -81,7 +74,7 @@ define([
                     }
                 }
             },
-
+/*
             renderHostedFields: function () {
                 var self = this;
 
@@ -170,7 +163,7 @@ define([
                         return false;
                     });
                 });
-            }
+            } */
         };
     }
 );
