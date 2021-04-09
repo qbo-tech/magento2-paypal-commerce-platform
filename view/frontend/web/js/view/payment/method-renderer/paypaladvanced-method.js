@@ -8,9 +8,10 @@ define(
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/model/quote',
         'ko',
-        'Magento_Checkout/js/model/totals'
+        'Magento_Checkout/js/model/totals',
+        'Magento_Ui/js/model/messageList'
     ],
-    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals) {
+    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, globalMessageList) {
         'use strict';
         console.log('paypal_advance-method');
 
@@ -28,6 +29,9 @@ define(
             orderId: null,
             paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
             customerId: window.checkoutConfig.payment.paypalcp.customerId,
+            paypalConfigs: window.checkoutConfig.payment.paypalcp,
+            isBcdcEnable: window.checkoutConfig.payment.paypalcp.bcdc.enable,
+            isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
             selectedMethod: null,
             installmentOptions: ko.observableArray(),
             selectedInstallments: ko.observable(),
@@ -52,7 +56,37 @@ define(
                     return self.selectedMethod;
                 }
 
-                return quote.paymentMethod() ? quote.paymentMethod().method : null;
+                return false;
+            },
+
+            isVisibleCard: function () {
+                var self = this;
+
+                if (self.isBcdcEnable || self.isAcdcEnable) {
+                    return true;
+                }
+
+                return false;
+            },
+
+            isInstallmentsEnable: function () {
+                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments) && (this.installmentOptions().length > 0));
+            },
+
+            isVaultingEnable: function () {
+                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customerId != null));
+            },
+
+            getTitleMethodPaypal: function () {
+                if ((this.isBcdcEnable == false) && (this.isAcdcEnable == false)) {
+                    return this.paypalConfigs.title;
+                } else {
+                    return this.paypalConfigs.splitOptions.title_method_paypal
+                }
+            },
+
+            getTitleMethodCard: function () {
+                return this.paypalConfigs.splitOptions.title_method_card;
             },
 
             selectedPayPalMethod: function (method) {
@@ -117,7 +151,7 @@ define(
                     installments: {
                         onInstallmentsRequested: function () {
                             return {
-                                amount: '500',//String(totals.getSegment('grand_total').value),
+                                amount: String(totals.getSegment('grand_total').value),
                                 currencyCode: 'MXN'
                             };
                         },
@@ -133,8 +167,8 @@ define(
                             }
 
                             qualifyingOptions.forEach(function (financialOption) {
-/*                                 appendOption({ type: 'default_option' });
- */
+                                /*                                 appendOption({ type: 'default_option' });
+                                 */
                                 var options = [];
                                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
@@ -262,7 +296,17 @@ define(
                             console.log('###paypal_advanced-method#renderButton#createOrder# res =', res);
                             return res.json();
                         }).then(function (data) {
-                            console.log('###paypal_advanced-method#renderButton#createOrder# data.result =', data.result);
+                            console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', data.reason);
+                            console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', JSON.parse(data.reason));
+                            if(data.reason){
+                                globalMessageList.addErrorMessage({
+                                    message: JSON.parse(data.reason).message
+                                });
+                                $(".message.warning").addClass("error").removeClass("warning");
+                                $(".message.error").html(data.message);
+                            return false;
+                            }
+                            
                             return data.result.id;
                         });
 

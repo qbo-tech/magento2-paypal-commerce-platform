@@ -59,6 +59,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $config = [
             'payment' => [
                 $this->_payment_code => [
+                    'title' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE),
                     'urlSdk' => $this->getUrlSdk(),
                     'style'  => [
                         'layout'  => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LAYOUT),
@@ -70,7 +71,19 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'urlAccessToken' => self::URL_ACCESS_TOKEN,
                     'urlGenerateClientToken' => self::URL_GENERATE_CLIENT_TOKEN,
                     'authorizationBasic' => $authorizationBasic,
-                    'customerId' => $this->_customerSession->getCustomerId() ?? $this->_customerSession->getId()
+                    'customerId' => $this->_customerSession->getCustomerId() ?? $this->_customerSession->getId(),
+                    'bcdc' => [
+                        'enable' => $this->_paypalConfig->isEnableBcdc(),
+                    ],
+                    'acdc' => [
+                        'enable' => $this->_paypalConfig->isEnableAcdc(),
+                        'enable_installments' => $this->_paypalConfig->isEnableMsi(),
+                        'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
+                    ],
+                    'splitOptions' => [
+                        'title_method_paypal' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_PAYPAL),
+                        'title_method_card'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_CARD),
+                    ]
                 ]
             ]
         ];

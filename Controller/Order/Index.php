@@ -13,6 +13,9 @@ class Index extends \Magento\Framework\App\Action\Action
     /** @var \PayPal\CommercePlatform\Model\Paypal\Api */
     protected $_paypalApi;
 
+    /** @var \PayPal\CommercePlatform\Model\Config */
+    protected $_paypalConfig;
+
     /** @var \PayPalCheckoutSdk\Orders\OrdersCreateRequest */
     protected $_orderCreateRequest;
 
@@ -26,6 +29,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
+        \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \Psr\Log\LoggerInterface $logger
     ) {
@@ -33,8 +37,8 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $this->_logger  = $logger;
 
-
-        $this->_paypalApi = $paypalApi;
+        $this->_paypalApi    = $paypalApi;
+        $this->_paypalConfig = $paypalConfig;
 
         $this->_orderCreateRequest = $this->_paypalApi->getOrderCreateRequest();
         $this->_resultJsonFactory  = $resultJsonFactory;
@@ -55,11 +59,24 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $this->_logger->debug(__METHOD__, ['request' => $this->_orderCreateRequest]);
 
+        $httpBadRequestCode = '400';
+        $httpErrorCode = '500';
 
-        /** @var \PayPalHttp\HttpResponse $response */
-        $response = $this->_paypalApi->execute($this->_orderCreateRequest);
 
-        $this->_logger->debug(__METHOD__ . '#response ', ['response' => print_r($response, true)]);
+        try {
+            /** @var \PayPalHttp\HttpResponse $response */
+            $response = $this->_paypalApi->execute($this->_orderCreateRequest);
+
+            $this->_logger->debug(__METHOD__ . '#response ', ['response' => print_r($response, true)]);
+
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+
+            $resultJson->setData(array('reason' => $e->getMessage()));
+
+            return $resultJson->setHttpResponseCode($httpErrorCode);
+        }
+
 
         return $resultJson->setData($response);
     }
@@ -76,9 +93,6 @@ class Index extends \Magento\Framework\App\Action\Action
         /** @var \Magento\Quote\Model\Quote $quote */
         $quote = $this->_checkoutSession->getQuote();
 
-        $this->_logger->debug(__METHOD__ . ' | quote => ' . print_r($quote->debug(), true));
-        $this->_logger->debug(__METHOD__ . ' | quote->getTaxAmount => ' . print_r($quote->getTotals(), true));
-
         $currencyCode   = $quote->getQuoteCurrencyCode();
         $amount         = round($quote->getGrandTotal(), self::DECIMAL_PRECISION);
         $subtotal       = round($quote->getSubtotal(), self::DECIMAL_PRECISION);
@@ -86,14 +100,11 @@ class Index extends \Magento\Framework\App\Action\Action
         $taxAmount      = round($quote->getTotals()['tax']->getValue(), self::DECIMAL_PRECISION);
         $discountAmount = round($quote->getSubtotal() - $quote->getSubtotalWithDiscount(), self::DECIMAL_PRECISION);
 
-        $this->_logger->debug(__METHOD__ . '#amount ', ['amount' => print_r($amount, true)]);
-
-        return [
+        $requestBody = [
             'intent' => 'CAPTURE',
-            /* 'application_context' => [
-                'return_url' => 'https://example.com/return',
-                'cancel_url' => 'https://example.com/cancel'
-            ], */
+            'application_context' => [
+                'shipping_preference'=> 'NO_SHIPPING'
+            ],
             'purchase_units' => [[
                 'amount' => [
                     'currency_code' => $currencyCode,
@@ -116,10 +127,15 @@ class Index extends \Magento\Framework\App\Action\Action
                                     'currency_code' => $currencyCode
                                 ]
                     ]
-                ],
-                'items' => $this->getPaypalItemsFormatted($quote)
+                ] 
             ]]
         ];
+
+        if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS)) {
+            $requestBody['purchase_units'][0]['items'] = $this->getPaypalItemsFormatted($quote);
+        }
+
+        return $requestBody;
     }
 
     /**
@@ -134,14 +150,13 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $currencyCode   = $quote->getQuoteCurrencyCode();
 
-
         /** @var \Magento\Quote\Model\Quote\Item $item */
         foreach ($quote->getItems() as $item) {
-            $this->_logger->debug(__METHOD__ . ' | getOriginalCustomPrice ' . print_r($item->getOriginalCustomPrice(), true));
+            /* $this->_logger->debug(__METHOD__ . ' | getOriginalCustomPrice ' . print_r($item->getOriginalCustomPrice(), true));
             foreach($item->getProduct()->getPriceInfo()->getPrices() as $priceInfo){
                 $this->_logger->debug(__METHOD__ . ' | getPriceInfo getPriceCode ' . print_r($priceInfo->getPriceCode(), true));
                 $this->_logger->debug(__METHOD__ . ' | getPriceInfo getValue ' . print_r($priceInfo->getValue(), true));
-            }
+            } */
             //$this->_logger->debug(__METHOD__ . ' | getProduct()->getPriceInfo() ' . print_r($item->getProduct()->getPriceInfo()->getPrices(), true));
 
             $paypalItems[] = [
@@ -158,8 +173,6 @@ class Index extends \Magento\Framework\App\Action\Action
                 'quantity'    => $item->getQty()
             ];
         }
-
-        $this->_logger->debug(__METHOD__ . ' | ' . print_r($paypalItems, true));
 
         return $paypalItems;
     }

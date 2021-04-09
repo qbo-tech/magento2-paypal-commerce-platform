@@ -21,10 +21,13 @@ class Config
     const CONFIG_XML_INTENT               = 'intent';
     const CONFIG_XML_ENABLE_BCDC          = 'enable_bcdc';
     const CONFIG_XML_ENABLE_ACDC          = 'enable_acdc';
-    const CONFIG_XML_ENABLE_INSTALLMENTS  = 'installments';
+    const CONFIG_XML_ENABLE_INSTALLMENTS  = 'enable_installments';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
     const CONFIG_XML_CURRENCY_CODE        = 'currency';
     const CONFIG_XML_ENABLE_DEBUG         = 'enable_debug';
+    const CONFIG_XML_TITLE_METHOD_PAYPAL  = 'title_paypal';
+    const CONFIG_XML_TITLE_METHOD_CARD    = 'title_card';
+    const CONFIG_XML_ENABLE_ITEMS         = 'enable_items';
 
     /**
      * Button customization style options
@@ -80,6 +83,12 @@ class Config
         );
     }
 
+    /**
+     * Retrieve config flag by path and scope
+     * 
+     * @param string $flag
+     * @return bool
+     */
     public function isSetFLag($flag)
     {
         return $this->_scopeConfig->isSetFlag(
@@ -113,5 +122,25 @@ class Config
     public function getCurrency()
     {
         return $this->getConfigValue(self::CONFIG_XML_CURRENCY_CODE);
+    }
+
+    public function isEnableBcdc()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_ENABLE_BCDC);
+    }
+
+    public function isEnableAcdc()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_ENABLE_ACDC);
+    }
+
+    public function isEnableMsi()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_ENABLE_INSTALLMENTS);
+    }
+
+    public function isEnableVaulting()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_ENABLE_REMEMBER_CARD);
     }
 }
