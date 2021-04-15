@@ -296,17 +296,18 @@ define(
                             console.log('###paypal_advanced-method#renderButton#createOrder# res =', res);
                             return res.json();
                         }).then(function (data) {
-                            console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', data.reason);
-                            console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', JSON.parse(data.reason));
-                            if(data.reason){
+                            console.log('###paypal_advanced-method#renderButton#createOrder# data =', data);
+                            if (data.reason) {
+                                console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', JSON.parse(data.reason));
+
                                 globalMessageList.addErrorMessage({
                                     message: JSON.parse(data.reason).message
                                 });
                                 $(".message.warning").addClass("error").removeClass("warning");
                                 $(".message.error").html(data.message);
-                            return false;
+                                return false;
                             }
-                            
+
                             return data.result.id;
                         });
 

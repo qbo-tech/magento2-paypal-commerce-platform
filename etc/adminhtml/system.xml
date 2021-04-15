@@ -19,11 +19,13 @@
                         <attribute type="shared">1</attribute>
                         <config_path>payment/paypalcp/sandbox_flag</config_path>
                     </field>
+<!-- 
                     <field id="merchant_id" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1">
                         <label>Merchant ID</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <config_path>payment/paypalcp/merchant_id</config_path>
                     </field>
+ -->
                     <field id="client_id" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1">
                         <label>Client ID</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
@@ -38,11 +40,20 @@
                         <label>Title</label>
                         <config_path>payment/paypalcp/title</config_path>
                     </field>
-                    <field id="enable_bcdc" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Enable BCDC</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/paypalcp/enable_bcdc</config_path>
+<!-- 
+                    <field id="intent" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Intent</label>
+                        <config_path>payment/paypalcp/title</config_path>
                     </field>
+                    sale -> authorize (capturar al momento de capturar invoice)
+                    capture -> capture
+                     -->
+<!--                     <field id="enable_bcdc" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" disable="true">
+                        <label>Enable BCDC with Credit and Debit Card Payment Solutions</label> 
+                         <comment>No disponible por el momento</comment> 
+                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/paypalcp/enable_bcdc</config_path>
+                    </field> -->
                     <field id="enable_items" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Enviar Items (Line Items)</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -55,7 +66,7 @@
                     </field>
                     <group id="paypalcp_advanced" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>PayPal Advanced Credit and Debit Card</label>
-                        <field id="enable_acdc" type="select" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <field id="enable_acdc" type="select" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" disable="disable">
                             <label>Enable ACDC</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_acdc</config_path>

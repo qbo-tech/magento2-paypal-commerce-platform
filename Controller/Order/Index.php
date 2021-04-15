@@ -98,7 +98,10 @@ class Index extends \Magento\Framework\App\Action\Action
         $subtotal       = round($quote->getSubtotal(), self::DECIMAL_PRECISION);
         $shippingAmount = round($quote->getShippingAddress()->getShippingAmount(), self::DECIMAL_PRECISION);
         $taxAmount      = round($quote->getTotals()['tax']->getValue(), self::DECIMAL_PRECISION);
-        $discountAmount = round($quote->getSubtotal() - $quote->getSubtotalWithDiscount(), self::DECIMAL_PRECISION);
+        $discountAmount = round($quote->getSubtotal() - $quote->getSubtotalWithDiscount(), self::DECIMAL_PRECISION); //getBaseDiscuotAmount
+
+        $this->_logger->debug(__METHOD__ . ' | ->getBaseSubtotalWithDiscount() ' . $quote->getBaseSubtotalWithDiscount());
+        $this->_logger->debug(__METHOD__ . ' | $quote->getSubtotalWithDiscount()() ' . $quote->getSubtotalWithDiscount());
 
         $requestBody = [
             'intent' => 'CAPTURE',
@@ -108,31 +111,31 @@ class Index extends \Magento\Framework\App\Action\Action
             'purchase_units' => [[
                 'amount' => [
                     'currency_code' => $currencyCode,
-                    'value' => $amount,
-                    'breakdown' => [
-                                'item_total' => [
-                                    'value' => $subtotal,
-                                    'currency_code' => $currencyCode
-                                ],
-                                'shipping' => [
-                                    'value' => $shippingAmount,
-                                    'currency_code' => $currencyCode
-                                ],
-                                'discuont' => [
-                                    'value' => $discountAmount,
-                                    'currency_code' => $currencyCode
-                                ],
-                                'total_tax' => [
-                                    'value' => $taxAmount,
-                                    'currency_code' => $currencyCode
-                                ]
-                    ]
+                    'value' => $amount
                 ] 
             ]]
         ];
 
         if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS)) {
             $requestBody['purchase_units'][0]['items'] = $this->getPaypalItemsFormatted($quote);
+            $requestBody['purchase_units'][0]['amount']['breakdown'] = [
+                'item_total' => [
+                    'value' => $subtotal,
+                    'currency_code' => $currencyCode
+                ],
+                'shipping' => [
+                    'value' => $shippingAmount,
+                    'currency_code' => $currencyCode
+                ],
+                'discount' => [
+                    'value' => $discountAmount,
+                    'currency_code' => $currencyCode
+                ],
+                'total_tax' => [
+                    'value' => $taxAmount,
+                    'currency_code' => $currencyCode
+                ]
+            ];
         }
 
         return $requestBody;
@@ -164,7 +167,7 @@ class Index extends \Magento\Framework\App\Action\Action
                 'sku'         => $item->getSku(),
                 'unit_amount' => [
                     'currency_code' => $currencyCode,
-                    'value' => round($item->getRowTotal(), self::DECIMAL_PRECISION)
+                    'value' => round($item->getPrice(), self::DECIMAL_PRECISION)
                 ],
                 'tax' => [
                     'currency_code' => $currencyCode,

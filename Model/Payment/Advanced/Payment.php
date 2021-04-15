@@ -110,6 +110,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
         parent::assignData($data);
 
         $additionalData     = $data->getData('additional_data') ?: $data->getData();
+        //payment_method
 
         $this->_logger->debug(__METHOD__ . ' | ', ['additionalData' => $additionalData]);
 
@@ -144,7 +145,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
             $this->_logger->debug(__METHOD__ . ' | before _paypalClient->execute ');
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
-            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response, true));
+            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response->result->purchase_units, true));
 
             $this->_processTransaction($payment);
 
@@ -187,10 +188,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
             //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
         }
 
-        if($this->_response->result->id){
+        $tx_id = $this->_response->result->purchase_units[0]->payments->captures[0]->id;
+
+        if($tx_id){
             $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false); // validate this
 
-            $payment->setTransactionId($this->_response->result->id)
+            $payment->setTransactionId($tx_id)
                 ->setIsTransactionPending(true)
                 ->setIsTransactionClosed(false);
         } else {
