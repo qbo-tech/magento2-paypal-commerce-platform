@@ -458,7 +458,6 @@ button {
 
     .details .item-image {
         flex: unset;
-        background: url('../images/sofa.png') no-repeat;
         background-size: contain;
         height: 150px;
         width: 150px;
@@ -564,7 +563,7 @@ button {
 .form-control, .card_field {
     margin: 10px;
     display: block;
-    width: 95%;
+    width: 93%;
     height: calc(1.5em + .75rem + 15px);
     padding: .375rem .75rem;
     font-size: 1rem;
@@ -577,6 +576,22 @@ button {
     border: 1px solid #26282C !important;
     border-radius: .25rem;
     transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+#card-form .form-control input[type=text]{
+    margin: 0;
+    padding: 0;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    border: none;
+    background-color: transparent;
+}
+
+
+input#card-holder-name:focus {
+    outline: 0;
+    box-shadow: none;
 }
 
 label {

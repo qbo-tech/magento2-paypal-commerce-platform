@@ -71,15 +71,15 @@ class Event
     public function processWebhook($eventData)
     {
 
-        if (in_array($eventData->event_type, $this->getAvailableEvents())) {
-            $this->_payment = $this->getPaymentByTxnId($eventData->resource->id);
+        if (in_array($eventData['event_type'], $this->getAvailableEvents())) {
+            $this->_payment = $this->getPaymentByTxnId($eventData['resource']['id']);
         } else {
-            $this->_logger->debug(__METHOD__ . ' | ' . __('Event not supported: ') . $eventData->event_type);
+            $this->_logger->debug(__METHOD__ . ' | ' . __('Event not supported: ') . $eventData['event_type']);
 
             return;
         }
 
-        switch ($eventData->event_type) {
+        switch ($eventData['event_type']) {
 
             case self::PAYMENT_CAPTURE_PENDING:
 
@@ -152,7 +152,7 @@ class Event
         $this->_logger->debug(__METHOD__);
 
         $this->_payment->setIsTransactionClosed(0)
-            ->registerCaptureNotification($eventData->resource->amount->value, true);
+            ->registerCaptureNotification($eventData['resource']['amount']['value'], true);
 
         $this->_payment->getOrder()->update(false)->save();
 
@@ -180,10 +180,10 @@ class Event
     {
         $this->_logger->debug(__METHOD__);
 
-        $paymentResource = $eventData->resource;
+        $paymentResource = $eventData['resource'];
 
         $this->_payment->setIsTransactionClosed(0)
-                       ->registerCaptureNotification($paymentResource->amount->value, true);
+                       ->registerCaptureNotification($paymentResource['amount']['value'], true);
 
         $this->_payment->getOrder()->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)
                                    ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING)
@@ -210,11 +210,11 @@ class Event
     protected function _paymentRefunded($eventData)
     {
         $this->_payment
-            ->setPreparedMessage($eventData->summary)
+            ->setPreparedMessage($eventData['summary'])
             ->setIsTransactionClosed(0);
 
         $this->_payment->getOrder()->addStatusHistoryComment(
-            __('Se ha hecho un reintegrado desde PayPal')
+            __('Se ha hecho un reintegrado desde PayPal | %1', $eventData['summary'])
         )
             ->setIsCustomerNotified(true)
             ->save();
@@ -228,11 +228,11 @@ class Event
     protected function _paymentReversed($eventData)
     {
         $this->_payment
-            ->setPreparedMessage($eventData->summary)
+            ->setPreparedMessage($eventDatav)
             ->setIsTransactionClosed(0);
 
         $this->_payment->getOrder()->addStatusHistoryComment(
-            __('Se ha hecho un reembolso desde PayPal')
+            __('Se ha hecho un reembolso desde PayPal | %1', $eventData['summary'])
         )
             ->setIsCustomerNotified(true)
             ->save();
@@ -246,7 +246,7 @@ class Event
     protected function _paymentDenied($eventData)
     {
         try {
-            $this->_payment->setPreparedMessage($eventData->summary);
+            $this->_payment->setPreparedMessage($eventData['summary']);
             $this->_payment->setNotificationResult(true);
             $this->_payment->setIsTransactionClosed(true);
             $this->_payment->deny(false);

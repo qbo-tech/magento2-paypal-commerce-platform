@@ -124,11 +124,12 @@ define(
                 paypal.HostedFields.render({
                     styles: {
                         'input': {
-                            'font-size': '10pt',
-                            'color': '#3A3A3A'
+                            'font-size': '14px',
+                            'color': '#3A3A3A',
+                            'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
                         },
                         '.number': {
-                            'font-family': 'monospace'
+                            'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
                         },
                         '.valid': {
                             'color': 'black'

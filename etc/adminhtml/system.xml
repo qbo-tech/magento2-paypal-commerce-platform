@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
-        <section id="payment" sortOrder="6" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+        <section id="payment" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
             <group id="recommended_solutions" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <fieldset_css>paypal-top-section paypal-recommended-header</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Expanded</frontend_model>
@@ -32,15 +32,20 @@
                         <config_path>payment/paypalcp/client_id</config_path>
                     </field>
                     <field id="secret_id" translate="label" type="obscure" sortOrder="50" showInDefault="1" showInWebsite="1">
-                        <label>Secret Id</label>
+                        <label>Secret ID</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <config_path>payment/paypalcp/secret_id</config_path>
+                    </field>
+                    <field id="webhook_id" translate="label" type="obscure" sortOrder="54" showInDefault="1" showInWebsite="1">
+                        <label>Webhook ID</label>
+                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                        <config_path>payment/paypalcp/webhook_id</config_path>
                     </field>
                     <field id="title" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Title</label>
                         <config_path>payment/paypalcp/title</config_path>
                     </field>
-<!-- 
+<!--
                     <field id="intent" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Intent</label>
                         <config_path>payment/paypalcp/title</config_path>

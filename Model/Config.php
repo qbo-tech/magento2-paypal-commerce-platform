@@ -16,7 +16,8 @@ class Config
     const CONFIG_XML_EMAIL_ADDRESS        = 'email_address';
     const CONFIG_XML_MERCHANT_ID          = 'merchant_id';
     const CONFIG_XML_CLIENT_ID            = 'client_id';
-    const CONFIG_XML_CECRET_ID            = 'secret_id';
+    const CONFIG_XML_SECRET_ID            = 'secret_id';
+    const CONFIG_XML_WEBHOOK_ID           = 'webhook_id';
     const CONFIG_XML_TITLE                = 'title';
     const CONFIG_XML_INTENT               = 'intent';
     const CONFIG_XML_ENABLE_BCDC          = 'enable_bcdc';
@@ -65,8 +66,6 @@ class Config
      */
     public function isMethodActive($method)
     {
-        $this->_logger->debug(__METHOD__ . ' | method ' . $method);
-
         $isEnabled = $this->_scopeConfig->isSetFlag(
             'payment/' . $method . '/active',
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
@@ -99,8 +98,6 @@ class Config
 
     protected function _preparePathConfig($config, $code = self::COMMERCE_PLATFORM_CODE)
     {
-        $this->_logger->debug(__METHOD__ . ' | config ' . sprintf("payment/%s/%s", $code, $config));
-
         return sprintf("payment/%s/%s", $code, $config);
     }
 
@@ -116,7 +113,12 @@ class Config
 
     public function getSecretId()
     {
-        return $this->getConfigValue(self::CONFIG_XML_CECRET_ID);
+        return $this->getConfigValue(self::CONFIG_XML_SECRET_ID);
+    }
+
+    public function getWebhookId()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_WEBHOOK_ID);
     }
 
     public function getCurrency()

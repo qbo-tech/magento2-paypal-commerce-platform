@@ -1,18 +1,30 @@
 <?php
+
 namespace PayPal\CommercePlatform\Controller\Webhooks;
 
 
 class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Framework\App\CsrfAwareActionInterface
 {
-    /**
-     * @var \Magento\Framework\Filesystem\DriverInterface
-     */
+
+    const HEADER_PAYPAL_AUTH_ALGO         = 'Paypal-Auth-Algo';
+    const HEADER_PAYPAL_CERT_URL          = 'Paypal-Cert-Url';
+    const HEADER_PAYPAL_TRANSMISSION_ID   = 'Paypal-Transmission-Id';
+    const HEADER_PAYPAL_TRANSMISSION_SIG  = 'Paypal-Transmission-Sig';
+    const HEADER_PAYPAL_TRANSMISSION_TIME = 'Paypal-Transmission-Time';
+
+    /** @var \Magento\Framework\Filesystem\DriverInterface */
     protected $_driver;
 
+    /** @var \PayPal\CommercePlatform\Model\Config */
+    protected $_paypalConfig;
 
-    /**
-     * @var \PayPal\CommercePlatform\Model\Paypal\Webhooks\Event
-     */
+    /** @var \PayPal\CommercePlatform\Model\Paypal\Api */
+    protected $_paypalApi;
+
+    /** @var \PayPal\CommercePlatform\Model\Paypal\Webhooks\VerifyWebhookSignatureRequest */
+    protected $_verifyWebhookSignature;
+
+    /** @var \PayPal\CommercePlatform\Model\Paypal\Webhooks\Event */
     protected $_webhookEvent;
 
     /**
@@ -20,19 +32,24 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Framework\Filesystem\DriverInterface $driver
-     * @param \Iways\PayPalPlus\Model\Webhook\EventFactory $webhookEvent
-     * @param \Iways\PayPalPlus\Model\ApiFactory $apiFactory
      * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\Filesystem\Driver\File $driver,
+        \PayPal\CommercePlatform\Model\Config $paypalConfig,
+        \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
+        \PayPal\CommercePlatform\Model\Paypal\Webhooks\VerifyWebhookSignatureRequest $verifyWebhookSignature,
         \PayPal\CommercePlatform\Model\Paypal\Webhooks\Event $webhookEvent,
         \Psr\Log\LoggerInterface $logger
     ) {
-        $this->_logger = $logger;
-        $this->_driver = $driver;
-        $this->_webhookEvent = $webhookEvent;
+        $this->_logger       = $logger;
+        $this->_driver       = $driver;
+        $this->_paypalConfig = $paypalConfig;
+        $this->_paypalApi    = $paypalApi;
+
+        $this->_verifyWebhookSignature = $verifyWebhookSignature;
+        $this->_webhookEvent           = $webhookEvent;
 
         parent::__construct($context);
     }
@@ -47,20 +64,14 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
     public function execute()
     {
         $this->_logger->debug(__METHOD__ . ' | ');
-        $eventData = $this->_driver->fileGetContents('php://input');
+        $eventData = json_decode($this->_driver->fileGetContents('php://input'), true);
 
-        $this->_logger->debug(__METHOD__ . ' | $data ' . $eventData);
-
-        if (!$this->getRequest()->isPost()) {
+        if ((!$this->getRequest()->isPost()) || (!$this->isValidWebhookSignature($eventData))) {
             return;
         }
 
         try {
-            
-            $eventData = json_decode($eventData);
-
             $this->_webhookEvent->processWebhook($eventData);
-
         } catch (\Exception $e) {
             $this->_logger->critical($e);
             $this->getResponse()->setStatusHeader(503, '1.1', 'Service Unavailable')->sendResponse();
@@ -71,9 +82,30 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
     {
         return null;
     }
- 
+
     public function validateForCsrf(\Magento\Framework\App\RequestInterface $request): ?bool
     {
         return true;
+    }
+
+    public function isValidWebhookSignature($eventData)
+    {
+        $request = $this->getRequest();
+
+        $this->_verifyWebhookSignature->body = [
+            'auth_algo'         => $request->getHeader(self::HEADER_PAYPAL_AUTH_ALGO),
+            'cert_url'          => $request->getHeader(self::HEADER_PAYPAL_CERT_URL),
+            'transmission_id'   => $request->getHeader(self::HEADER_PAYPAL_TRANSMISSION_ID),
+            'transmission_sig'  => $request->getHeader(self::HEADER_PAYPAL_TRANSMISSION_SIG),
+            'transmission_time' => $request->getHeader(self::HEADER_PAYPAL_TRANSMISSION_TIME),
+            'webhook_id'        => $this->_paypalConfig->getWebhookId(),
+            'webhook_event'     => $eventData
+        ];
+
+        $response = $this->_paypalApi->execute($this->_verifyWebhookSignature);
+
+        $this->_logger->debug(__METHOD__ . ' | response ' . print_r($response, true));
+
+        return $response->result->verification_status == 'SUCCESS' ? true : false;
     }
 }

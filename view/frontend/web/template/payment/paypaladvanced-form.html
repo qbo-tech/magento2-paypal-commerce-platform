@@ -67,10 +67,12 @@
                             <div class='form-control' id='cvv'></div>
                         </div>
 
-                        <div class="form-group" style="width: 95%;">
+                        <div class="form-group">
                             <label for='card-holder-name'>Nombre del titular de tarjeta</label>
-                            <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off"
-                                placeholder="Nombre del titular" class='form-control' />
+                            <div class="form-control">
+                                <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off"
+                                placeholder="Nombre del titular" />
+                            </div>
                         </div>
                         <div class="form-group" data-bind="visible: isInstallmentsEnable()">
                             <label for='installments'>Meses sin intereses</label>

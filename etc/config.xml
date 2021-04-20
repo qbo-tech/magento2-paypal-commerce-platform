@@ -19,6 +19,7 @@
                 <installments_active>0</installments_active>
                 <client_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <webhook_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <currency>MXN</currency>
                 <min_order_total>0.50</min_order_total>
                 <profile_experience_id/>
@@ -35,6 +36,7 @@
                 <installments_active>0</installments_active>
                 <client_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <webhook_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <currency>MXN</currency>
                 <min_order_total>0.50</min_order_total>
             </paypal_basic>

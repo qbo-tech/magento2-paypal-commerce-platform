@@ -54,8 +54,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     {
         $authorizationBasic = 'Basic ' . base64_encode($this->_paypalConfig->getClientId() . ':' . $this->_paypalConfig->getSecretId());
 
-        $this->_logger->debug(__METHOD__. ' | ' . $this->_paypalConfig->getClientId() . ':' . $this->_paypalConfig->getSecretId());
-
         $config = [
             'payment' => [
                 $this->_payment_code => [

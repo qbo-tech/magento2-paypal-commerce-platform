@@ -47,14 +47,11 @@ class Index extends \Magento\Framework\App\Action\Action
 
     public function execute()
     {
-        $this->_logger->debug(__METHOD__ . ' start');
         $resultJson = $this->_resultJsonFactory->create();
 
         $this->_orderCreateRequest->prefer('return=representation');
 
         $requestBody = $this->buildRequestBody();
-        $this->_logger->debug(__METHOD__ . ' requestBody | ' . print_r(json_encode($requestBody), true));
-
         $this->_orderCreateRequest->body = $requestBody;
 
         $this->_logger->debug(__METHOD__, ['request' => $this->_orderCreateRequest]);
@@ -66,9 +63,6 @@ class Index extends \Magento\Framework\App\Action\Action
         try {
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
-
-            $this->_logger->debug(__METHOD__ . '#response ', ['response' => print_r($response, true)]);
-
         } catch (\Exception $e) {
             $this->_logger->error($e->getMessage());
 
@@ -88,8 +82,6 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     private function buildRequestBody()
     {
-        $this->_logger->debug(__METHOD__);
-
         /** @var \Magento\Quote\Model\Quote $quote */
         $quote = $this->_checkoutSession->getQuote();
 
@@ -102,6 +94,9 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $this->_logger->debug(__METHOD__ . ' | ->getBaseSubtotalWithDiscount() ' . $quote->getBaseSubtotalWithDiscount());
         $this->_logger->debug(__METHOD__ . ' | $quote->getSubtotalWithDiscount()() ' . $quote->getSubtotalWithDiscount());
+        $this->_logger->debug(__METHOD__ . ' | $quote->getBaseDiscuotAmount()() ' . $quote->getBaseDiscuotAmount());
+        //$this->_logger->debug(__METHOD__ . ' | quote =>  ' . print_r($quote->debug(), true));
+
 
         $requestBody = [
             'intent' => 'CAPTURE',
@@ -155,13 +150,6 @@ class Index extends \Magento\Framework\App\Action\Action
 
         /** @var \Magento\Quote\Model\Quote\Item $item */
         foreach ($quote->getItems() as $item) {
-            /* $this->_logger->debug(__METHOD__ . ' | getOriginalCustomPrice ' . print_r($item->getOriginalCustomPrice(), true));
-            foreach($item->getProduct()->getPriceInfo()->getPrices() as $priceInfo){
-                $this->_logger->debug(__METHOD__ . ' | getPriceInfo getPriceCode ' . print_r($priceInfo->getPriceCode(), true));
-                $this->_logger->debug(__METHOD__ . ' | getPriceInfo getValue ' . print_r($priceInfo->getValue(), true));
-            } */
-            //$this->_logger->debug(__METHOD__ . ' | getProduct()->getPriceInfo() ' . print_r($item->getProduct()->getPriceInfo()->getPrices(), true));
-
             $paypalItems[] = [
                 'name'        => $item->getName(),
                 'sku'         => $item->getSku(),
