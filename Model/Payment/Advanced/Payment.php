@@ -7,18 +7,20 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 {
     const CODE                         = 'paypalcp';
 
-    const PAYMENT_REVIEW_STATE         = 'pending';
+    const PAYMENT_REVIEW_STATE         = 'PENDING';
     const PENDING_PAYMENT_NOTIFICATION = 'This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.';
-    const DECLINE_ERROR_MESSAGE        = 'Declining Pending Payment Transaction as configured in PPPlus module.';
+    const DECLINE_ERROR_MESSAGE        = 'Declining Pending Payment Transaction';
     const GATEWAY_ERROR_MESSAGE        = 'Payment has been declined by Payment Gateway';
     const DENIED_ERROR_MESSAGE         = 'Gateway response error';
-    const COMPLETED_SALE_CODE          = 'completed';
-    const DENIED_SALE_CODE             = 'denied';
-    const REFUNDED_SALE_CODE           = 'refunded';
-    const FAILED_STATE_CODE            = 'failed';
+    const COMPLETED_SALE_CODE          = 'COMPLETED';
+    const DENIED_SALE_CODE             = 'DENIED';
+    const REFUNDED_SALE_CODE           = 'REFUNDED';
+    const FAILED_STATE_CODE            = 'FAILED';
     const SUCCESS_STATE_CODES          = array("PENDING", "COMPLETED");
 
     protected $_code = self::CODE;
+
+    protected $_infoBlockType          = 'PayPal\CommercePlatform\Block\Info';
 
     protected $_isGateway    = true;
 
@@ -32,6 +34,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 
     protected $_successCodes = ['200', '201'];
 
+    protected $_canHandlePendingStatus      = true;
+
     /** @var \Psr\Log\LoggerInterface */
     protected $_logger;
 
@@ -44,6 +48,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
     /** @var \PayPal\CommercePlatform\Model\Paypal\Api */
     protected $_paypalApi;
 
+    protected $_scopeConfig;
 
     /**
      * Constructor method
@@ -85,6 +90,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 
         $this->_logger    = $context->getLogger();
         $this->_paypalApi = $paypalApi;
+        $this->_scopeConfig = $scopeConfig;
     }
 
     public function isAvailable(
@@ -147,7 +153,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
             $this->_logger->debug(__METHOD__ . ' | before _paypalClient->execute ');
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
-            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response->result->purchase_units, true));
+            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response->result, true));
 
             $this->_processTransaction($payment);
 
@@ -178,29 +184,80 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
      */
     protected function _processTransaction(&$payment)
     {
-        $this->_logger->debug(__METHOD__);
-
+   
         if (!in_array($this->_response->statusCode, $this->_successCodes)) {
             throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
         }
-        $status = $this->_response->result->status;
+        $state = $this->_response->result->purchase_units[0]->payments->captures[0]->status;
 
-        if (!$status || is_null($status) || !in_array($status, self::SUCCESS_STATE_CODES)) {
+        if (!$state || is_null($state) || !in_array($state, self::SUCCESS_STATE_CODES)) {
             throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
         }
 
-        $tx_id = $this->_response->result->purchase_units[0]->payments->captures[0]->id;
+        $_txnId = $this->_response->result->purchase_units[0]->payments->captures[0]->id;
+        $this->_canHandlePendingStatus = (bool)$this->getConfigValue('payment/paypalcp/handle_pending_payments');
 
-        if($tx_id){
-            $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false); // validate this
-
-            $payment->setTransactionId($tx_id)
-                ->setIsTransactionPending(true)
-                ->setIsTransactionClosed(false);
-        } else {
-            $payment->setIsTransactionPending(true);
+        switch($state){
+            case self::PAYMENT_REVIEW_STATE: 
+                if(!$this->_canHandlePendingStatus) {
+                    throw new \Exception(__(self::DECLINE_ERROR_MESSAGE));
+                }
+                $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
+                $payment->setTransactionId($_txnId)
+                        ->setIsTransactionPending(true)
+                        ->setIsTransactionClosed(false);
+                    
+                 //$this->_sendPendingPaymentEmail();
+                break;
+            case self::COMPLETED_SALE_CODE:
+                $payment->setTransactionId($_txnId)
+                    ->setIsTransactionClosed(true);
+                break;
+            default: 
+                $payment->setIsTransactionPending(true); 
+                break;
         }
 
+        $infoInstance = $this->getInfoInstance();
+        $paymentSource = $this->_response->result->payment_source;
+
+        if($paymentSource) { 
+            $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
+            $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
+            $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
+        }
+
+
         return $payment;
+    }
+
+    /**
+     * Set order comments
+     * 
+     * @param type $order
+     * @param type $comment
+     * @param type $isCustomerNotified
+     * @return type
+     */
+    public function setComments(&$order, $comment, $isCustomerNotified)
+    {
+        $history = $order->addStatusHistoryComment($comment, false);
+        $history->setIsCustomerNotified($isCustomerNotified);
+        
+        return $order;
+    }
+
+    /**
+     * Get payment store config
+     * 
+     * @return string
+     */
+    public function getConfigValue($configPath)
+    {
+        $value =  $this->_scopeConfig->getValue(
+            $configPath,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        ); 
+        return $value;
     }
 }
