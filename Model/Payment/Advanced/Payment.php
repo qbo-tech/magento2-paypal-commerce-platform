@@ -10,12 +10,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
     const PAYMENT_REVIEW_STATE         = 'pending';
     const PENDING_PAYMENT_NOTIFICATION = 'This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.';
     const DECLINE_ERROR_MESSAGE        = 'Declining Pending Payment Transaction as configured in PPPlus module.';
-    const GATEWAY_ERROR_MESSAGE        = 'Payement has been declined by Payment Gateway';
+    const GATEWAY_ERROR_MESSAGE        = 'Payment has been declined by Payment Gateway';
     const DENIED_ERROR_MESSAGE         = 'Gateway response error';
     const COMPLETED_SALE_CODE          = 'completed';
     const DENIED_SALE_CODE             = 'denied';
     const REFUNDED_SALE_CODE           = 'refunded';
     const FAILED_STATE_CODE            = 'failed';
+    const SUCCESS_STATE_CODES          = array("PENDING", "COMPLETED");
 
     protected $_code = self::CODE;
 
@@ -129,7 +130,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
      * @throws \Magento\Framework\Validator\Exception
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
-    {
+    { 
+
         $this->_logger->debug(__METHOD__);
 
         $paypalOrderId = $payment->getAdditionalInformation('order_id');
@@ -138,10 +140,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 
         $this->_order = $payment->getOrder();
 
-        $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId); //new \PayPalCheckoutSdk\Orders\OrdersCaptureRequest($paypalOrderId);
+        try {       
+            //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
+            $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId); //new \PayPalCheckoutSdk\Orders\OrdersCaptureRequest($paypalOrderId);
 
-        try {
-            //$this->_processTransaction($payment);
             $this->_logger->debug(__METHOD__ . ' | before _paypalClient->execute ');
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
@@ -151,12 +153,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 
         } catch (\Exception $e) {
             $this->_logger->debug(__METHOD__ . ' | Exception : ' . $e->getMessage());
-
-            $this->debugData(['request' => $data, 'exception' => $e->getMessage()]);
-            $this->_logger->error(__('Payment capturing error.'));
+            //$this->debugData(['request' => $data, 'exception' => $e->getMessage()]);
+            $this->_logger->debug(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
         }
-
+        //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
         //throw new \Exception;
         return $this;
     }
@@ -184,8 +185,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
         }
         $status = $this->_response->result->status;
 
-        if ($status == self::FAILED_STATE_CODE) { //TOOD COMPLETED O PENDING
-            //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
+        if (!$status || is_null($status) || !in_array($status, self::SUCCESS_STATE_CODES)) {
+            throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
         }
 
         $tx_id = $this->_response->result->purchase_units[0]->payments->captures[0]->id;
