@@ -146,7 +146,7 @@ define(
                         },
                         expirationDate: {
                             selector: '#expiration-date',
-                            placeholder: 'mm / yy'
+                            placeholder: 'mm / aa'
                         }
                     },
                     installments: {
@@ -163,13 +163,13 @@ define(
 
                             var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
                             if (!hasCardIssuerInstallment) {
-/*                                 appendOption({ type: 'no_installments_option' });
- */                                return;
+                                 appendOption({ type: 'no_installments_option' });
+                                 return;
                             }
 
                             qualifyingOptions.forEach(function (financialOption) {
-                                /*                                 appendOption({ type: 'default_option' });
-                                 */
+                                                                 appendOption({ type: 'default_option' });
+                                 
                                 var options = [];
                                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
@@ -275,6 +275,16 @@ define(
             },
             renderSmartButton: function () {
                 var self = this;
+
+                console.log('renderSmartButton');
+
+                if ((typeof paypal === 'undefined')) {
+
+                    console.log('Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.');
+
+                    $('#paypal-button-container').html('Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.');
+                    return;
+                }
 
                 paypal.Buttons({
                     style: {
