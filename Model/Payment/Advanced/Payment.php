@@ -116,14 +116,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 
         parent::assignData($data);
 
-        $additionalData     = $data->getData('additional_data') ?: $data->getData();
-        //payment_method
-
+        $additionalData = $data->getData('additional_data') ? : $data->getData();
+    
         $this->_logger->debug(__METHOD__ . ' | ', ['additionalData' => $additionalData]);
 
         $infoInstance = $this->getInfoInstance();
-
-        $infoInstance->setAdditionalInformation('order_id', $additionalData['order_id'] ?? '');
+        // Set any additional info here if required
 
         return $this;
     }
@@ -195,6 +193,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
         }
 
         $_txnId = $this->_response->result->purchase_units[0]->payments->captures[0]->id;
+
+        $infoInstance = $this->getInfoInstance();
+        $infoInstance->setAdditionalInformation('payment_id', $_txnId);
+
         $this->_canHandlePendingStatus = (bool)$this->getConfigValue('payment/paypalcp/handle_pending_payments');
 
         switch($state){
@@ -218,7 +220,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
                 break;
         }
 
-        $infoInstance = $this->getInfoInstance();
         $paymentSource = $this->_response->result->payment_source;
 
         if($paymentSource) { 
