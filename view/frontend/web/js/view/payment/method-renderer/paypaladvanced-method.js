@@ -34,6 +34,8 @@ define(
             isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
             selectedMethod: null,
             installmentOptions: ko.observableArray(),
+            installmentsAvailable: ko.observable(false),
+            canShowInstallments: ko.observable(false),
             selectedInstallments: ko.observable(),
 
 
@@ -70,7 +72,7 @@ define(
             },
 
             isInstallmentsEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments) && (this.installmentOptions().length > 0));
+                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
             },
 
             isVaultingEnable: function () {
@@ -106,6 +108,8 @@ define(
              */
             renderHostedFields: function () {
                 var self = this;
+
+                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
 
                 //var grandTotal = totals.getSegment('grand_total').value
 
@@ -163,15 +167,30 @@ define(
 
                             var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
                             if (!hasCardIssuerInstallment) {
-                                 appendOption({ type: 'no_installments_option' });
-                                 return;
+                                  console.log("MSI not available");
+                                  self.installmentsAvailable(false);
+                                  self.canShowInstallments(true);
+
+                                    var option = {
+                                        value: "No disponible",
+                                        currency_code: '',
+                                        interval: '',
+                                        term: '',
+                                        interval_duration: '',
+                                        discount_percentage: ''
+                                    };
+                                  var options = [];
+                                  options.push(option);
+                                  self.installmentOptions(options);
+
+                                  return;
                             }
 
-                            qualifyingOptions.forEach(function (financialOption) {
-                                                                 appendOption({ type: 'default_option' });
+                            qualifyingOptions.forEach(function (financialOption) {                               
                                  
                                 var options = [];
-                                financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
+                           
+                                  financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
                                     var option = {
                                         value: qualifyingFinancingOption.monthly_payment.value,
@@ -183,16 +202,18 @@ define(
                                     };
 
                                     options.push(option);
+                                    self.installmentOptions(options);
+                                    self.installmentsAvailable(true);
+                                    self.canShowInstallments(true);
 
                                     console.log('financialOption.qualifying_financing_options#option', option)
-                                });
-
-                                self.installmentOptions(options);
+                                  });                                                             
                             });
                         },
                         onInstallmentsError: function () {
+                            self.installmentsAvailable(false);
                             console.log('Error while fetching installments');
-                            appendOption({ type: 'error_option' });
+                            
                         }
                     },
                     createOrder: function () {

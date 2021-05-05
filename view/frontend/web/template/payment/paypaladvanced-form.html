@@ -74,10 +74,11 @@
                                 placeholder="Nombre del titular" />
                             </div>
                         </div>
-                        <div class="form-group" data-bind="visible: isInstallmentsEnable()">
+                        <div class="form-group" data-bind="if: isInstallmentsEnable(), visible: canShowInstallments">
                             <label for='installments'>Meses sin intereses</label>
                             <select class="form-control" style="font-size: 14px;" name="installments" id="installments"
                                 data-bind="
+                                    disable: !installmentsAvailable(),
                                     options: installmentOptions,
                                     optionsText: function(i) {
                                         return [
