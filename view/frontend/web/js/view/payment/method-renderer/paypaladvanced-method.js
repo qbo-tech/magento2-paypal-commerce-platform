@@ -172,7 +172,7 @@ define(
                                   self.canShowInstallments(true);
 
                                     var option = {
-                                        value: "No disponible",
+                                        value: "Tu tarjeta no es elegible para Meses sin Intereses",
                                         currency_code: '',
                                         interval: '',
                                         term: '',
