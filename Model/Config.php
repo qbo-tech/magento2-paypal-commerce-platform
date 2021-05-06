@@ -32,6 +32,7 @@ class Config
     const CONFIG_XML_TITLE_METHOD_PAYPAL  = 'title_paypal';
     const CONFIG_XML_TITLE_METHOD_CARD    = 'title_card';
     const CONFIG_XML_ENABLE_ITEMS         = 'enable_items';
+    const CONFIG_XML_DEBUG_MODE           = 'debug_mode';
 
     /**
      * Button customization style options

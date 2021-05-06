@@ -36,7 +36,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     protected $_canHandlePendingStatus      = true;
 
-    /** @var \Psr\Log\LoggerInterface */
+    /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_logger;
 
     /** @var \PayPalCheckoutSdk\Orders\OrdersCaptureRequest */
@@ -75,7 +75,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Payment\Model\Method\Logger $paymentLogger,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi
+        \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
+        \PayPal\CommercePlatform\Logger\Handler $logger,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        array $data = []
         )
         {
         parent::__construct(
@@ -85,11 +89,14 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $customAttributeFactory,
             $paymentData,
             $scopeConfig,
-            $paymentLogger
+            $paymentLogger,
+            $resource,
+            $resourceCollection,
+            $data
         );
 
-        $this->_logger    = $context->getLogger();
-        $this->_paypalApi = $paypalApi;
+        $this->_logger      = $logger;
+        $this->_paypalApi   = $paypalApi;
         $this->_scopeConfig = $scopeConfig;
     }
 
@@ -112,7 +119,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function assignData(\Magento\Framework\DataObject $data)
     {
-        $this->_logger->debug(__METHOD__);
 
         parent::assignData($data);
 
@@ -137,29 +143,25 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     { 
-
-        $this->_logger->debug(__METHOD__);
-
         $paypalOrderId = $payment->getAdditionalInformation('order_id');
 
-        $this->_logger->debug(__METHOD__ . ' | paypalOrderId ' . $paypalOrderId);
+        $this->_logger->debug(__METHOD__ . ' | paypalOrderId: ' . $paypalOrderId);
 
         $this->_order = $payment->getOrder();
 
         try {       
             //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
-            $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId); //new \PayPalCheckoutSdk\Orders\OrdersCaptureRequest($paypalOrderId);
-
-            $this->_logger->debug(__METHOD__ . ' | before _paypalClient->execute ');
+            $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
+
             $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response->result, true));
 
             $this->_processTransaction($payment);
 
         } catch (\Exception $e) {
-            $this->_logger->debug(__METHOD__ . ' | Exception : ' . $e->getMessage());
-            $this->_logger->debug(__METHOD__ . ' | Exception response : ' . $this->_response);
+            $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
+            $this->_logger->error(__METHOD__ . ' | Exception response : ' . $this->_response);
             //$this->debugData(['request' => $data, 'exception' => $e->getMessage()]);
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
