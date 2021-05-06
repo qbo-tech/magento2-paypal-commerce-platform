@@ -3,7 +3,7 @@ namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 
 use Magento\Payment\Model\InfoInterface;
 
-class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\CommercePlatform\Model\Payment\PayPalAbstract
+class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 {
     const CODE                         = 'paypalcp';
 
@@ -121,6 +121,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
         $this->_logger->debug(__METHOD__ . ' | ', ['additionalData' => $additionalData]);
 
         $infoInstance = $this->getInfoInstance();
+        $infoInstance->setAdditionalInformation('order_id', $additionalData['order_id'] ?? '');
+
         // Set any additional info here if required
 
         return $this;
@@ -157,8 +159,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod //\PayPal\Com
 
         } catch (\Exception $e) {
             $this->_logger->debug(__METHOD__ . ' | Exception : ' . $e->getMessage());
+            $this->_logger->debug(__METHOD__ . ' | Exception response : ' . $this->_response);
             //$this->debugData(['request' => $data, 'exception' => $e->getMessage()]);
-            $this->_logger->debug(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
+            $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
         }
         //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));

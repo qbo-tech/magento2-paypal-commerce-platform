@@ -16,7 +16,7 @@ define([
 
             loadSdk: function (callbackOnLoaded) {
                 var self = this;
-                console.log('#loadSdk#', callbackOnLoaded);
+                //console.log('#loadSdk#', callbackOnLoaded);
 
                 self.onLoadedCallback = callbackOnLoaded;
 
@@ -25,8 +25,6 @@ define([
                 if ((typeof paypal === 'undefined')) {
 
                     var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
-
-                    console.log('finish generateToken', clientToken);
 
                     if (clientToken) {
                         var objCallback = {
@@ -73,97 +71,7 @@ define([
                         htmlElement.setAttribute('data-client-token', clientToken);
                     }
                 }
-            },
-/*
-            renderHostedFields: function () {
-                var self = this;
-
-                if ((typeof paypal === 'undefined')) {
-                    self.loadSdk();
-                }
-
-                console.log('###hostedfieldsRender#HostedFields.isEligible', paypal.HostedFields.isEligible());
-
-                if (!paypal.HostedFields.isEligible()) {
-                    console.log('HostedFields HOSTEDFIELDS_NOT_ELIGIBLE');
-                    //return;
-                }
-                paypal.HostedFields.render({
-                    styles: {
-                        'input': {
-                            'font-size': '16pt',
-                            'color': '#3A3A3A'
-                        },
-                        '.number': {
-                            'font-family': 'monospace'
-                        },
-                        '.valid': {
-                            'color': 'green'
-                        }
-                    },
-                    fields: {
-                        number: {
-                            selector: '#card-number',
-                            placeholder: 'card number'
-                        },
-                        cvv: {
-                            selector: '#cvv',
-                            placeholder: 'card security number'
-                        },
-                        expirationDate: {
-                            selector: '#expiration-date',
-                            placeholder: 'mm / yy'
-                        }
-                    },
-                    createOrder: function () {
-                        console.log('### paypal_advanced-method#hostedfieldsRender#createOrder');
-
-                        return fetch('/paypalcheckout/order', {
-                            method: 'post',
-                            headers: {
-                                'content-type': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        }).then(function (res) {
-                            console.log('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-                            return res.json();
-                        }).then(function (data) {
-                            console.log('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
-                            return data.result.id; // Use the key sent by your server's response, ex. 'id' or 'token'
-                        });
-
-                    },
-                }).then(function (hf) {
-
-                    $('#co-payment-form').submit(function (event) {
-                        event.preventDefault();
-                        disableCheckout();
-                        const submitOptions = {
-                            cardholderName: document.getElementById('card-holder-name').value,
-                            vault: $('#vault').is(':checked')
-                        };
-                        const installment = document.getElementById('installments').value;
-                        if (installment && installment !== '') {
-                            // installment will be '', if the user hasn't select any installments.
-                            var choice = JSON.parse(installment);
-                            submitOptions.installments = {
-                                term: choice.term,
-                                intervalDuration: choice.interval_duration
-                            };
-                        }
-                        hf.submit(submitOptions)
-                            .then(function (payload) {
-                                updateMessage(payload);
-                                var orderResponse = self.placeOrder();
-                            })
-                            .catch(function (err) {
-                                updateMessage(err);
-                                enableCheckout();
-                            });
-                        return false;
-                    });
-                });
-            } */
+            }
         };
     }
 );
