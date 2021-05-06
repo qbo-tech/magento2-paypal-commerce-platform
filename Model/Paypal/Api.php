@@ -1,4 +1,7 @@
 <?php
+/**
+ * @author Alvaro Florez <aflorezd@gmail.com>
+ */
 namespace PayPal\CommercePlatform\Model\Paypal;
 
 class Api

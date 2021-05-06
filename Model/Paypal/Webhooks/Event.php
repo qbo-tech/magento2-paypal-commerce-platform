@@ -1,4 +1,7 @@
 <?php
+/**
+ * @author Alvaro Florez <aflorezd@gmail.com>
+ */
 
 namespace PayPal\CommercePlatform\Model\Paypal\Webhooks;
 
@@ -214,7 +217,7 @@ class Event
             ->setIsTransactionClosed(0);
 
         $this->_payment->getOrder()->addStatusHistoryComment(
-            __('Se ha hecho un reintegrado desde PayPal | %1', $eventData['summary'])
+            __('A refund has been made from PayPal | %1', $eventData['summary'])
         )
             ->setIsCustomerNotified(true)
             ->save();

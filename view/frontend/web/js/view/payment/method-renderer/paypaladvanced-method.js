@@ -9,9 +9,9 @@ define(
         'Magento_Checkout/js/model/quote',
         'ko',
         'Magento_Checkout/js/model/totals',
-        'Magento_Ui/js/model/messageList'
+        'mage/translate'
     ],
-    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, globalMessageList) {
+    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals) {
         'use strict';
         console.log('paypal_advance-method');
 
@@ -20,10 +20,6 @@ define(
                 template: 'PayPal_CommercePlatform/payment/paypaladvanced-form'
             },
 
-            /*             initialize: function () {
-                            var self = this;
-                            this._super();
-                        }, */
             componentName: "paypalSdkComponent",
             paypalMethod: 'paypalcp',
             orderId: null,
@@ -49,12 +45,7 @@ define(
             isSelected: function () {
                 var self = this;
 
-                console.log('isSelected#', quote.paymentMethod())
-                console.log('isSelected#', self.paypalMethod)
-
                 if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalMethod)) {
-                    console.log('return#', self.selectedMethod)
-
                     return self.selectedMethod;
                 }
 
@@ -99,7 +90,6 @@ define(
 
                 selectPaymentMethodAction(data);
                 checkoutData.setSelectedPaymentMethod(this.item.method);
-                console.log('selectPaymentMethodSpb#data', data);
             },
 
             /**
@@ -111,15 +101,9 @@ define(
 
                 self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
 
-                //var grandTotal = totals.getSegment('grand_total').value
-
-                console.log('getTotals#', totals.getSegment('grand_total'));
-
                 if ((typeof paypal === 'undefined')) {
                     return;
                 }
-
-                console.log('###hostedfieldsRender#HostedFields.isEligible', paypal.HostedFields.isEligible());
 
                 if (!paypal.HostedFields.isEligible()) {
                     console.log('HostedFields HOSTEDFIELDS_NOT_ELIGIBLE');
@@ -137,6 +121,9 @@ define(
                         },
                         '.valid': {
                             'color': 'black'
+                        },
+                        '.invalid': {
+                            'color': 'red'
                         }
                     },
                     fields: {
@@ -167,30 +154,30 @@ define(
 
                             var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
                             if (!hasCardIssuerInstallment) {
-                                  console.log("MSI not available");
-                                  self.installmentsAvailable(false);
-                                  self.canShowInstallments(true);
+                                console.log("MSI not available");
+                                self.installmentsAvailable(false);
+                                self.canShowInstallments(true);
 
-                                    var option = {
-                                        value: "Tu tarjeta no es elegible para Meses sin Intereses",
-                                        currency_code: '',
-                                        interval: '',
-                                        term: '',
-                                        interval_duration: '',
-                                        discount_percentage: ''
-                                    };
-                                  var options = [];
-                                  options.push(option);
-                                  self.installmentOptions(options);
+                                var option = {
+                                    value: "Tu tarjeta no es elegible para Meses sin Intereses",
+                                    currency_code: '',
+                                    interval: '',
+                                    term: '',
+                                    interval_duration: '',
+                                    discount_percentage: ''
+                                };
+                                var options = [];
+                                options.push(option);
+                                self.installmentOptions(options);
 
-                                  return;
+                                return;
                             }
 
-                            qualifyingOptions.forEach(function (financialOption) {                               
-                                 
+                            qualifyingOptions.forEach(function (financialOption) {
+
                                 var options = [];
-                           
-                                  financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
+
+                                financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
                                     var option = {
                                         value: qualifyingFinancingOption.monthly_payment.value,
@@ -207,18 +194,15 @@ define(
                                     self.canShowInstallments(true);
 
                                     console.log('financialOption.qualifying_financing_options#option', option)
-                                  });                                                             
+                                });
                             });
                         },
                         onInstallmentsError: function () {
                             self.installmentsAvailable(false);
                             console.log('Error while fetching installments');
-                            
                         }
                     },
                     createOrder: function () {
-                        console.log('### paypal_advanced-method#hostedfieldsRender#createOrder');
-
                         return fetch('/paypalcheckout/order', {
                             method: 'post',
                             headers: {
@@ -227,7 +211,15 @@ define(
                             }
                         }).then(function (res) {
                             console.log('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-                            return res.json();
+                            if(res.ok){
+                                return res.json();
+                            } else {
+                                self.messageContainer.addErrorMessage({
+                                    message: $.mage.__('An error has occurred on the server, please try again later')
+                                });
+
+                                return false;
+                            }
                         }).then(function (data) {
                             console.log('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
                             return data.result.id;
@@ -242,6 +234,9 @@ define(
                     },
                     onError: function (err) {
                         console.log('paypal_advanced-method#hostedfieldsRender#onError', err);
+                        self.messageContainer.addErrorMessage({
+                            message: $.mage.__(err.details[0].description)
+                        });
                     }
 
                 }).then(function (hf) {
@@ -272,12 +267,19 @@ define(
                             .then(function (payload) {
                                 console.log('hf.submit#payload', payload);
                                 self.orderId = payload.orderId;
-                                self.placeOrder();
+                                console.log('placeorder', self.placeOrder());
 
                                 self.enableCheckout();
                             })
                             .catch(function (err) {
                                 console.log(' catch => ', err);
+
+                                if(err.hasOwnProperty('deatils')) {
+                                    self.messageContainer.addErrorMessage({
+                                        message: $.mage.__(err.details[0].description)
+                                    });
+                                }
+
                                 self.enableCheckout();
                             });
                         return false;
@@ -332,11 +334,9 @@ define(
                             if (data.reason) {
                                 console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', JSON.parse(data.reason));
 
-                                globalMessageList.addErrorMessage({
-                                    message: JSON.parse(data.reason).message
+                                self.messageContainer.addErrorMessage({
+                                    message: $.mage.__(JSON.parse(data.reason).message)
                                 });
-                                $(".message.warning").addClass("error").removeClass("warning");
-                                $(".message.error").html(data.message);
                                 return false;
                             }
 
@@ -352,6 +352,9 @@ define(
                     },
                     onError: function (err) {
                         console.log('paypal_advanced-method#renderButton#onError', err);
+                        self.messageContainer.addErrorMessage({
+                            message: $.mage.__(JSON.parse(err.reason).message)
+                        });
                     }
                 }).render('#paypal-button-container');
 

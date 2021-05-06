@@ -1,0 +1,49 @@
+Vertical,Vertical
+Horizontal,Horizontal
+Gold,Gold
+Blue,Blue
+Silver,Silver
+White,White
+Black,Black
+Pill,Pill
+Rectangle,Rectangle
+Checkout,Checkout
+Pay,Pay
+"Buy Now","Buy Now"
+PayPal,PayPal
+Installment,Installment
+True,True
+False,False
+"Gateway error. Reason: %1","Gateway error. Reason: %1"
+"Event not supported: ","Event not supported: "
+"Notified customer about invoice #%1.","Notified customer about invoice #%1."
+"A refund has been made from PayPal | %1","Se ha hecho un reintegro desde PayPal | %1"
+"Se ha hecho un reembolso desde PayPal | %1","Se ha hecho un reembolso desde PayPal | %1"
+"We cannot cancel this order.","We cannot cancel this order."
+"Place Order","Place Order"
+"An error has occurred on the server, please try again later","Ha ocurrido en el servidor, por favor intenta mas tarde."
+"PayPal Checkout Mexico","PayPal Checkout Mexico"
+Enabled,Enabled
+"Sandbox Mode","Sandbox Mode"
+"Client ID","Client ID"
+"Secret ID","Secret ID"
+"Webhook ID","Webhook ID"
+Title,Titulo
+"Send Items (Line Items)","Enviar Items (Line Items)"
+"New Order Status","New Order Status"
+"Handle Pending Payments","Handle Pending Payments"
+"PayPal Advanced Credit and Debit Card","PayPal Advanced Credit and Debit Card"
+"Enable ACDC","Enable ACDC"
+"Enable MSI","Enable MSI"
+"Remember Card (Vaulting)","Recordar Tarjeta (Vaulting)"
+"Split display options","Split display options"
+"Title Method PayPal","Title Method PayPal"
+"Title Method Credit/Debit Card","Title Method Credit/Debit Card"
+"Button Options","Button Options"
+"Customize Button","Customize Button"
+Layout,Layout
+Color,Color
+Shape,Shape
+Label,Label
+Tagline,Tagline
+"Payment has been declined by Payment Gateway","El pago ha sido rechazado."

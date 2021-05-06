@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @author Alvaro Florez <aflorezd@gmail.com>
+ */
 declare(strict_types=1);
 
 namespace PayPal\CommercePlatform\Model\Config\Source;
