@@ -22,8 +22,8 @@ class Index extends \Magento\Framework\App\Action\Action
     /** @var \Magento\Framework\Controller\Result\JsonFactory */
     protected $_resultJsonFactory;
 
-    /** @var \Psr\Log\LoggerInterface */
-    protected $_logger;
+    /** @var \PayPal\CommercePlatform\Logger\Handler */
+    protected $_loggerHandler;
 
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -31,11 +31,11 @@ class Index extends \Magento\Framework\App\Action\Action
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
         \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
-        \Psr\Log\LoggerInterface $logger
+        \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
         parent::__construct($context);
 
-        $this->_logger  = $logger;
+        $this->_loggerHandler  = $logger;
 
         $this->_paypalApi    = $paypalApi;
         $this->_paypalConfig = $paypalConfig;
@@ -52,19 +52,19 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->_orderCreateRequest->prefer('return=representation');
 
         $requestBody = $this->buildRequestBody();
-        $this->_orderCreateRequest->body = $requestBody;
 
-        $this->_logger->debug(__METHOD__, ['request' => $this->_orderCreateRequest]);
+        $this->_loggerHandler->debug(__METHOD__ . ' ORDER REQUEST BODY' , $requestBody);
+
+        $this->_orderCreateRequest->body = $requestBody;
 
         $httpBadRequestCode = '400';
         $httpErrorCode = '500';
-
 
         try {
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
         } catch (\Exception $e) {
-            $this->_logger->error($e->getMessage());
+            $this->_loggerHandler->error($e->getMessage());
 
             $resultJson->setData(array('reason' => $e->getMessage()));
 
@@ -91,12 +91,6 @@ class Index extends \Magento\Framework\App\Action\Action
         $shippingAmount = round($quote->getShippingAddress()->getShippingAmount(), self::DECIMAL_PRECISION);
         $taxAmount      = round($quote->getTotals()['tax']->getValue(), self::DECIMAL_PRECISION);
         $discountAmount = round($quote->getSubtotal() - $quote->getSubtotalWithDiscount(), self::DECIMAL_PRECISION); //getBaseDiscuotAmount
-
-        $this->_logger->debug(__METHOD__ . ' | ->getBaseSubtotalWithDiscount() ' . $quote->getBaseSubtotalWithDiscount());
-        $this->_logger->debug(__METHOD__ . ' | $quote->getSubtotalWithDiscount()() ' . $quote->getSubtotalWithDiscount());
-        $this->_logger->debug(__METHOD__ . ' | $quote->getBaseDiscuotAmount()() ' . $quote->getBaseDiscuotAmount());
-        //$this->_logger->debug(__METHOD__ . ' | quote =>  ' . print_r($quote->debug(), true));
-
 
         $requestBody = [
             'intent' => 'CAPTURE',

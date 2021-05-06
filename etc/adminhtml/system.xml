@@ -61,7 +61,7 @@
                         <config_path>payment/paypalcp/enable_bcdc</config_path>
                     </field> -->
                     <field id="enable_items" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Enviar Items (Line Items)</label>
+                        <label>Send Items (Line Items)</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/enable_items</config_path>
                     </field>
@@ -75,6 +75,11 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <comment>If set to "No", payments with status "Pending payment" will be rejected at checkout</comment>
                         <config_path>payment/paypalcp/handle_pending_payments</config_path>
+                    </field>
+                    <field id="debug_mode" type="select" sortOrder="97" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Debug Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/paypalcp/debug_mode</config_path>
                     </field>
                     <group id="paypalcp_advanced" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>PayPal Advanced Credit and Debit Card</label>
@@ -92,7 +97,7 @@
                             </depends>
                         </field>
                         <field id="enable_remember_card" type="select" sortOrder="125" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                            <label>Recordar Tarjeta (Vaulting)</label>
+                            <label>Remember Card (Vaulting)</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_remember_card</config_path>
                             <depends>

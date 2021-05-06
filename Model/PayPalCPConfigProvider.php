@@ -33,14 +33,14 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     /** @var \Magento\Framework\Session\SessionManagerInterface $session */
     protected $_session;
 
-    /** @var \Psr\Log\LoggerInterface */
+    /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_logger;
 
     public function __construct(
         \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Framework\Session\SessionManagerInterface $session,
-        \Psr\Log\LoggerInterface $logger
+        \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
         $this->_paypalConfig    = $paypalConfig;
         $this->_customerSession = $customerSession;
@@ -86,7 +86,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             ]
         ];
 
-        $this->_logger->debug(__METHOD__ . ' | config ' . print_r($config, true));
+        $this->_logger->debug(__METHOD__ . ' | CONFIG ' . print_r($config, true));
 
         return $config;
     }

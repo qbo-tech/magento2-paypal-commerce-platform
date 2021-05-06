@@ -274,7 +274,7 @@ define(
                             .catch(function (err) {
                                 console.log(' catch => ', err);
 
-                                if(err.hasOwnProperty('deatils')) {
+                                if(err.hasOwnProperty('details')) {
                                     self.messageContainer.addErrorMessage({
                                         message: $.mage.__(err.details[0].description)
                                     });

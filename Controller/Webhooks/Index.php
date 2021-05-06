@@ -32,7 +32,7 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
      *
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Framework\Filesystem\DriverInterface $driver
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param \PayPal\CommercePlatform\Logger\Handler $logger
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -41,7 +41,7 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
         \PayPal\CommercePlatform\Model\Paypal\Webhooks\VerifyWebhookSignatureRequest $verifyWebhookSignature,
         \PayPal\CommercePlatform\Model\Paypal\Webhooks\Event $webhookEvent,
-        \Psr\Log\LoggerInterface $logger
+        \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
         $this->_logger       = $logger;
         $this->_driver       = $driver;
@@ -63,7 +63,6 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
      */
     public function execute()
     {
-        $this->_logger->debug(__METHOD__ . ' | ');
         $eventData = json_decode($this->_driver->fileGetContents('php://input'), true);
 
         if ((!$this->getRequest()->isPost()) || (!$this->isValidWebhookSignature($eventData))) {
@@ -73,7 +72,7 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
         try {
             $this->_webhookEvent->processWebhook($eventData);
         } catch (\Exception $e) {
-            $this->_logger->critical($e);
+            $this->_logger->error($e);
             $this->getResponse()->setStatusHeader(503, '1.1', 'Service Unavailable')->sendResponse();
         }
     }
