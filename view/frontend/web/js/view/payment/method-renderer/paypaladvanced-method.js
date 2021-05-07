@@ -33,13 +33,7 @@ define(
             installmentsAvailable: ko.observable(false),
             canShowInstallments: ko.observable(false),
             selectedInstallments: ko.observable(),
-            fieldsValidate: [
-                '#credit-card-number',
-                '#expiration',
-                '#cvv',
-                '#card-holder-name'
-            ],
-
+            isFormValid: ko.observable(false),
 
             getCode: function (method) {
                 console.log('paypaladvanced-mthod#super', this._super());
@@ -246,27 +240,26 @@ define(
                     }
 
                 }).then(function (hf) {
+                    $('#card-form button#submit').attr('disabled', true);
 
-                    //$('#co-payment-form, #card-form').addEventListener('submit', function (event) {});
+                    $('#card-holder-name').change(function () {
+                        self.isValidFields(hf);
+                    });
 
+                    hf.on('empty', function (event) {
+                        self.isValidFields(hf);
+                    });
+
+                    hf.on('notEmpty', function (event) {
+                        self.isValidFields(hf);
+                    });
+
+                    hf.on('validityChange', function (event) {
+                        self.isValidFields(hf);
+                    });
 
                     $('#co-payment-form, #card-form').submit(function (event) {
                         event.preventDefault();
-
-                        var state = hf.getState();
-                        var formValid = Object.keys(state.fields).every(function (key) {
-
-                            return state.fields[key].isValid;
-                        });
-
-                        if (!formValid) {
-
-                            self.messageContainer.addErrorMessage({
-                                message: $t('Incomplete or invalid information. Please check.')
-                            });
-
-                            return false;
-                        }
 
                         $('#submit').prop('disabled', true);
                         const submitOptions = {
@@ -318,6 +311,25 @@ define(
                 };
 
                 return data;
+            },
+            isValidFields: function (hostedFieldsInstance) {
+                var self = this;
+                var state = hostedFieldsInstance.getState();
+                console.log('state', state);
+                var formValid = Object.keys(state.fields).every(function (key) {
+                    return !state.fields[key].isEmpty;
+                });
+
+                if (formValid && (!$('#card-holder-name').val() == '')) {
+                    $('#card-form button#submit').attr('disabled', false);
+                    self.isFormValid(true);
+
+                    return true;
+                } else {
+                    $('#card-form button#submit').attr('disabled', true);
+
+                    return false;
+                }
             },
             renderSmartButton: function () {
                 var self = this;
@@ -387,15 +399,20 @@ define(
 
                 console.log('#rendersPayments#');
 
+                $t('MONTHS');
+
                 self.renderHostedFields();
                 self.renderSmartButton();
-
             },
             completeRender: function () {
                 var self = this;
                 console.log('ON completeRender', paypalSdkAdapter);
 
-                paypalSdkAdapter.loadSdk(function () { self.rendersPayments() });
+                paypalSdkAdapter.loadSdk(function () {
+                    self.rendersPayments();
+
+                    $('#card-form button#submit').attr('disabled', true);
+                });
             },
             enableCheckout: function () {
                 $('#submit').prop('disabled', false);

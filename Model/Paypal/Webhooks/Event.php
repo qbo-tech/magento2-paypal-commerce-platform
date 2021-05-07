@@ -82,6 +82,12 @@ class Event
             return;
         }
 
+        if ((!$this->_payment) || (!$this->_payment->getOrder())) {
+            $this->_logger->debug(__METHOD__ . ' | ' . __('Problem with payment/order'));
+
+            return;
+        }
+
         switch ($eventData['event_type']) {
 
             case self::PAYMENT_CAPTURE_PENDING:
