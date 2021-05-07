@@ -47,3 +47,5 @@ Shape,Shape
 Label,Label
 Tagline,Tagline
 "Payment has been declined by Payment Gateway","El pago ha sido rechazado."
+"MONTHS","Meses"
+"Incomplete or invalid information. Please check.","Información incompleta o inválida. Por favor, revísela."
