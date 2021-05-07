@@ -8,7 +8,7 @@ Black,Black
 Pill,Pill
 Rectangle,Rectangle
 Checkout,Checkout
-Pay,Pay
+Pay,"Pagar"
 "Buy Now","Buy Now"
 PayPal,PayPal
 Installment,Installment
@@ -17,21 +17,28 @@ False,False
 "Gateway error. Reason: %1","Gateway error. Reason: %1"
 "Event not supported: ","Event not supported: "
 "Notified customer about invoice #%1.","Notified customer about invoice #%1."
-"A refund has been made from PayPal | %1","Se ha hecho un reintegro desde PayPal | %1"
+"A refund has been made from PayPal | %1","A refund has been made from PayPal | %1"
 "Se ha hecho un reembolso desde PayPal | %1","Se ha hecho un reembolso desde PayPal | %1"
 "We cannot cancel this order.","We cannot cancel this order."
 "Place Order","Place Order"
-"An error has occurred on the server, please try again later","Ha ocurrido en el servidor, por favor intenta mas tarde."
+"Card Number","Número de Tarjeta"
+"Expiration date","Fecha de Vencimineto"
+CVV,"Fecha de Vencimineto"
+"Card holder name","Nombre del titular de tarjeta"
+"Remember card","Recordar tarjeta"
+"An error has occurred on the server, please try again later","An error has occurred on the server, please try again later"
+MONTHS,MESES
 "PayPal Checkout Mexico","PayPal Checkout Mexico"
 Enabled,Enabled
 "Sandbox Mode","Sandbox Mode"
 "Client ID","Client ID"
 "Secret ID","Secret ID"
 "Webhook ID","Webhook ID"
-Title,Titulo
+Title,Title
 "Send Items (Line Items)","Enviar Items (Line Items)"
 "New Order Status","New Order Status"
 "Handle Pending Payments","Handle Pending Payments"
+"Debug Mode","Debug Mode"
 "PayPal Advanced Credit and Debit Card","PayPal Advanced Credit and Debit Card"
 "Enable ACDC","Enable ACDC"
 "Enable MSI","Enable MSI"
@@ -46,6 +53,3 @@ Color,Color
 Shape,Shape
 Label,Label
 Tagline,Tagline
-"Payment has been declined by Payment Gateway","El pago ha sido rechazado."
-"MONTHS","Meses"
-"Incomplete or invalid information. Please check.","Información incompleta o inválida. Por favor, revísela."

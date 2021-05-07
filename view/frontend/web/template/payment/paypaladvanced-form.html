@@ -45,20 +45,20 @@
                     <form id="card-form">
 
                         <div class="form-group">
-                            <label for='card-number'>Número de tarjeta</label>
+                            <label for='card-number'><!-- ko i18n: 'Card Number' --><!-- /ko --></label>
                             <div class='form-control' id='card-number'></div>
                         </div>
                         <div class="form-group" style="width:48%; display: inline-block;">
-                            <label for='expiration-date'>Fecha de Vencimineto</label>
+                            <label for='expiration-date'><!-- ko i18n: 'Expiration date' --><!-- /ko --></label>
                             <div class='form-control' id='expiration-date'></div>
                         </div>
                         <div class="form-group" style="width:48%; display: inline-block;">
-                            <label for='cvv'>Código de seguridad</label>
+                            <label for='cvv'><!-- ko i18n: 'CVV' --><!-- /ko --></label>
                             <div class='form-control' id='cvv'></div>
                         </div>
 
                         <div class="form-group">
-                            <label for='card-holder-name'>Nombre del titular de tarjeta</label>
+                            <label for='card-holder-name'><!-- ko i18n: 'Card holder name' --><!-- /ko --></label>
                             <div class="form-control">
                                 <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off"
                                     placeholder="Nombre del titular" />
@@ -80,14 +80,13 @@
                                     },
                                     value: selectedInstallments
                                 ">
-                                <option value="">Ingresa tu número de tarjeta</option>
                             </select>
                         </div>
                         <div class="form-group" style="margin: 10px" data-bind="visible: isVaultingEnable()">
                             <input type='checkbox' id='vault' name='vault' style="display: inline;"><label
-                                for='vault'>Recordar tarjeta</label>
+                                for='vault'><!-- ko i18n: 'Remember card' --><!-- /ko --></label>
                         </div>
-                        <button value="submit" id="submit" class="btn">Pagar</button>
+                        <button value="submit" id="submit" class="btn"><!-- ko i18n: 'Pay' --><!-- /ko --></button>
                     </form>
                 </div>
             </div>
@@ -100,7 +99,7 @@
             <!--    /ko -->
         </div>
         <div class="actions-toolbar">
-            <div class="primary" data-bind="attr: {'id': getCode('Express_button')}"></div>
+            <div class="primary" data-bind="attr: {'id': getCode('Express_button')}, enable: isFormValid"></div>
         </div>
     </div>
 </div>
