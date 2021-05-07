@@ -11,7 +11,7 @@ define(
         'Magento_Checkout/js/model/totals',
         'mage/translate'
     ],
-    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals) {
+    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
         'use strict';
         console.log('paypal_advance-method');
 
@@ -33,6 +33,12 @@ define(
             installmentsAvailable: ko.observable(false),
             canShowInstallments: ko.observable(false),
             selectedInstallments: ko.observable(),
+            fieldsValidate: [
+                '#credit-card-number',
+                '#expiration',
+                '#cvv',
+                '#card-holder-name'
+            ],
 
 
             getCode: function (method) {
@@ -182,7 +188,7 @@ define(
                                     var option = {
                                         value: qualifyingFinancingOption.monthly_payment.value,
                                         currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
-                                        interval: qualifyingFinancingOption.credit_financing.interval,
+                                        interval: $t(qualifyingFinancingOption.credit_financing.interval),
                                         term: qualifyingFinancingOption.credit_financing.term,
                                         interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
                                         discount_percentage: qualifyingFinancingOption.discount_percentage
@@ -211,11 +217,11 @@ define(
                             }
                         }).then(function (res) {
                             console.log('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-                            if(res.ok){
+                            if (res.ok) {
                                 return res.json();
                             } else {
                                 self.messageContainer.addErrorMessage({
-                                    message: $.mage.__('An error has occurred on the server, please try again later')
+                                    message: $t('An error has occurred on the server, please try again later')
                                 });
 
                                 return false;
@@ -235,23 +241,40 @@ define(
                     onError: function (err) {
                         console.log('paypal_advanced-method#hostedfieldsRender#onError', err);
                         self.messageContainer.addErrorMessage({
-                            message: $.mage.__(err.details[0].description)
+                            message: $t(err.details[0].description)
                         });
                     }
 
                 }).then(function (hf) {
+
+                    //$('#co-payment-form, #card-form').addEventListener('submit', function (event) {});
+
+
                     $('#co-payment-form, #card-form').submit(function (event) {
                         event.preventDefault();
+
+                        var state = hf.getState();
+                        var formValid = Object.keys(state.fields).every(function (key) {
+
+                            return state.fields[key].isValid;
+                        });
+
+                        if (!formValid) {
+
+                            self.messageContainer.addErrorMessage({
+                                message: $t('Incomplete or invalid information. Please check.')
+                            });
+
+                            return false;
+                        }
+
                         $('#submit').prop('disabled', true);
                         const submitOptions = {
                             cardholderName: document.getElementById('card-holder-name').value,
                             vault: $('#vault').is(':checked')
                         };
-                        console.log('self.selectedInstallments()', self.selectedInstallments());
 
                         const installment = self.selectedInstallments();
-
-                        console.log('installment', installment);
 
                         if (installment && installment !== '') {
 
@@ -274,9 +297,9 @@ define(
                             .catch(function (err) {
                                 console.log(' catch => ', err);
 
-                                if(err.hasOwnProperty('details')) {
+                                if (err.hasOwnProperty('details')) {
                                     self.messageContainer.addErrorMessage({
-                                        message: $.mage.__(err.details[0].description)
+                                        message: $t(err.details[0].description)
                                     });
                                 }
 
@@ -335,7 +358,7 @@ define(
                                 console.log('###paypal_advanced-method#renderButton#createOrder# data.reason =', JSON.parse(data.reason));
 
                                 self.messageContainer.addErrorMessage({
-                                    message: $.mage.__(JSON.parse(data.reason).message)
+                                    message: $t(JSON.parse(data.reason).message)
                                 });
                                 return false;
                             }
@@ -353,7 +376,7 @@ define(
                     onError: function (err) {
                         console.log('paypal_advanced-method#renderButton#onError', err);
                         self.messageContainer.addErrorMessage({
-                            message: $.mage.__(JSON.parse(err.reason).message)
+                            message: $t(JSON.parse(err.reason).message)
                         });
                     }
                 }).render('#paypal-button-container');
