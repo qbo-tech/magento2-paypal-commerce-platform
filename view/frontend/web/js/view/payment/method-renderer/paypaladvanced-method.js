@@ -235,7 +235,7 @@ define(
                     onError: function (err) {
                         console.log('paypal_advanced-method#hostedfieldsRender#onError', err);
                         self.messageContainer.addErrorMessage({
-                            message: $t(err.details[0].description)
+                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
                         });
                     }
 
@@ -292,7 +292,7 @@ define(
 
                                 if (err.hasOwnProperty('details')) {
                                     self.messageContainer.addErrorMessage({
-                                        message: $t(err.details[0].description)
+                                        message: $t('Transaction cannot be processed, please verify your card information or try another.')
                                     });
                                 }
 
@@ -340,7 +340,7 @@ define(
 
                     console.log('Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.');
 
-                    $('#paypal-button-container').html('Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.');
+                    $('#paypal-button-container').html($t('Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.'));
                     return;
                 }
 
@@ -388,7 +388,7 @@ define(
                     onError: function (err) {
                         console.log('paypal_advanced-method#renderButton#onError', err);
                         self.messageContainer.addErrorMessage({
-                            message: $t(JSON.parse(err.reason).message)
+                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
                         });
                     }
                 }).render('#paypal-button-container');
