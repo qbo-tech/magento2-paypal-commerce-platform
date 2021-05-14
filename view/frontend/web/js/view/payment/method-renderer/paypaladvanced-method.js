@@ -349,8 +349,8 @@ define(
                         //layout:  'horizontal'
                         layout: 'vertical'
                     },
-                    //commit: true,
-                    //enableVaultInstallments: false,
+                    commit: true,
+                    enableVaultInstallments: (this.paypalConfigs.acdc.enable_installments) ? true : false,
                     //enableStandardCardFields: true,
                     createOrder: function () {
                         console.log('### paypal_advanced-method#renderButton#createOrder');
