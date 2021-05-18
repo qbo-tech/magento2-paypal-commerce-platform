@@ -80,8 +80,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
-        )
-        {
+    ) {
         parent::__construct(
             $context,
             $registry,
@@ -122,8 +121,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         parent::assignData($data);
 
-        $additionalData = $data->getData('additional_data') ? : $data->getData();
-    
+        $additionalData = $data->getData('additional_data') ?: $data->getData();
+
         $this->_logger->debug(__METHOD__ . ' | ', ['additionalData' => $additionalData]);
 
         $infoInstance = $this->getInfoInstance();
@@ -142,14 +141,14 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @throws \Magento\Framework\Validator\Exception
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
-    { 
+    {
         $paypalOrderId = $payment->getAdditionalInformation('order_id');
 
         $this->_logger->debug(__METHOD__ . ' | paypalOrderId: ' . $paypalOrderId);
 
         $this->_order = $payment->getOrder();
 
-        try {       
+        try {
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
@@ -157,7 +156,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response->result, true));
 
             $this->_processTransaction($payment);
-
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
 
@@ -173,7 +171,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_logger->debug(__METHOD__ . $amount);
 
         throw new \Exception;
-
     }
 
     /**
@@ -184,7 +181,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected function _processTransaction(&$payment)
     {
-   
         if (!in_array($this->_response->statusCode, $this->_successCodes)) {
             throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
         }
@@ -201,35 +197,36 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         $this->_canHandlePendingStatus = (bool)$this->getConfigValue('payment/paypalcp/handle_pending_payments');
 
-        switch($state){
-            case self::PAYMENT_REVIEW_STATE: 
-                if(!$this->_canHandlePendingStatus) {
+        switch ($state) {
+            case self::PAYMENT_REVIEW_STATE:
+                if (!$this->_canHandlePendingStatus) {
                     throw new \Exception(__(self::DECLINE_ERROR_MESSAGE));
                 }
                 $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
                 $payment->setTransactionId($_txnId)
-                        ->setIsTransactionPending(true)
-                        ->setIsTransactionClosed(false);
-                    
-                 //$this->_sendPendingPaymentEmail();
+                    ->setIsTransactionPending(true)
+                    ->setIsTransactionClosed(false);
+
+                //$this->_sendPendingPaymentEmail();
                 break;
             case self::COMPLETED_SALE_CODE:
                 $payment->setTransactionId($_txnId)
                     ->setIsTransactionClosed(true);
                 break;
-            default: 
-                $payment->setIsTransactionPending(true); 
+            default:
+                $payment->setIsTransactionPending(true);
                 break;
         }
 
-        $paymentSource = $this->_response->result->payment_source;
+        if (property_exists($this->_response->result, 'payment_source')) {
+            $paymentSource = $this->_response->result->payment_source;
 
-        if($paymentSource) { 
-            $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
-            $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
-            $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
+            if ($paymentSource) {
+                $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
+                $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
+                $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
+            }
         }
-
 
         return $payment;
     }
@@ -246,7 +243,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     {
         $history = $order->addStatusHistoryComment($comment, false);
         $history->setIsCustomerNotified($isCustomerNotified);
-        
+
         return $order;
     }
 
@@ -260,7 +257,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $value =  $this->_scopeConfig->getValue(
             $configPath,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        ); 
+        );
         return $value;
     }
 }
