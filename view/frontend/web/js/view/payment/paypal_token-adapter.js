@@ -3,8 +3,6 @@ define([
 ], function ($) {
     'use strict';
 
-    console.log('paypal_token-adapter');
-
     return {
         urlAccessToken: window.checkoutConfig.payment.paypalcp.urlAccessToken,
         urlGenerateClientToken: window.checkoutConfig.payment.paypalcp.urlGenerateClientToken,

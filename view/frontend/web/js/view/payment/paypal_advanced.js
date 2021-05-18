@@ -9,8 +9,6 @@ define(
     ) {
         'use strict';
 
-        console.log('paypal_adv');
-
         rendererList.push(
             {
                 type: 'paypalcp',
