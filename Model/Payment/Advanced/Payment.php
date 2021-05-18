@@ -150,7 +150,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_order = $payment->getOrder();
 
         try {       
-            //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
@@ -160,14 +159,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $this->_processTransaction($payment);
 
         } catch (\Exception $e) {
-            $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
-            $this->_logger->error(__METHOD__ . ' | Exception response : ' . $this->_response);
-            //$this->debugData(['request' => $data, 'exception' => $e->getMessage()]);
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
+
+            $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
+            $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
         }
-        //throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
-        //throw new \Exception;
         return $this;
     }
 
