@@ -1,8 +1,12 @@
 <?php
+
 /**
  * @author Alvaro Florez <aflorezd@gmail.com>
  */
+
 namespace PayPal\CommercePlatform\Model\Paypal;
+
+use stdClass;
 
 class Api
 {
@@ -43,7 +47,21 @@ class Api
      */
     public function execute(\PayPalHttp\HttpRequest $httpRequest)
     {
-        return $this->_paypalClient->execute($httpRequest);
+        try {
+            return $this->_paypalClient->execute($httpRequest);
+        } catch (\PayPalHttp\HttpException $e) {
+
+            $erroResponse = [
+                'statusCode' => $e->statusCode,
+                'message' => $e->getMessage(),
+                'headers' => $e->headers,
+                'requestClass' => \get_class($httpRequest)
+            ];
+
+            $this->_logger->error(__METHOD__ . ' Error: ' . $e->getMessage(), $erroResponse);
+
+            return (object) $erroResponse;
+        }
     }
 
     /**
@@ -53,7 +71,7 @@ class Api
      */
     public function getOrderCreateRequest()
     {
-        if(!($this->_orderCreateRequest instanceof \PayPalCheckoutSdk\Orders\OrdersCreateRequest)){
+        if (!($this->_orderCreateRequest instanceof \PayPalCheckoutSdk\Orders\OrdersCreateRequest)) {
             $this->_orderCreateRequest = new \PayPalCheckoutSdk\Orders\OrdersCreateRequest();
         }
 
@@ -67,11 +85,20 @@ class Api
      */
     public function getOrdersCaptureRequest($orderId)
     {
-        if(!($this->_ordersCaptureRequest instanceof \PayPalCheckoutSdk\Orders\OrdersCaptureRequest)){
+        if (!($this->_ordersCaptureRequest instanceof \PayPalCheckoutSdk\Orders\OrdersCaptureRequest)) {
             $this->_ordersCaptureRequest = new \PayPalCheckoutSdk\Orders\OrdersCaptureRequest($orderId);
         }
 
         return $this->_ordersCaptureRequest;
     }
 
+    public function getBaseUrl()
+    {
+        return $this->_paypalClient->environment->baseUrl();
+    }
+
+    public function getAuthorizationString()
+    {
+        return $this->_paypalClient->environment->authorizationString();
+    }
 }
