@@ -50,6 +50,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     protected $_scopeConfig;
 
+    private $paymentSource;
+
     /**
      * Constructor method
      *
@@ -97,6 +99,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_logger      = $logger;
         $this->_paypalApi   = $paypalApi;
         $this->_scopeConfig = $scopeConfig;
+
+        $this->paymentSource = null;
     }
 
     public function isAvailable(
@@ -118,17 +122,23 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function assignData(\Magento\Framework\DataObject $data)
     {
+        $this->_logger->debug(__METHOD__ );
 
         parent::assignData($data);
 
+        $infoInstance   = $this->getInfoInstance();
+        $infoInstance->setAdditionalInformation('payment_source');
+
         $additionalData = $data->getData('additional_data') ?: $data->getData();
 
-        $this->_logger->debug(__METHOD__ . ' | ', ['additionalData' => $additionalData]);
+        $this->_logger->debug(__METHOD__ . ' | additionalData: ' . print_r($additionalData, true));
 
-        $infoInstance = $this->getInfoInstance();
-        $infoInstance->setAdditionalInformation('order_id', $additionalData['order_id'] ?? '');
 
-        // Set any additional info here if required
+        foreach ($additionalData as $key => $value) {
+            $infoInstance->setAdditionalInformation($key, $value);
+        }
+
+      // Set any additional info here if required
 
         return $this;
     }
@@ -150,6 +160,18 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         try {
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
+
+            if($payment->getAdditionalInformation('payment_source')) {
+                $this->_logger->debug(__METHOD__ . ' | paymentSource ' . print_r($payment->getAdditionalInformation('payment_source'), true));
+
+                $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
+                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+            }
+
+            $this->_paypalOrderCaptureRequest->headers['PayPal-Client-Metadata-Id'] = $payment->getAdditionalInformation('fraudNetCMI');
+
+            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_paypalOrderCaptureRequest, true));
+
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
 
@@ -195,7 +217,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $infoInstance = $this->getInfoInstance();
         $infoInstance->setAdditionalInformation('payment_id', $_txnId);
 
-        $this->_canHandlePendingStatus = (bool)$this->getConfigValue('payment/paypalcp/handle_pending_payments');
+        $this->_canHandlePendingStatus = (bool)$this->getConfigValue('handle_pending_payments');
 
         switch ($state) {
             case self::PAYMENT_REVIEW_STATE:
@@ -252,12 +274,17 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * 
      * @return string
      */
-    public function getConfigValue($configPath)
+    public function getConfigValue($field)
     {
         $value =  $this->_scopeConfig->getValue(
-            $configPath,
+            $this->_preparePathConfig($field),//$configPath,
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
         return $value;
+    }
+
+    protected function _preparePathConfig($field)
+    {
+        return sprintf('payment/%s/%s', self::CODE, $field);
     }
 }

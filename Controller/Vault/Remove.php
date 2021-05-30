@@ -1,23 +1,14 @@
 <?php
 
-namespace PayPal\CommercePlatform\Controller\Order;
+namespace PayPal\CommercePlatform\Controller\Vault;
 
-class Index extends \Magento\Framework\App\Action\Action
+class Remove extends \Magento\Framework\App\Action\Action
 {
 
     const DECIMAL_PRECISION = 2;
 
-    /** @var \Magento\Checkout\Model\Session $checkoutSession */
-    protected $_checkoutSession;
-
     /** @var \PayPal\CommercePlatform\Model\Paypal\Api */
     protected $_paypalApi;
-
-    /** @var \PayPal\CommercePlatform\Model\Config */
-    protected $_paypalConfig;
-
-    /** @var \PayPalCheckoutSdk\Orders\OrdersCreateRequest */
-    protected $_orderCreateRequest;
 
     /** @var \Magento\Framework\Controller\Result\JsonFactory */
     protected $_resultJsonFactory;
@@ -25,55 +16,51 @@ class Index extends \Magento\Framework\App\Action\Action
     /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_loggerHandler;
 
-    private $paymentSource;
-
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
-        \Magento\Checkout\Model\Session $checkoutSession,
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
-        \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
         \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
         parent::__construct($context);
 
         $this->_loggerHandler  = $logger;
-
         $this->_paypalApi    = $paypalApi;
-        $this->_paypalConfig = $paypalConfig;
-
-        $this->_orderCreateRequest = $this->_paypalApi->getOrderCreateRequest();
         $this->_resultJsonFactory  = $resultJsonFactory;
-        $this->_checkoutSession    = $checkoutSession;
     }
 
     public function execute()
     {
+        $this->_loggerHandler->debug(__METHOD__); // ->getPost()));
+
+        if (!$this->getRequest()->isAjax()) {
+            //return;
+        }
+
+
+        $requestContent = json_decode($this->getRequest()->getContent(), true);
+
+        $this->_loggerHandler->debug(__METHOD__ . ' requestContent : ', array($requestContent['id'])); // ->getPost()));
+
+        $tokenId = $requestContent['id'] ?? null;
+
+        if (!$tokenId) {
+            return;
+        }
+
         $resultJson = $this->_resultJsonFactory->create();
 
-        $this->_orderCreateRequest->prefer('return=representation');
-
-        $requestBody = $this->buildRequestBody();
-
-        $this->_loggerHandler->debug(__METHOD__ . ' ORDER REQUEST BODY' , $requestBody);
-
-        $this->_orderCreateRequest->body = $requestBody;
-
-        $httpBadRequestCode = '400';
-        $httpErrorCode = '500';
-
         try {
+            
             /** @var \PayPalHttp\HttpResponse $response */
-            $response = $this->_paypalApi->execute($this->_orderCreateRequest);
+            $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\DeletePaymentTokensRequest($tokenId));
+            $this->_loggerHandler->debug(__METHOD__ . ' response : ', array($response)); // ->getPost()));
 
-            $this->_loggerHandler->debug(__METHOD__ . ' ORDER RESPONSE ' . print_r($response,true));
-
+            $resultJson->setHttpResponseCode($response->statusCode);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 
-            $resultJson->setData(array('reason' => $e->getMessage()));
-
-            return $resultJson->setHttpResponseCode($httpErrorCode);
+            throw $e;
         }
 
 
@@ -100,13 +87,13 @@ class Index extends \Magento\Framework\App\Action\Action
         $requestBody = [
             'intent' => 'CAPTURE',
             'application_context' => [
-                'shipping_preference'=> 'NO_SHIPPING'
+                'shipping_preference' => 'NO_SHIPPING'
             ],
             'purchase_units' => [[
                 'amount' => [
                     'currency_code' => $currencyCode,
                     'value' => $amount
-                ] 
+                ]
             ]]
         ];
 
@@ -126,10 +113,6 @@ class Index extends \Magento\Framework\App\Action\Action
                     'currency_code' => $currencyCode
                 ],
                 'total_tax' => [
-                    'value' => $taxAmount,
-                    'currency_code' => $currencyCode
-                ],
-                'tax_total' => [
                     'value' => $taxAmount,
                     'currency_code' => $currencyCode
                 ]

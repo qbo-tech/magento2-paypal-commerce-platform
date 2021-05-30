@@ -15,7 +15,6 @@ class CsrfValidatorSkip
         $request,
         $action
     ) {
-        return;
         /* Magento 2.1.x, 2.2.x */
         if ($request->getModuleName() == 'CommercePlatform') {
             return; // Skip CSRF check

@@ -13,7 +13,7 @@ use Magento\Payment\Helper\Formatter;
 */
 class Config
 {
-    const COMMERCE_PLATFORM_CODE = 'paypalcp';
+    const PAYMENT_COMMERCE_PLATFORM_CODE = 'paypalcp';
 
     const CONFIG_XML_IS_SANDBOX           = 'sandbox_flag';
     const CONFIG_XML_EMAIL_ADDRESS        = 'email_address';
@@ -28,11 +28,14 @@ class Config
     const CONFIG_XML_ENABLE_INSTALLMENTS  = 'enable_installments';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
     const CONFIG_XML_CURRENCY_CODE        = 'currency';
+    const CONFIG_XML_COUNTRY_CODE         = 'country_code';
     const CONFIG_XML_ENABLE_DEBUG         = 'enable_debug';
     const CONFIG_XML_TITLE_METHOD_PAYPAL  = 'title_paypal';
     const CONFIG_XML_TITLE_METHOD_CARD    = 'title_card';
     const CONFIG_XML_ENABLE_ITEMS         = 'enable_items';
     const CONFIG_XML_DEBUG_MODE           = 'debug_mode';
+    const CONFIG_XML_FRAUDNET_SWI         = 'source_web_identifier';
+    const CONFIG_XML_FRAUDNET_FNCLS       = 'fncls';
 
     /**
      * Button customization style options
@@ -100,7 +103,7 @@ class Config
         );
     }
 
-    protected function _preparePathConfig($config, $code = self::COMMERCE_PLATFORM_CODE)
+    protected function _preparePathConfig($config, $code = self::PAYMENT_COMMERCE_PLATFORM_CODE)
     {
         return sprintf("payment/%s/%s", $code, $config);
     }
@@ -128,6 +131,11 @@ class Config
     public function getCurrency()
     {
         return $this->getConfigValue(self::CONFIG_XML_CURRENCY_CODE);
+    }
+
+    public function getCountryCode()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_COUNTRY_CODE);
     }
 
     public function isEnableBcdc()

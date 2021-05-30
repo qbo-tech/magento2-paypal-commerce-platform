@@ -2,49 +2,50 @@ define([
     'Magento_Checkout/js/view/payment/default',
     'mage/storage',
     'jquery',
-    'paypalTokenAdapter',
     'Magento_Customer/js/customer-data'
-], function (Component, storage, $, paypalTokenAdapter, customerData) {
+], function (Component, storage, $, customerData) {
     'use strict';
     return {
 
-        componentName: "paypalSdkComponent",
+        componentName: "paypalFraudNetSDKComponent",
 
-        paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
+        fraudNetSwi: window.checkoutConfig.payment.paypalcp.fraudNet.sourceWebIdentifier, //Source Website Identifier
+        fraudNetSi: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
+        fncls: window.checkoutConfig.payment.paypalcp.fraudNet.fncls,
         onLoadedCallback: '',
         customerId: window.checkoutConfig.payment.paypalcp.customer.id,
         isVaultingEnable: window.checkoutConfig.payment.paypalcp.acdc.enable_vaulting,
         isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
 
-        loadSdk: function (callbackOnLoaded) {
+        loadFraudNetSdk: function (callbackOnLoaded) {
             var self = this;
-            self.logger('#loadSdk#', callbackOnLoaded);
+            self.logger('#loadFraudNetSdk#', callbackOnLoaded);
 
             self.onLoadedCallback = callbackOnLoaded;
 
-            var componentUrl = self.paypalSdk;
+            var componentUrl = '';//self.paypalSdk;
 
             if ((typeof paypal === 'undefined')) {
 
-                var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
+                //var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
 
-                if (clientToken) {
+                if (self.isVaultingEnable && (self.fraudNetSwi != '')) {
                     var objCallback = {
                         completeCallback: function (resultIndicator, successIndicator) {
                             self.logger('completeCallback complete');
                         },
                         errorCallback: function () {
-                            self.error('Payment errorCallback');
+                            self.error('FraudNet errorCallback');
                         },
                         cancelCallback: function () {
-                            self.logger('Payment cancelled');
+                            self.logger('FraudNet cancelled');
                         },
                         onLoadedCallback: function () {
-                            self.logger('PayPal SDK loaded', paypal);
+                            self.logger('FraudNet SDK loaded', paypal);
                             $(document).ready(function () {
                                 return callbackOnLoaded.call();
                             });
-                            self.logger('Load paypal Component');
+                            self.logger('Load FraudNet Component');
                         }
                     };
 
@@ -65,7 +66,14 @@ define([
                     htmlElement.setAttribute('data-error', 'window.ErrorCallback');
                     htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
                     htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
-                    htmlElement.setAttribute('data-client-token', clientToken);
+                    htmlElement.setAttribute('type', 'application/json');
+                    htmlElement.setAttribute('fncls', self.fncls);
+                    htmlElement.textContent = `{
+                        "f": "${self.fraudNetSi}",
+                        "s": "${self.fraudNetSwi}",
+                        "xx": "xxx"
+                        //sadasdsadasdsa
+                    }`
                 }
             }
         },

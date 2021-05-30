@@ -3,7 +3,7 @@
     <default>
         <payment><!-- payment/paypalcheckout/active   -->
             <paypalcp>
-                <active>1</active>
+                <active>0</active>
                 <model>PayPal\CommercePlatform\Model\Payment\Advanced\Payment</model>
                 <order_status>pending_payment</order_status>
                 <title>PayPal Checkout Mexico</title>
@@ -21,8 +21,10 @@
                 <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <webhook_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <currency>MXN</currency>
+                <country_code>MX</country_code>
                 <min_order_total>0.50</min_order_total>
-                 <paymentInfoKeys>card_type,order_id</paymentInfoKeys>
+                <paymentInfoKeys>card_type,order_id</paymentInfoKeys>
+                <fncls>fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99</fncls>
             </paypalcp>
             <paypal_basic>
                 <active>1</active>

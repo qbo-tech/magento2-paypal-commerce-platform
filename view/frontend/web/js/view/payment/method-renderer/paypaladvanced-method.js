@@ -4,6 +4,7 @@ define(
         'mage/storage',
         'jquery',
         'paypalSdkAdapter',
+        'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/model/quote',
@@ -11,7 +12,7 @@ define(
         'Magento_Checkout/js/model/totals',
         'mage/translate'
     ],
-    function (Component, storage, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
+    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
         'use strict';
 
         return Component.extend({
@@ -23,16 +24,18 @@ define(
             paypalMethod: 'paypalcp',
             orderId: null,
             paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
-            customerId: window.checkoutConfig.payment.paypalcp.customerId,
+            customerId: window.checkoutConfig.payment.paypalcp.customer.id,
             paypalConfigs: window.checkoutConfig.payment.paypalcp,
             isBcdcEnable: window.checkoutConfig.payment.paypalcp.bcdc.enable,
             isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
+            sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             selectedMethod: null,
             installmentOptions: ko.observableArray(),
             installmentsAvailable: ko.observable(false),
             canShowInstallments: ko.observable(false),
             selectedInstallments: ko.observable(),
             isFormValid: ko.observable(false),
+            customerCards: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.payments.cards),
 
             getCode: function (method) {
                 this.logger('paypaladvanced-mthod#super', this._super());
@@ -66,7 +69,7 @@ define(
             },
 
             isVaultingEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customerId != null));
+                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customer.id != null));
             },
 
             getTitleMethodPaypal: function () {
@@ -111,6 +114,10 @@ define(
                     return;
                 } else {
                     self.isVisibleCard(true);
+
+                    if (self.customerCards().length > 0) {
+                        $('#paypalcheckout').hide();
+                    }
 
                     paypal.HostedFields.render({
                         styles: {
@@ -178,26 +185,12 @@ define(
 
                                 qualifyingOptions.forEach(function (financialOption) {
 
-                                    var options = [];
+                                    var options = self.fillInstallmentOptions(financialOption);
+                                    self.installmentOptions(options);
+                                    self.installmentsAvailable(true);
+                                    self.canShowInstallments(true);
 
-                                    financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
-
-                                        var option = {
-                                            value: qualifyingFinancingOption.monthly_payment.value,
-                                            currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
-                                            interval: $t(qualifyingFinancingOption.credit_financing.interval),
-                                            term: qualifyingFinancingOption.credit_financing.term,
-                                            interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
-                                            discount_percentage: qualifyingFinancingOption.discount_percentage
-                                        };
-
-                                        options.push(option);
-                                        self.installmentOptions(options);
-                                        self.installmentsAvailable(true);
-                                        self.canShowInstallments(true);
-
-                                        self.logger('financialOption.qualifying_financing_options#option', option)
-                                    });
+                                    self.logger('financialOption.qualifying_financing_options#option', option);
                                 });
                             },
                             onInstallmentsError: function () {
@@ -205,13 +198,22 @@ define(
                                 console.log('Error while fetching installments');
                             }
                         },
-                        createOrder: function () {
+                        createOrder: function (data) {
+                            //var payload = {};
+
+                            //                            console.log('createOrder#201#self.selectedInstallments()', self.selectedInstallments());
+                            /* 
+                                                        if (self.selectedInstallments()) {
+                                                            console.log('202#createOrder#payload', payload);
+                                                            payload = self.validateInstallment(payload);
+                                                        }
+                             */
                             return fetch('/paypalcheckout/order', {
                                 method: 'post',
                                 headers: {
-                                    'content-type': 'application/json',
+                                    'Content-Type': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
-                                }
+                                },
                             }).then(function (res) {
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
                                 if (res.ok) {
@@ -261,26 +263,62 @@ define(
                             self.isValidFields(hf);
                         });
 
+                        $('.customer-card-list > ul > li > input[name=card]').change(function () {
+                            var body = $('body').loader();
+                            body.loader('show');
+
+                            console.log('ONchange#267', this);
+                            self.installmentOptions(null);
+                            self.selectedInstallments(null);
+
+                            if (this.id == 'new-card') {
+                                $('#customer-card-token').hide();
+                                $('#paypalcheckout').show();
+                            } else {
+                                $('#customer-card-token').show();
+                                $('#paypalcheckout').hide();
+
+                                var cardId = this.id;
+
+                                const card = self.customerCards().find(element => element.id == cardId);
+
+                                var options = self.fillInstallmentOptions(card.financing_options[0]);
+
+                                self.installmentOptions(options);
+                                self.installmentsAvailable(true);
+                                self.canShowInstallments(true);
+                            }
+                            body.loader('hide');
+                        });
+
+                        $('.customer-card-list button#token-submit').click(function (event) {
+                            console.log('ON click token-submit');
+                            event.preventDefault();
+
+                            console.log('click submit');
+
+                            var submitOptions = {};
+                            submitOptions = self.validateInstallment(submitOptions);
+
+                            console.log('self.creeateOrder', self.createOrder().done(function (response) {
+                                console.log('repsonse', response);
+                                self.orderId = response.result.id//.orderID;
+                                self.placeOrder();
+                            }));
+                        });
+
                         $('#co-payment-form, #card-form').submit(function (event) {
                             event.preventDefault();
 
                             $('#submit').prop('disabled', true);
-                            const submitOptions = {
+                            var submitOptions = {
                                 cardholderName: document.getElementById('card-holder-name').value,
                                 vault: $('#vault').is(':checked')
                             };
 
-                            const installment = self.selectedInstallments();
+                            submitOptions = self.validateInstallment(submitOptions);
 
-                            if (installment && installment.term !== '') {
-
-                                submitOptions.installments = {
-                                    term: installment.term,
-                                    intervalDuration: installment.interval_duration
-                                };
-                            }
-
-                            self.logger('submitOptions', submitOptions);
+                            self.logger('317submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
 
                             hf.submit(submitOptions)
                                 .then(function (payload) {
@@ -291,7 +329,7 @@ define(
                                     self.enableCheckout();
                                 })
                                 .catch(function (err) {
-                                    self.logger(' catch => ', err);
+                                    self.logger('355 catch => ', err);
 
                                     if (err.hasOwnProperty('details')) {
                                         self.messageContainer.addErrorMessage({
@@ -306,13 +344,78 @@ define(
                     });
                 }
             },
+            fillInstallmentOptions: function (financialOption) {
+                var self = this;
+                var options = [];
+
+                financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
+
+                    var option = {
+                        value: qualifyingFinancingOption.monthly_payment.value,
+                        currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
+                        interval: $t(qualifyingFinancingOption.credit_financing.interval),
+                        term: qualifyingFinancingOption.credit_financing.term,
+                        interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
+                        discount_percentage: qualifyingFinancingOption.discount_percentage
+                    };
+
+                    options.push(option);
+                });
+
+                return options;
+            },
+            validateInstallment: function (submitOptions) {
+                var self = this;
+
+                const installment = self.selectedInstallments();
+
+                console.log('validateInstallment#installment', installment, submitOptions);
+
+                if (installment && installment.term !== '') {
+                    submitOptions.installments = {
+                        term: installment.term,
+                        interval_duration: installment.interval_duration,
+                        intervalDuration: installment.interval_duration
+                    };
+                    console.log('validateInstallment#submitOPtion', submitOptions);
+
+                    console.log('input checked', $('.customer-card-list > ul > li > input[name=card]:checked').val());
+
+                    if ((self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
+                        submitOptions = {
+                            payment_source: {
+                                token: {
+                                    id: $('.customer-card-list > ul > li > input[name=card]:checked').val(),
+                                    type: "PAYMENT_METHOD_TOKEN",
+                                    attributes: {
+                                        installments: submitOptions.installments
+                                    }
+                                }
+                            }
+                        }
+                        console.log(submitOptions);
+                    }
+                }
+
+                console.log('validateInstallment#return#submitOPtion', submitOptions);
+                return submitOptions;
+            },
             getData: function () {
+                var self = this;
+
                 var data = {
-                    'method': this.paypalMethod,
-                    'additional_data': {
-                        'order_id': this.orderId,
+                    method: self.paypalMethod,
+                    additional_data: {
+                        order_id: self.orderId,
+                        fraudNetCMI: self.sessionIdentifier
                     }
                 };
+
+                var submitOptions = self.validateInstallment({});
+
+                if ((submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
+                    data.additional_data.payment_source = JSON.stringify(submitOptions.payment_source);
+                }
 
                 return data;
             },
@@ -348,14 +451,17 @@ define(
 
                 paypal.Buttons({
                     style: {
-                        //layout:  'horizontal'
-                        layout: 'vertical'
+                        layout:  'horizontal'
+                        //layout: 'vertical'
+                    },
+                    funding: {
+                        //allowed: [paypal.FUNDING.CARD],
+                        disallowed: [ paypal.FUNDING.CARD, paypal.FUNDING.CREDIT ]
                     },
                     commit: true,
                     enableVaultInstallments: (this.paypalConfigs.acdc.enable_installments) ? true : false,
                     //enableStandardCardFields: true,
                     createOrder: function () {
-                        console.log('### paypal_advanced-method#renderButton#createOrder');
 
                         return fetch('/paypalcheckout/order', {
                             method: 'post',
@@ -382,8 +488,6 @@ define(
 
                     },
                     onApprove: function (data, actions) {
-                        //self.logger('###paypal_advanced-method#renderSmartButton#onApprove#data, actions', data, actions);
-
                         self.orderId = data.orderID;
                         self.placeOrder();
                     },
@@ -396,10 +500,17 @@ define(
                 }).render('#paypal-button-container');
 
             },
-            rendersPayments: function () {
+            createOrder: function (requestBody) {
                 var self = this;
 
-                //self.logger('#rendersPayments#');
+                return storage.post('/paypalcheckout/order'
+                ).done(function (response) {
+                    return response;
+                }
+                ).fail(function (response) { });
+            },
+            rendersPayments: function () {
+                var self = this;
 
                 $t('MONTHS');
 
@@ -408,19 +519,47 @@ define(
             },
             completeRender: function () {
                 var self = this;
-                self.logger('ON completeRender', paypalSdkAdapter);
 
                 paypalSdkAdapter.loadSdk(function () {
                     self.rendersPayments();
 
                     $('#card-form button#submit').attr('disabled', true);
                 });
+
+                $('.customer-card-list span.card-delete').click(function () {
+                    var body = $('body').loader();
+                    body.loader('show');
+
+                    var objCard = $(this);
+                    var tokenId = objCard.data('id');
+
+                    console.log('Ondelete ', tokenId);
+
+                    return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({ id: tokenId })
+                    ).done(function (response) {
+                        console.log('vault/remove#respose', response);
+
+                        $('li#card-' + tokenId).remove();
+                        body.loader('hide');
+
+                        return response;
+                    }
+                    ).fail(function (response) {
+                        console.error('fail delete#reposne', response);
+                        body.loader('hide');
+
+                    });
+                    body.loader('hide');
+
+                });
+
+                paypalFraudNetAdapter.loadFraudNetSdk(function () { });
             },
             enableCheckout: function () {
                 $('#submit').prop('disabled', false);
             },
-            logger: function(message, obj){
-                if(window.checkoutConfig.payment.paypalcp.debug){
+            logger: function (message, obj) {
+                if (window.checkoutConfig.payment.paypalcp.debug) {
                     console.log(message, obj);
                 }
             }
