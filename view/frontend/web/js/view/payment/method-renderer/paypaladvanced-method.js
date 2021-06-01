@@ -28,6 +28,7 @@ define(
             paypalConfigs: window.checkoutConfig.payment.paypalcp,
             isBcdcEnable: window.checkoutConfig.payment.paypalcp.bcdc.enable,
             isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
+            fraudNetSwi: window.checkoutConfig.payment.paypalcp.fraudNet.sourceWebIdentifier, //Source Website Identifier
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             selectedMethod: null,
             installmentOptions: ko.observableArray(),
@@ -199,15 +200,6 @@ define(
                             }
                         },
                         createOrder: function (data) {
-                            //var payload = {};
-
-                            //                            console.log('createOrder#201#self.selectedInstallments()', self.selectedInstallments());
-                            /* 
-                                                        if (self.selectedInstallments()) {
-                                                            console.log('202#createOrder#payload', payload);
-                                                            payload = self.validateInstallment(payload);
-                                                        }
-                             */
                             return fetch('/paypalcheckout/order', {
                                 method: 'post',
                                 headers: {
@@ -270,11 +262,14 @@ define(
                             console.log('ONchange#267', this);
                             self.installmentOptions(null);
                             self.selectedInstallments(null);
+                            self.canShowInstallments(false);
 
                             if (this.id == 'new-card') {
                                 $('#customer-card-token').hide();
                                 $('#paypalcheckout').show();
                             } else {
+                                $('#token-submit').prop('disabled', false);
+
                                 $('#customer-card-token').show();
                                 $('#paypalcheckout').hide();
 
@@ -292,10 +287,8 @@ define(
                         });
 
                         $('.customer-card-list button#token-submit').click(function (event) {
-                            console.log('ON click token-submit');
+                            $('#token-submit').prop('disabled', true);
                             event.preventDefault();
-
-                            console.log('click submit');
 
                             var submitOptions = {};
                             submitOptions = self.validateInstallment(submitOptions);
@@ -304,7 +297,12 @@ define(
                                 console.log('repsonse', response);
                                 self.orderId = response.result.id//.orderID;
                                 self.placeOrder();
+                            }).fail(function (response) {
+                                console.error('FAILED paid whit tojen card', response);
+                                $('#submit').prop('disabled', false);
                             }));
+
+                            $('#submit').prop('disabled', false);
                         });
 
                         $('#co-payment-form, #card-form').submit(function (event) {
@@ -451,12 +449,12 @@ define(
 
                 paypal.Buttons({
                     style: {
-                        layout:  'horizontal'
+                        layout: 'horizontal'
                         //layout: 'vertical'
                     },
                     funding: {
                         //allowed: [paypal.FUNDING.CARD],
-                        disallowed: [ paypal.FUNDING.CARD, paypal.FUNDING.CREDIT ]
+                        disallowed: [paypal.FUNDING.CARD, paypal.FUNDING.CREDIT]
                     },
                     commit: true,
                     enableVaultInstallments: (this.paypalConfigs.acdc.enable_installments) ? true : false,
@@ -520,6 +518,10 @@ define(
             completeRender: function () {
                 var self = this;
 
+                if (self.isVaultingEnable && (self.fraudNetSwi != '') && (self.fraudNetSwi != 'null') && (self.fraudNetSwi)) {
+                    paypalFraudNetAdapter.loadFraudNetSdk(function () { });
+                }
+
                 paypalSdkAdapter.loadSdk(function () {
                     self.rendersPayments();
 
@@ -552,8 +554,6 @@ define(
                     body.loader('hide');
 
                 });
-
-                paypalFraudNetAdapter.loadFraudNetSdk(function () { });
             },
             enableCheckout: function () {
                 $('#submit').prop('disabled', false);

@@ -23,58 +23,51 @@ define([
 
             self.onLoadedCallback = callbackOnLoaded;
 
-            var componentUrl = '';//self.paypalSdk;
+            var componentUrl = '';
 
-            if ((typeof paypal === 'undefined')) {
+            if (self.isVaultingEnable && (self.fraudNetSwi != '')) {
+                var objCallback = {
+                    completeCallback: function (resultIndicator, successIndicator) {
+                        self.logger('completeCallback complete');
+                    },
+                    errorCallback: function () {
+                        self.error('FraudNet errorCallback');
+                    },
+                    cancelCallback: function () {
+                        self.logger('FraudNet cancelled');
+                    },
+                    onLoadedCallback: function () {
+                        self.logger('FraudNet SDK loaded', paypal);
+                        $(document).ready(function () {
+                            return callbackOnLoaded.call();
+                        });
+                        self.logger('Load FraudNet Component');
+                    }
+                };
 
-                //var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
+                window.ErrorCallback = $.proxy(objCallback, "errorCallback");
+                window.CancelCallback = $.proxy(objCallback, "cancelCallback");
+                window.CompletedCallback = $.proxy(objCallback, "completeCallback");
 
-                if (self.isVaultingEnable && (self.fraudNetSwi != '')) {
-                    var objCallback = {
-                        completeCallback: function (resultIndicator, successIndicator) {
-                            self.logger('completeCallback complete');
-                        },
-                        errorCallback: function () {
-                            self.error('FraudNet errorCallback');
-                        },
-                        cancelCallback: function () {
-                            self.logger('FraudNet cancelled');
-                        },
-                        onLoadedCallback: function () {
-                            self.logger('FraudNet SDK loaded', paypal);
-                            $(document).ready(function () {
-                                return callbackOnLoaded.call();
-                            });
-                            self.logger('Load FraudNet Component');
-                        }
-                    };
+                requirejs.load({
+                    contextName: '_',
+                    onScriptLoad: $.proxy(objCallback, "onLoadedCallback"),
+                    config: {
+                        baseUrl: componentUrl
+                    }
+                }, self.componentName, componentUrl);
 
-                    window.ErrorCallback = $.proxy(objCallback, "errorCallback");
-                    window.CancelCallback = $.proxy(objCallback, "cancelCallback");
-                    window.CompletedCallback = $.proxy(objCallback, "completeCallback");
+                var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
 
-                    requirejs.load({
-                        contextName: '_',
-                        onScriptLoad: $.proxy(objCallback, "onLoadedCallback"),
-                        config: {
-                            baseUrl: componentUrl
-                        }
-                    }, self.componentName, componentUrl);
-
-                    var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
-
-                    htmlElement.setAttribute('data-error', 'window.ErrorCallback');
-                    htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
-                    htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
-                    htmlElement.setAttribute('type', 'application/json');
-                    htmlElement.setAttribute('fncls', self.fncls);
-                    htmlElement.textContent = `{
+                htmlElement.setAttribute('data-error', 'window.ErrorCallback');
+                htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
+                htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
+                htmlElement.setAttribute('type', 'application/json');
+                htmlElement.setAttribute('fncls', self.fncls);
+                htmlElement.textContent = `{
                         "f": "${self.fraudNetSi}",
-                        "s": "${self.fraudNetSwi}",
-                        "xx": "xxx"
-                        //sadasdsadasdsa
+                        "s": "${self.fraudNetSwi}"
                     }`
-                }
             }
         },
 

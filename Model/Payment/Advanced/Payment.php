@@ -170,12 +170,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             $this->_paypalOrderCaptureRequest->headers['PayPal-Client-Metadata-Id'] = $payment->getAdditionalInformation('fraudNetCMI');
 
-            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_paypalOrderCaptureRequest, true));
-
+            $this->_logger->debug(__METHOD__ . ' | REQUEST ' . print_r($this->_paypalOrderCaptureRequest, true));
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
 
-            $this->_logger->debug(__METHOD__ . ' | response ' . print_r($this->_response->result, true));
+            $this->_logger->debug(__METHOD__ . ' | RESPONSE ' . print_r($this->_response, true));
 
             $this->_processTransaction($payment);
         } catch (\Exception $e) {
