@@ -239,10 +239,10 @@ define(
                     }).then(function (hf) {
                         $('#card-form button#submit').attr('disabled', true);
 
-                        $('#card-holder-name').change(function () {
+                        $('#card-holder-name').bind('input', function () {
                             self.isValidFields(hf);
                         });
-
+ 
                         hf.on('empty', function (event) {
                             self.isValidFields(hf);
                         });
@@ -309,6 +309,10 @@ define(
                             event.preventDefault();
 
                             $('#submit').prop('disabled', true);
+
+                            var body = $('body').loader();
+                            body.loader('show');
+
                             var submitOptions = {
                                 cardholderName: document.getElementById('card-holder-name').value,
                                 vault: $('#vault').is(':checked')
@@ -432,6 +436,7 @@ define(
                     return true;
                 } else {
                     $('#card-form button#submit').attr('disabled', true);
+                    self.isFormValid(false);
 
                     return false;
                 }
@@ -557,6 +562,9 @@ define(
             },
             enableCheckout: function () {
                 $('#submit').prop('disabled', false);
+
+                var body = $('body').loader();
+                body.loader('hide');
             },
             logger: function (message, obj) {
                 if (window.checkoutConfig.payment.paypalcp.debug) {
