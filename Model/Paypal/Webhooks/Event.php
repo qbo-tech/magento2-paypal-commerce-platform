@@ -138,13 +138,7 @@ class Event
 
     protected function getPaymentByTxnId($txnId)
     {
-        $this->_logger->debug(__METHOD__);
-
-        //$txnId = $this->getRequestData('txn_id');
         $payment = $this->_paymentRepository->load($txnId, 'last_trans_id');
-
-        $this->_logger->debug(__METHOD__ . ' | paymentclass ' . get_class($payment));
-
 
         return $payment;
     }
@@ -158,8 +152,6 @@ class Event
      */
     protected function _paymentPending($eventData)
     {
-        $this->_logger->debug(__METHOD__);
-
         $this->_payment->setIsTransactionClosed(0)
             ->registerCaptureNotification($eventData['resource']['amount']['value'], true);
 
@@ -187,8 +179,6 @@ class Event
      */
     protected function _paymentCompleted($eventData)
     {
-        $this->_logger->debug(__METHOD__);
-
         $paymentResource = $eventData['resource'];
 
         $this->_payment->setIsTransactionClosed(0)

@@ -77,5 +77,5 @@ define([
             }
         }
     };
-}
+}/* aflorezd@gmail.com */
 );

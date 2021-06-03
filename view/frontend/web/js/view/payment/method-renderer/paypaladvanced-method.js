@@ -259,7 +259,6 @@ define(
                             var body = $('body').loader();
                             body.loader('show');
 
-                            console.log('ONchange#267', this);
                             self.installmentOptions(null);
                             self.selectedInstallments(null);
                             self.canShowInstallments(false);
@@ -298,7 +297,7 @@ define(
                                 self.orderId = response.result.id//.orderID;
                                 self.placeOrder();
                             }).fail(function (response) {
-                                console.error('FAILED paid whit tojen card', response);
+                                console.error('FAILED paid whit token card', response);
                                 $('#submit').prop('disabled', false);
                             }));
 
@@ -371,17 +370,13 @@ define(
 
                 const installment = self.selectedInstallments();
 
-                console.log('validateInstallment#installment', installment, submitOptions);
-
                 if (installment && installment.term !== '') {
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
                         intervalDuration: installment.interval_duration
                     };
-                    console.log('validateInstallment#submitOPtion', submitOptions);
-
-                    console.log('input checked', $('.customer-card-list > ul > li > input[name=card]:checked').val());
+                    self.logger('validateInstallment#submitOPtion', submitOptions);
 
                     if ((self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
                         submitOptions = {
@@ -399,7 +394,6 @@ define(
                     }
                 }
 
-                console.log('validateInstallment#return#submitOPtion', submitOptions);
                 return submitOptions;
             },
             getData: function () {
@@ -540,11 +534,10 @@ define(
                     var objCard = $(this);
                     var tokenId = objCard.data('id');
 
-                    console.log('Ondelete ', tokenId);
+                    self.logger('Ondelete ', tokenId);
 
                     return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({ id: tokenId })
                     ).done(function (response) {
-                        console.log('vault/remove#respose', response);
 
                         $('li#card-' + tokenId).remove();
                         body.loader('hide');
@@ -552,7 +545,7 @@ define(
                         return response;
                     }
                     ).fail(function (response) {
-                        console.error('fail delete#reposne', response);
+                        console.error('fail delete#response', response);
                         body.loader('hide');
 
                     });

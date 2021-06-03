@@ -103,7 +103,7 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
 
         $response = $this->_paypalApi->execute($this->_verifyWebhookSignature);
 
-        $this->_logger->debug(__METHOD__ . ' | response ' . print_r($response, true));
+        $this->_logger->debug(__METHOD__ . ' | RESPONSE ' . print_r($response, true));
 
         return $response->result->verification_status == 'SUCCESS' ? true : false;
     }

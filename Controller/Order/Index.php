@@ -55,7 +55,7 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $requestBody = $this->buildRequestBody();
 
-        $this->_loggerHandler->debug(__METHOD__ . ' ORDER REQUEST BODY' , $requestBody);
+        $this->_loggerHandler->debug(__METHOD__ . ' ORDER REQUEST BODY', $requestBody);
 
         $this->_orderCreateRequest->body = $requestBody;
 
@@ -66,8 +66,7 @@ class Index extends \Magento\Framework\App\Action\Action
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
 
-            $this->_loggerHandler->debug(__METHOD__ . ' ORDER RESPONSE ' . print_r($response,true));
-
+            $this->_loggerHandler->debug(__METHOD__ . ' ORDER RESPONSE ' . print_r($response, true));
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 
@@ -100,13 +99,13 @@ class Index extends \Magento\Framework\App\Action\Action
         $requestBody = [
             'intent' => 'CAPTURE',
             'application_context' => [
-                'shipping_preference'=> 'NO_SHIPPING'
+                'shipping_preference' => 'NO_SHIPPING'
             ],
             'purchase_units' => [[
                 'amount' => [
                     'currency_code' => $currencyCode,
                     'value' => $amount
-                ] 
+                ]
             ]]
         ];
 

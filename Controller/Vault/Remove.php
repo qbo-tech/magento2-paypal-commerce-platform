@@ -24,23 +24,14 @@ class Remove extends \Magento\Framework\App\Action\Action
     ) {
         parent::__construct($context);
 
-        $this->_loggerHandler  = $logger;
-        $this->_paypalApi    = $paypalApi;
-        $this->_resultJsonFactory  = $resultJsonFactory;
+        $this->_loggerHandler     = $logger;
+        $this->_paypalApi         = $paypalApi;
+        $this->_resultJsonFactory = $resultJsonFactory;
     }
 
     public function execute()
     {
-        $this->_loggerHandler->debug(__METHOD__); // ->getPost()));
-
-        if (!$this->getRequest()->isAjax()) {
-            //return;
-        }
-
-
         $requestContent = json_decode($this->getRequest()->getContent(), true);
-
-        $this->_loggerHandler->debug(__METHOD__ . ' requestContent : ', array($requestContent['id'])); // ->getPost()));
 
         $tokenId = $requestContent['id'] ?? null;
 
@@ -51,10 +42,10 @@ class Remove extends \Magento\Framework\App\Action\Action
         $resultJson = $this->_resultJsonFactory->create();
 
         try {
-            
+
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\DeletePaymentTokensRequest($tokenId));
-            $this->_loggerHandler->debug(__METHOD__ . ' response : ', array($response)); // ->getPost()));
+            $this->_loggerHandler->debug(__METHOD__ . ' RESPONSE : ', array($response));
 
             $resultJson->setHttpResponseCode($response->statusCode);
         } catch (\Exception $e) {

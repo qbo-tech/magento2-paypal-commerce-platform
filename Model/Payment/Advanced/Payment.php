@@ -108,8 +108,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     ) {
         $isAvailable = parent::isAvailable($quote);
 
-        $this->_logger->debug(__METHOD__ . ' | isAvailable ' . $isAvailable);
-
         return $isAvailable;
     }
 
@@ -122,17 +120,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function assignData(\Magento\Framework\DataObject $data)
     {
-        $this->_logger->debug(__METHOD__ );
-
         parent::assignData($data);
 
         $infoInstance   = $this->getInfoInstance();
         $infoInstance->setAdditionalInformation('payment_source');
 
         $additionalData = $data->getData('additional_data') ?: $data->getData();
-
-        $this->_logger->debug(__METHOD__ . ' | additionalData: ' . print_r($additionalData, true));
-
 
         foreach ($additionalData as $key => $value) {
             $infoInstance->setAdditionalInformation($key, $value);
@@ -154,27 +147,20 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     {
         $paypalOrderId = $payment->getAdditionalInformation('order_id');
 
-        $this->_logger->debug(__METHOD__ . ' | paypalOrderId: ' . $paypalOrderId);
-
         $this->_order = $payment->getOrder();
 
         try {
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
+            //TODO move function.
             if($payment->getAdditionalInformation('payment_source')) {
-                $this->_logger->debug(__METHOD__ . ' | paymentSource ' . print_r($payment->getAdditionalInformation('payment_source'), true));
-
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
             $this->_paypalOrderCaptureRequest->headers['PayPal-Client-Metadata-Id'] = $payment->getAdditionalInformation('fraudNetCMI');
 
-            $this->_logger->debug(__METHOD__ . ' | REQUEST ' . print_r($this->_paypalOrderCaptureRequest, true));
-
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
-
-            $this->_logger->debug(__METHOD__ . ' | RESPONSE ' . print_r($this->_response, true));
 
             $this->_processTransaction($payment);
         } catch (\Exception $e) {
@@ -185,13 +171,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
         }
         return $this;
-    }
-
-    public function authorize(InfoInterface $payment, $amount)
-    {
-        $this->_logger->debug(__METHOD__ . $amount);
-
-        throw new \Exception;
     }
 
     /**
