@@ -230,7 +230,7 @@ class Order
         $requestBody = [
             'intent' => 'CAPTURE',
             'application_context' => [
-                'shipping_preference' => 'SET_PROVIDED_ADDRESS'
+                'shipping_preference' => $this->_quote->isVirtual() ? 'NO_SHIPPING' : 'SET_PROVIDED_ADDRESS'
             ],
             'payer' => $this->_getPayer(),
             'purchase_units' => [[
@@ -272,14 +272,19 @@ class Order
 
     protected function _getPayer()
     {
-        return [
+        $ret = [
             'email_address' => $this->_customerAddress->getEmail(),
             'name' => [
                 'given_name' => $this->_customerAddress->getFirstname(),
                 'surname'    => $this->_customerAddress->getLastname()
-            ],
-            'address' => $this->_getShippingAddress(),
+            ]
         ];
+        
+        if(!$this->_quote->isVirtual()){
+            $ret['address'] = $this->_getShippingAddress() ?? $this->_getBillingAddress() ?? $this->_prepareAddress($this->_customerAddress); 
+        }
+
+        return $ret;
     }
 
     /**
@@ -326,8 +331,8 @@ class Order
 
             $discount = ($discount < 0) ? $discount * -1 : $discount;
 
-            if ($this->_quote->getBaseGiftCardsAmount()) {
-                $discount += $this->_quote->getBaseGiftCardsAmount();
+            if ($this->_quote->getBaseGiftCardsAmountUsed()) {
+                $discount += $this->_quote->getBaseGiftCardsAmountUsed();
             }
             if ($this->_quote->getBaseCustomerBalAmountUsed()) {
                 $discount += $this->_quote->getBaseCustomerBalAmountUsed();
