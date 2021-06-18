@@ -10,6 +10,9 @@ use stdClass;
 
 class Api
 {
+
+    const PAYPAL_PARTNER_ATTRIBUTION_ID = 'MagentoMexico_Cart_PPCP';
+
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $_scopeConfig;
 
@@ -48,14 +51,16 @@ class Api
     public function execute(\PayPalHttp\HttpRequest $httpRequest)
     {
         try {
+            $this->_logger->debug(__METHOD__ . ' headers: ' . print_r($httpRequest->headers, true));
+
             return $this->_paypalClient->execute($httpRequest);
         } catch (\PayPalHttp\HttpException $e) {
 
             $erroResponse = [
+                'requestClass' => get_class($httpRequest),
                 'statusCode' => $e->statusCode,
                 'message' => $e->getMessage(),
-                'headers' => $e->headers,
-                'requestClass' => \get_class($httpRequest)
+                'headers' => $e->headers
             ];
 
             $this->_logger->error(__METHOD__ . ' Error: ' . $e->getMessage(), $erroResponse);
