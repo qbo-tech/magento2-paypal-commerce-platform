@@ -139,10 +139,8 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
     private function validateCustomerId()
     {
-        if ($this->canRemember()) {
-            $customerId = $this->_customerSession->getCustomerId() ?? $this->_customerSession->getId();
-
-            return $customerId;
+        if ($this->canRemember() && $this->_customerSession->isLoggedIn()) {
+            return $this->_customerSession->getCustomerId();
         }
 
         return;
@@ -150,9 +148,13 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
     private function getCustomerPaymentTokens($customerId)
     {
-        $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
+        if(!$this->_customerSession->isLoggedIn()){
+            return [];
+        }
 
         $paymentTokens = [];
+
+        $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
         $this->_logger->debug(__METHOD__ . ' | PaymentTokensRequest RESPONSE ' . print_r($response, true));
 
