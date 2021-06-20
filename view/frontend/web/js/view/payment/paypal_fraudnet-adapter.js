@@ -1,9 +1,6 @@
 define([
-    'Magento_Checkout/js/view/payment/default',
-    'mage/storage',
-    'jquery',
-    'Magento_Customer/js/customer-data'
-], function (Component, storage, $, customerData) {
+    'jquery'
+], function ($) {
     'use strict';
     return {
 
@@ -28,7 +25,7 @@ define([
             if (self.isVaultingEnable && (self.fraudNetSwi != '')) {
                 var objCallback = {
                     completeCallback: function (resultIndicator, successIndicator) {
-                        self.logger('completeCallback complete');
+                        self.logger('FraudNet completeCallback complete');
                     },
                     errorCallback: function () {
                         self.error('FraudNet errorCallback');
@@ -37,7 +34,7 @@ define([
                         self.logger('FraudNet cancelled');
                     },
                     onLoadedCallback: function () {
-                        self.logger('FraudNet SDK loaded', paypal);
+                        self.logger('FraudNet SDK loaded');
                         $(document).ready(function () {
                             return callbackOnLoaded.call();
                         });
@@ -49,12 +46,9 @@ define([
                 window.CancelCallback = $.proxy(objCallback, "cancelCallback");
                 window.CompletedCallback = $.proxy(objCallback, "completeCallback");
 
-                requirejs.load({
+                var reqFraudNet = requirejs.load({
                     contextName: '_',
                     onScriptLoad: $.proxy(objCallback, "onLoadedCallback"),
-                    config: {
-                        baseUrl: componentUrl
-                    }
                 }, self.componentName, componentUrl);
 
                 var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
