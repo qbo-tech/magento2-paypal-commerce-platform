@@ -18,9 +18,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     const FAILED_STATE_CODE            = 'FAILED';
     const SUCCESS_STATE_CODES          = array("PENDING", "COMPLETED");
 
+    const PAYPAL_CLIENT_METADATA_ID_HEADER = 'PayPal-Client-Metadata-Id';
+    const FRAUDNET_CMI_PARAM = 'fraudNetCMI';
+
     protected $_code = self::CODE;
 
-    protected $_infoBlockType          = 'PayPal\CommercePlatform\Block\Info';
+    protected $_infoBlockType = 'PayPal\CommercePlatform\Block\Info';
 
     protected $_isGateway    = true;
 
@@ -158,7 +161,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
-            $this->_paypalOrderCaptureRequest->headers['PayPal-Client-Metadata-Id'] = $payment->getAdditionalInformation('fraudNetCMI');
+            $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
 

@@ -156,8 +156,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
         $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
-        $this->_logger->debug(__METHOD__ . ' | PaymentTokensRequest RESPONSE ' . print_r($response, true));
-
         if ($response->statusCode == 200) {
 
             foreach ($response->result->payment_tokens as $token) {

@@ -31,7 +31,6 @@ header {
 header .logo {
     width: 100px;
     height: 100px;
-    background-image: url("logo.jpg");
     background-size: contain;
 }
 

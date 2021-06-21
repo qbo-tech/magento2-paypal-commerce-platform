@@ -202,6 +202,9 @@ define(
                                     'Content-Type': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
                                 },
+                                body: JSON.stringify({
+                                    'fraudNetCMI': self.sessionIdentifier
+                                })
                             }).then(function (res) {
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
                                 if (res.ok) {
@@ -266,7 +269,7 @@ define(
 
                             submitOptions = self.validateInstallment(submitOptions);
 
-                            self.logger('317submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
+                            self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
 
                             hf.submit(submitOptions)
                                 .then(function (payload) {
@@ -412,7 +415,10 @@ define(
                             headers: {
                                 'content-type': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
-                            }
+                            },
+                            body: JSON.stringify({
+                                'fraudNetCMI': self.sessionIdentifier
+                            })
                         }).then(function (res) {
                             self.logger('###paypal_advanced-method#renderButton#createOrder# res =', res);
                             return res.json();
@@ -447,7 +453,7 @@ define(
             createOrder: function (requestBody) {
                 var self = this;
 
-                return storage.post('/paypalcheckout/order'
+                return storage.post('/paypalcheckout/order', JSON.stringify({'fraudNetCMI': self.sessionIdentifier})
                 ).done(function (response) {
                     return response;
                 }

@@ -121,6 +121,8 @@ class Order
 
     const DISCOUNT_ITEM_NAME = 'Discount Item';
 
+    const PAYPAL_CLIENT_METADATA_ID_HEADER = 'PayPal-Client-Metadata-Id';
+
     //private $paymentSource;
 
     public function __construct(
@@ -149,7 +151,6 @@ class Order
         $this->_resultJsonFactory  = $resultJsonFactory;
         $this->_checkoutSession    = $checkoutSession;
 
-        // BEGIN IMPORT FROM PAYPALPLUSMX TODO check use
         $this->_data = $data;
         $this->_adressData = $address;
         $this->_cart = $cart;
@@ -177,16 +178,15 @@ class Order
         self::$_cancelUrl = $this->_storeManager->getStore()->getUrl('checkout/cart');
         self::$_returnUrl = $this->_storeManager->getStore()->getUrl('checkout/cart');
         self::$_notifyUrl = $this->_storeManager->getStore()->getUrl('paypal/ipn');
-        //END IMPORT FROM PAYPALPLUSMX
     }
 
     /**
      * Create and execute request paypal API
      *
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param string $paypalCmi
      * @return void
      */
-    public function createRequest()
+    public function createRequest($paypalCmi)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
@@ -194,15 +194,12 @@ class Order
 
         $requestBody = $this->buildRequestBody();
 
-        $this->_loggerHandler->debug(__METHOD__ . ' ORDER REQUEST BODY ' . \print_r($requestBody, \true));
-
+        $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCmi;
         $this->_orderCreateRequest->body = $requestBody;
 
         try {
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
-
-            $this->_loggerHandler->debug(__METHOD__ . ' ORDER RESPONSE ' . print_r($response, true));
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 

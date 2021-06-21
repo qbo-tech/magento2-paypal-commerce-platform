@@ -11,7 +11,8 @@ use stdClass;
 class Api
 {
 
-    const PAYPAL_PARTNER_ATTRIBUTION_ID = 'MagentoMexico_Cart_PPCP';
+    const PAYPAL_PARTNER_ATTRIBUTION_ID_HEADER = 'PayPal-Partner-Attribution-Id';
+    const PAYPAL_PARTNER_ATTRIBUTION_ID_VALUE  = 'MagentoMexico_Cart_PPCP';
 
     /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $_scopeConfig;
@@ -25,13 +26,13 @@ class Api
     /** @var \PayPalCheckoutSdk\Orders\OrdersCaptureRequest */
     protected $_ordersCaptureRequest;
 
-    /** @var \Psr\Log\LoggerInterface */
+    /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_logger;
 
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \PayPal\CommercePlatform\Model\Config $paypalConfig,
-        \Psr\Log\LoggerInterface $logger
+        \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
         $this->_logger       = $logger;
         $this->_scopeConfig  = $scopeConfig;
@@ -50,14 +51,24 @@ class Api
      */
     public function execute(\PayPalHttp\HttpRequest $httpRequest)
     {
-        try {
-            $this->_logger->debug(__METHOD__ . ' headers: ' . print_r($httpRequest->headers, true));
+        $httpRequest->headers[self::PAYPAL_PARTNER_ATTRIBUTION_ID_HEADER] = self::PAYPAL_PARTNER_ATTRIBUTION_ID_VALUE;
 
-            return $this->_paypalClient->execute($httpRequest);
+        try {
+            $this->_logger->debug(__METHOD__ . ' | REQUEST ' . print_r([
+                'requestType' => get_class($httpRequest),
+                'headers' => $httpRequest->headers,
+                'body' => $httpRequest->body
+            ], true));
+
+            $response = $this->_paypalClient->execute($httpRequest);
+
+            $this->_logger->debug(__METHOD__ . ' | RESPONSE ' . print_r($response, true));
+
+            return $response;
         } catch (\PayPalHttp\HttpException $e) {
 
             $erroResponse = [
-                'requestClass' => get_class($httpRequest),
+                'requestType' => get_class($httpRequest),
                 'statusCode' => $e->statusCode,
                 'message' => $e->getMessage(),
                 'headers' => $e->headers
