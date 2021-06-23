@@ -44,9 +44,10 @@ class Index extends \Magento\Framework\App\Action\Action
 
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
+            $paypalCmi = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
 
             /** @var \PayPalHttp\HttpResponse $response */
-            $response = $this->_paypalOrder->createRequest($paramsData[self::FRAUDNET_CMI_PARAM]);
+            $response = $this->_paypalOrder->createRequest($paypalCmi);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 

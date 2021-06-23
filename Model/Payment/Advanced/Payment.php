@@ -161,7 +161,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
-            $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
+            if($payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM)){
+                $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
+            }
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
 

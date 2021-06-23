@@ -54,14 +54,8 @@
                     sale -> authorize (capturar al momento de capturar invoice)
                     capture -> capture
                      -->
-                    <!--                     <field id="enable_bcdc" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label" disable="true">
-                        <label>Enable BCDC with Credit and Debit Card Payment Solutions</label> 
-                         <comment>No disponible por el momento</comment> 
-                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/paypalcp/enable_bcdc</config_path>
-                    </field> -->
                     <field id="enable_items" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Send Items (Line Items)</label>
+                        <label>Transfer Items (Line Items)</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/enable_items</config_path>
                     </field>
@@ -80,6 +74,11 @@
                         <label>Debug Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/debug_mode</config_path>
+                    </field>
+                    <field id="enable_bcdc" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enable BCDC with Credit and Debit Card Payment Solutions</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/paypalcp/enable_bcdc</config_path>
                     </field>
                     <group id="paypalcp_advanced" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>PayPal Advanced Credit and Debit Card</label>

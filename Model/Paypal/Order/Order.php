@@ -194,7 +194,10 @@ class Order
 
         $requestBody = $this->buildRequestBody();
 
-        $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCmi;
+        if($paypalCmi){
+            $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCmi;
+        }
+
         $this->_orderCreateRequest->body = $requestBody;
 
         try {

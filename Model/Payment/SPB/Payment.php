@@ -11,15 +11,7 @@
 
 namespace PayPal\CommercePlatform\Model\Payment\SPB;
 
-class Payment extends \Magento\Payment\Model\Method\AbstractMethod
+class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 {
-
-    protected $_code = "paypal_basic";
-    protected $_isOffline = true;
-
-    public function isAvailable(
-        \Magento\Quote\Api\Data\CartInterface $quote = null
-    ) {
-        return parent::isAvailable($quote);
-    }
+    protected $_code = "paypalspb";
 }

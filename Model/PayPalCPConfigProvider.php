@@ -148,7 +148,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
     private function getCustomerPaymentTokens($customerId)
     {
-        if(!$this->_customerSession->isLoggedIn()){
+        if(!$this->validateCustomerId()){
             return [];
         }
 

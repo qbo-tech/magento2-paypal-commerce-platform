@@ -48,6 +48,10 @@ define(
             isSelected: function () {
                 var self = this;
 
+                if (!self.isAcdcEnable) {
+                    return false;
+                }
+
                 if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalMethod)) {
                     return self.selectedMethod;
                 }
@@ -453,7 +457,7 @@ define(
             createOrder: function (requestBody) {
                 var self = this;
 
-                return storage.post('/paypalcheckout/order', JSON.stringify({'fraudNetCMI': self.sessionIdentifier})
+                return storage.post('/paypalcheckout/order', JSON.stringify({ 'fraudNetCMI': self.sessionIdentifier })
                 ).done(function (response) {
                     return response;
                 }
@@ -469,6 +473,11 @@ define(
             },
             completeRender: function () {
                 var self = this;
+
+                if (!self.isAcdcEnable) {
+                    return false;
+                }
+
                 var body = $('body').loader();
 
                 body.loader('show');

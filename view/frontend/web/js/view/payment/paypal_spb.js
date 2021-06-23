@@ -12,7 +12,7 @@ define(
 
         rendererList.push(
             {
-                type: 'paypal_basic',
+                type: 'paypalspb',
                 component: 'PayPal_CommercePlatform/js/view/payment/method-renderer/paypal_spb-method'
             }
         );
