@@ -5,6 +5,8 @@ define([
     return {
 
         componentName: "paypalFraudNetSDKComponent",
+        componentFBName: "fraudNetFBComponent",
+        fbComponentUrl: "https://c.paypal.com/da/r/fb.js",
 
         fraudNetSwi: window.checkoutConfig.payment.paypalcp.fraudNet.sourceWebIdentifier, //Source Website Identifier
         fraudNetSi: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
@@ -61,7 +63,11 @@ define([
                 htmlElement.textContent = `{
                         "f": "${self.fraudNetSi}",
                         "s": "${self.fraudNetSwi}"
-                    }`
+                    }`;
+
+                var fbFraudNet = requirejs.load({
+                    contextName: '_',
+                }, self.componentFBName, self.fbComponentUrl);
             }
         },
 
