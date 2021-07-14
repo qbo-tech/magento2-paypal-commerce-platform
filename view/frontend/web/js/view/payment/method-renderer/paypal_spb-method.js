@@ -14,18 +14,13 @@ define(
     function (Component, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
         'use strict';
 
-        console.log('paypal_spb-method');
-
         if (window.checkoutConfig.payment.paypalcp.acdc.enable) {
             window.checkoutConfig.payment.paypalcp.template = 'PayPal_CommercePlatform/payment/paypaladvanced-form';
         } else if (window.checkoutConfig.payment.paypalcp.bcdc.enable) {
             window.checkoutConfig.payment.paypalcp.template = 'PayPal_CommercePlatform/payment/paypal_spb';
         } else {
-            window.checkoutConfig.payment.paypalcp.template = 'PayPal_CommercePlatform/payment/paypal_standar';
+            window.checkoutConfig.payment.paypalcp.template = 'PayPal_CommercePlatform/payment/paypal-standard';
         }
-
-        console.log('paypal_spb-method#template', window.checkoutConfig.payment.paypalcp.template);
-
 
         return Component.extend({
             defaults: {
@@ -62,7 +57,6 @@ define(
             },
             isSelected: function () {
                 var self = this;
-                console.log('isSelected');
                 /* 
                                 if (!self.isActive()) {
                                     return false;
@@ -160,14 +154,19 @@ define(
             renderButton: function (fundingSource, elementId) {
                 var self = this;
 
-                console.log('fundingSource', fundingSource);
-
                 // Initialize the buttons
                 var button = paypal.Buttons({
                     fundingSource: fundingSource,
                     // Set up the transaction
                     createOrder: function (data, actions) {
-                        return self.createOrder(data, actions);
+
+                        var retOrder = self.createOrder(data, actions).then(function (response) {
+                            return response.result.id;
+                        }).then(function (res) {
+                            return res;
+                        });
+
+                        return retOrder;
                     },
 
                     // Finalize the transaction
@@ -389,6 +388,7 @@ define(
                 return storage.post('/paypalcheckout/order', JSON.stringify(requestBody)
                 ).done(function (response) {
                     console.log('createOrder#response', response);
+                    console.log('createOrder#response.result.id', response.result.id);
 
                     return response;
                 }
@@ -445,10 +445,7 @@ define(
             renderButtons: function () {
                 var self = this;
 
-                //self.loadSdk();
-
                 var FUNDING_SOURCES = {
-                    //[paypal.FUNDING.CARD]: 'card-button-container',
                     [paypal.FUNDING.PAYPAL]: 'paypal-button-container',
                 };
 
@@ -457,10 +454,8 @@ define(
                 } else if (self.isBcdcEnable) {
                     FUNDING_SOURCES[paypal.FUNDING.CARD] = 'card-button-container';
                 } else {
-
+                    FUNDING_SOURCES[paypal.FUNDING.CARD] = 'card-button-container';
                 }
-
-                console.log('rendersButtons#rendersFUNDING_SOURCESButtons', FUNDING_SOURCES);
 
                 // Loop over each funding source / payment method
                 Object.keys(FUNDING_SOURCES).forEach(function (fundingSource) {
@@ -621,30 +616,19 @@ define(
             },
             completeRender: function () {
                 var self = this;
-                /* 
-                                if (self.isActive()) {
-                                    return false;
-                                } */
 
                 var body = $('body').loader();
 
                 console.log('completeRenderSPB');
-                //self.loadSdk();
-                //self.renderButtons();
 
                 self.initializeEvents();
 
-                /* 
-                                body.loader('show');
-                                self.loadFraudnet();
-                                self.initializeEvents();
-                 */
                 body.loader('hide');
             },
             logger: function (message, obj) {
-                //if (window.checkoutConfig.payment.paypalcp.debug) {
-                console.log(message, obj);
-                //}
+                if (window.checkoutConfig.payment.paypalcp.debug) {
+                    console.log(message, obj);
+                }
             }
         });
     }
