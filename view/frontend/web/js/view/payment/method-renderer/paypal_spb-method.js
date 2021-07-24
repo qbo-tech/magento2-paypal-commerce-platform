@@ -139,7 +139,8 @@ define(
                     method: self.paypalMethod,
                     additional_data: {
                         order_id: self.orderId,
-                        fraudNetCMI: self.sessionIdentifier
+                        fraudNetCMI: self.sessionIdentifier,
+                        payment_type: (self.isActiveAcdc) ? 'PayPal_Advanced' : 'PayPal_Basic'
                     }
                 };
 
