@@ -3,6 +3,7 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'jquery',
         'paypalSdkAdapter',
+        'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/model/quote',
@@ -11,7 +12,7 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/totals',
     ],
-    function (Component, $, paypalSdkAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
+    function (Component, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
         'use strict';
 
         if (window.checkoutConfig.payment.paypalcp.acdc.enable) {
@@ -394,33 +395,19 @@ define(
                     return response;
                 }
                 ).fail(function (response) { });
-            },/* 
-            createOrder: function (data) {
+            },
+            loadFraudnet: function () {
                 var self = this;
 
-                return fetch('/paypalcheckout/order', {
-                    method: 'post',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                }).then(function (res) {
-                    self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-                    if (res.ok) {
-                        return res.json();
-                    } else {
-                        self.messageContainer.addErrorMessage({
-                            message: $t('An error has occurred on the server, please try again later')
-                        });
+                self.logger('LoadFraudNet');
 
-                        return false;
-                    }
-                }).then(function (data) {
-                    self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
-                    return data.result.id;
-                });
-
-            }, */
+                if (self.isVaultingEnable && (self.fraudNetSwi != '') && (self.fraudNetSwi != 'null') && (self.fraudNetSwi)) {
+                    self.logger('completeRender#call load fraudNet');
+                    paypalFraudNetAdapter.loadFraudNetSdk(function () {
+                        self.logger('completeRender#loadFraudNetSdk ', this)
+                    });
+                }
+            },
             loadSdk: function () {
                 var self = this;
                 self.logger('loadSDK')
@@ -525,6 +512,7 @@ define(
 
                 if (self.customerCards().length > 0) {
                     $('#paypalcheckout').hide();
+                    self.loadFraudnet();
                 } else {
                     self.loadSdk();
                 }
