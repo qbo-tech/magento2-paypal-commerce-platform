@@ -37,7 +37,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     protected $_successCodes = ['200', '201'];
 
-    protected $_canHandlePendingStatus      = true;
+    protected $_canHandlePendingStatus = true;
 
     /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_logger;
@@ -51,26 +51,29 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     /** @var \PayPal\CommercePlatform\Model\Paypal\Api */
     protected $_paypalApi;
 
+    /** @var \Magento\Framework\Event\ManagerInterface */
+    protected $_eventManager;
+
+    /** @var \Magento\Framework\App\Config\ScopeConfigInterface */
     protected $_scopeConfig;
 
     private $paymentSource;
 
     /**
-     * Constructor method
      *
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
      * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
      * @param \Magento\Payment\Helper\Data $paymentData
+     * @param \Magento\Payment\Model\Method\Logger $paymentLogger
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
-     * @param Logger $logger
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi
+     * @param \PayPal\CommercePlatform\Logger\Handler $logger
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
+     * @param \Magento\Framework\Event\ManagerInterface $eventManager
      * @param array $data
-     * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param Api $api
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
@@ -84,6 +87,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \PayPal\CommercePlatform\Logger\Handler $logger,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        \Magento\Framework\Event\ManagerInterface $eventManager,
         array $data = []
     ) {
         parent::__construct(
@@ -99,9 +103,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $data
         );
 
-        $this->_logger      = $logger;
-        $this->_paypalApi   = $paypalApi;
-        $this->_scopeConfig = $scopeConfig;
+        $this->_logger       = $logger;
+        $this->_paypalApi    = $paypalApi;
+        $this->_scopeConfig  = $scopeConfig;
+        $this->_eventManager = $eventManager;
 
         $this->paymentSource = null;
     }
@@ -150,6 +155,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     {
         $paypalOrderId = $payment->getAdditionalInformation('order_id');
 
+        /** @var \Magento\Sales\Model\Order */
         $this->_order = $payment->getOrder();
 
         try {
@@ -161,13 +167,19 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
-            if($payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM)){
-                $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
+            $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
+
+            if($paypalCMID){
+                $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
+
+            $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
 
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
 
             $this->_processTransaction($payment);
+
+            $this->_eventManager->dispatch('paypalcp_order_capture_after', ['payment' => $payment]);
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
 
