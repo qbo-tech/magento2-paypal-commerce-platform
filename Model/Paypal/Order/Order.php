@@ -25,6 +25,8 @@ class Order
     /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_loggerHandler;
 
+    /** @var \Magento\Framework\Event\ManagerInterface */
+    protected $_eventManager;
 
     /**
      *
@@ -140,12 +142,14 @@ class Order
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Payment\Model\Cart\SalesModel\Factory $cartFactory,
         \Magento\Framework\DataObject $dataObject,
-        \Magento\Customer\Model\Session $customerSession
+        \Magento\Customer\Model\Session $customerSession,
+        \Magento\Framework\Event\ManagerInterface $eventManager
     ) {
         $this->_loggerHandler  = $logger;
 
         $this->_paypalApi    = $paypalApi;
         $this->_paypalConfig = $paypalConfig;
+        $this->_eventManager = $eventManager;
 
         $this->_orderCreateRequest = $this->_paypalApi->getOrderCreateRequest();
         $this->_resultJsonFactory  = $resultJsonFactory;
@@ -183,10 +187,10 @@ class Order
     /**
      * Create and execute request paypal API
      *
-     * @param string $paypalCmi
-     * @return void
+     * @param string $paypalCMID
+     * @return \PayPalHttp\HttpResponse
      */
-    public function createRequest($paypalCmi)
+    public function createRequest($paypalCMID)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
@@ -194,15 +198,19 @@ class Order
 
         $requestBody = $this->buildRequestBody();
 
-        if($paypalCmi){
-            $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCmi;
+        if($paypalCMID){
+            $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
         }
 
         $this->_orderCreateRequest->body = $requestBody;
 
         try {
+            $this->_eventManager->dispatch('paypalcp_create_order_before', ['paypalCMID' => $paypalCMID, 'cart' => $this->_cart, 'customer' => $this->_customer]);
+
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
+
+            $this->_eventManager->dispatch('paypalcp_create_order_after', ['cart' => $this->_cart, 'paypalResponse' => $response]);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 
