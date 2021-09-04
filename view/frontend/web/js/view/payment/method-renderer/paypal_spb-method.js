@@ -385,6 +385,8 @@ define(
             createOrder: function (requestBody) {
                 var self = this;
 
+                requestBody.fraudNetCMI = self.sessionIdentifier;
+
                 console.log('createOrder#requestBody', requestBody);
 
                 return storage.post('/paypalcheckout/order', JSON.stringify(requestBody)

@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="paypalcp_create_order_before">
+        <observer name="paypal_commerceplatform_observer_create_order_before" instance="PayPal\CommercePlatform\Observer\Paypalcp\RiskTransactionObserver"/>
+    </event>
+    <event name="paypalcp_order_capture_before">
+        <observer name="paypal_commerceplatform_observer_capture_order_before" instance="PayPal\CommercePlatform\Observer\Paypalcp\RiskTransactionObserver"/>
+    </event>
+</config>
