@@ -37,6 +37,13 @@ class Config
     const CONFIG_XML_FRAUDNET_SWI         = 'source_web_identifier';
     const CONFIG_XML_FRAUDNET_FNCLS       = 'fncls';
 
+    /** STC CONFIGS */
+
+    const CONFIG_XML_ENABLE_STC                    = 'enable_stc';
+    const CONFIG_XML_ENABLE_STC_MERCHANT_ID        = 'stc_merchant_id';
+    const CONFIG_XML_ENABLE_STC_HIGHSRISK_TXN_FLAG = 'stc_highrisk_txn_flag';
+    const CONFIG_XML_ENABLE_STC_VERTICAL           = 'stc_vertical';
+
     /**
      * Button customization style options
      */
@@ -95,7 +102,7 @@ class Config
      * @param string $flag
      * @return bool
      */
-    public function isSetFLag($flag)
+    public function isSetFlag($flag)
     {
         return $this->_scopeConfig->isSetFlag(
             $this->_preparePathConfig($flag),
@@ -156,5 +163,25 @@ class Config
     public function isEnableVaulting()
     {
         return $this->isSetFLag(self::CONFIG_XML_ENABLE_REMEMBER_CARD);
+    }
+
+    public function isEnableStc()
+    {
+        return $this->isSetFlag(self::CONFIG_XML_ENABLE_STC);
+    }
+
+    public function getStcMerchantId()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_ENABLE_STC_MERCHANT_ID);
+    }
+
+    public function getHighriskTxnFlag()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_ENABLE_STC_HIGHSRISK_TXN_FLAG);
+    }
+
+    public function getVertical()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_ENABLE_STC_VERTICAL);
     }
 }

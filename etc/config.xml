@@ -25,6 +25,7 @@
                 <min_order_total>0.50</min_order_total>
                 <paymentInfoKeys>card_type,order_id</paymentInfoKeys>
                 <fncls>fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99</fncls>
+                <stc_vertical>retail</stc_vertical>
             </paypalcp>
             <paypalspb>
                 <active>1</active>

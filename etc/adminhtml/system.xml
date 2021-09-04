@@ -19,14 +19,7 @@
                         <attribute type="shared">1</attribute>
                         <config_path>payment/paypalcp/sandbox_flag</config_path>
                     </field>
-                    <!-- 
-                    <field id="merchant_id" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1">
-                        <label>Merchant ID</label>
-                        <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                        <config_path>payment/paypalcp/merchant_id</config_path>
-                    </field>
- -->
-                    <field id="client_id" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1">
+                     <field id="client_id" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1">
                         <label>Client ID</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <config_path>payment/paypalcp/client_id</config_path>
@@ -119,6 +112,36 @@
                         </field>
  -->
                         </group>
+                    </group>
+                    <group id="stc" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="126">
+                        <label>STC</label>
+                        <field id="enable_stc" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="127">
+                            <label>Enable STC</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/enable_stc</config_path>
+                        </field>
+                        <field id="stc_merchant_id" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="128">
+                            <label>STC Merchant ID</label>
+                            <config_path>payment/paypalcp/stc_merchant_id</config_path>
+                            <depends>
+                                <field id="enable_stc">1</field>
+                            </depends>
+                        </field>
+                        <field id="stc_highrisk_txn_flag" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="129">
+                            <label>highrisk_txn_flag</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/stc_highrisk_txn_flag</config_path>
+                            <depends>
+                                <field id="enable_stc">1</field>
+                            </depends>
+                        </field>
+                        <field id="stc_vertical" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="129">
+                            <label>vertical</label>
+                            <config_path>payment/paypalcp/stc_vertical</config_path>
+                            <depends>
+                                <field id="enable_stc">1</field>
+                            </depends>
+                        </field>
                     </group>
                     <group id="split_display_options" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="130">
                         <label>Split display options</label>
