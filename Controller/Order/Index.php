@@ -25,7 +25,6 @@ class Index extends \Magento\Framework\App\Action\Action
         \PayPal\CommercePlatform\Model\Paypal\Order\Order $paypalOrder,
         \PayPal\CommercePlatform\Logger\Handler $logger,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
-
     ) {
         parent::__construct($context);
 
@@ -44,10 +43,12 @@ class Index extends \Magento\Framework\App\Action\Action
 
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
-            $paypalCmi = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
+            $paypalCMID = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
+
+            $this->_loggerHandler->debug(__METHOD__ . ' | paypalCMID: ' . $paypalCMID);
 
             /** @var \PayPalHttp\HttpResponse $response */
-            $response = $this->_paypalOrder->createRequest($paypalCmi);
+            $response = $this->_paypalOrder->createRequest($paypalCMID);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 

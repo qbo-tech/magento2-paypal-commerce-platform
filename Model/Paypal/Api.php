@@ -67,16 +67,16 @@ class Api
             return $response;
         } catch (\PayPalHttp\HttpException $e) {
 
-            $erroResponse = [
+            $errorResponse = [
                 'requestType' => get_class($httpRequest),
                 'statusCode' => $e->statusCode,
                 'message' => $e->getMessage(),
                 'headers' => $e->headers
             ];
 
-            $this->_logger->error(__METHOD__ . ' Error: ' . $e->getMessage(), $erroResponse);
+            $this->_logger->error(__METHOD__ . ' Error: [' . $e->getMessage() . "]\n", ['errorResponse' => print_r($errorResponse, true)]);
 
-            return (object) $erroResponse;
+            return (object) $errorResponse;
         }
     }
 

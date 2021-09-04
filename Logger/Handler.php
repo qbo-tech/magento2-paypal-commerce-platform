@@ -1,9 +1,7 @@
 <?php
 namespace PayPal\CommercePlatform\Logger;
 
-use Monolog\Logger;
-
-class Handler //extends \Magento\Framework\Logger\Handler\Base
+class Handler
 {
 
     /** @var \PayPal\CommercePlatform\Model\Config */
@@ -11,19 +9,6 @@ class Handler //extends \Magento\Framework\Logger\Handler\Base
 
    /** @var \Psr\Log\LoggerInterface */ 
     protected $_logger;
-
-    /**
-     * Logging level
-     * @var int
-     */
-    protected $loggerType = Logger::DEBUG;
-
-    /**
-     * File name
-     * @var string
-     */
-    protected $fileName = '/var/log/paypal-ppcp.log';
-
 
     public function __construct(
         \PayPal\CommercePlatform\Model\Config $config,
@@ -44,7 +29,7 @@ class Handler //extends \Magento\Framework\Logger\Handler\Base
      */
     public function debug($message, array $context = array())
     {
-        if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE)) {
+        if ($this->_paypalConfig->isSetFlag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE)) {
             $this->_logger->debug($message, $context);
         }
     }

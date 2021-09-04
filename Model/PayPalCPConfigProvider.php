@@ -10,9 +10,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
     const ENDPOINT_ACCESS_TOKEN = '/v1/oauth2/token';
     const ENDPOINT_GENERATE_CLIENT_TOKEN = '/v1/identity/generate-token';
-    /*
-    const XML_PATH_CONFIG_PREFIX = 'payment/paypalcp';
-*/
+ 
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
     const SDK_CONFIG_CURRENCY   = 'currency';
     const SDK_CONFIG_DEBUG      = 'debug';
@@ -20,6 +18,8 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const SDK_CONFIG_LOCALE     = 'locale';
     const SDK_CONFIG_INTENT     = 'intent';
     const SDK_CONFIG_DISABLE_FUNDING = 'disable-funding';
+
+    const LENGTH_IDENTIFIER = 20;
 
     protected $_payment_code = \PayPal\CommercePlatform\Model\Config::PAYMENT_COMMERCE_PLATFORM_CODE;
 
@@ -101,7 +101,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'fraudNet' => [
                         'sourceWebIdentifier' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_SWI),
                         'fncls' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_FNCLS),
-                        'sessionIdentifier' => 'm2ppcp' . microtime(true),
+                        'sessionIdentifier' => bin2hex(random_bytes(self::LENGTH_IDENTIFIER)),
                     ]
                 ]
             ]
