@@ -167,7 +167,7 @@ class Config
 
     public function isEnableStc()
     {
-        return $this->isSetFlag(self::CONFIG_XML_ENABLE_STC);
+        return ($this->isSetFlag(self::CONFIG_XML_ENABLE_STC) && (!empty($this->getStcMerchantId())));
     }
 
     public function getStcMerchantId()

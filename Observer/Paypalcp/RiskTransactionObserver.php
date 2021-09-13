@@ -51,6 +51,10 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
     ) {
         $this->_loggerHandler->debug(__METHOD__ . " | eventName: " . $observer->getEvent()->getName());
 
+        if (!$this->_paypalConfig->isEnableStc()) {
+            return;
+        }
+
         if ($observer->getEvent()->getName() == self::EVENT_CREATE_ORDER_BEFORE) {
 
             /** @var \Magento\Checkout\Model\Cart $cart */
@@ -86,11 +90,13 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             $response = $this->_paypalApi->execute($riskTxnRequest);
         } catch (\Exception $e) {
             $this->_loggerHandler->error(__METHOD__ .  " | error: " . $e->getMessage());
-            throw new \Magento\Framework\Exception\LocalizedException(__('Gateway error. Reason: %1', $response->message), $e);
+            //throw new \Magento\Framework\Exception\LocalizedException(__('Gateway error. Reason: %1', $response->message), $e);
         }
 
         if (!in_array($response->statusCode, $this->_successCodes)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Gateway error. Reason: %1', $response->message));
+            $this->_loggerHandler->error(__METHOD__ .  " | error: " . $e->getMessage());
+
+            //throw new \Magento\Framework\Exception\LocalizedException(__('Gateway error. Reason: %1', $response->message));
         }
     }
 
