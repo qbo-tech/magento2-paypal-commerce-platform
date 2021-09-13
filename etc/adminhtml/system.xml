@@ -19,7 +19,7 @@
                         <attribute type="shared">1</attribute>
                         <config_path>payment/paypalcp/sandbox_flag</config_path>
                     </field>
-                     <field id="client_id" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1">
+                    <field id="client_id" translate="label" type="obscure" sortOrder="40" showInDefault="1" showInWebsite="1">
                         <label>Client ID</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
                         <config_path>payment/paypalcp/client_id</config_path>
@@ -68,11 +68,14 @@
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/debug_mode</config_path>
                     </field>
-                    <field id="enable_bcdc" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Enable BCDC with Credit and Debit Card Payment Solutions</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/paypalcp/enable_bcdc</config_path>
-                    </field>
+                    <group id="paypalcp_basic" translate="label" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>PayPal Basic Credit and Debit Card</label>
+                        <field id="enable_bcdc" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Enable BCDC with Credit and Debit Card Payment Solutions</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/enable_bcdc</config_path>
+                        </field>
+                    </group>
                     <group id="paypalcp_advanced" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>PayPal Advanced Credit and Debit Card</label>
                         <field id="enable_acdc" type="select" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
