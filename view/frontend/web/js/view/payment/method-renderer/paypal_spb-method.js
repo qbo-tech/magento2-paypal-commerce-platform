@@ -608,6 +608,8 @@ define(
             completeRender: function () {
                 var self = this;
 
+                $('.ppcp.payment-method').removeClass('_active');
+
                 var body = $('body').loader();
 
                 console.log('completeRenderSPB');

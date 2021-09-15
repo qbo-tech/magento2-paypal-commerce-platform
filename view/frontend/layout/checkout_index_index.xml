@@ -18,14 +18,6 @@
                                                     <item name="children" xsi:type="array">
                                                         <item name="renders" xsi:type="array">
                                                             <item name="children" xsi:type="array">
-                                                                <!-- <item name="paypalcp" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">PayPal_CommercePlatform/js/view/payment/paypal_advanced</item>
-                                                                    <item name="methods" xsi:type="array">
-                                                                        <item name="paypalcp" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">false</item>
-                                                                        </item>
-                                                                    </item>
-                                                                </item> -->
                                                                 <item name="paypalspb" xsi:type="array">
                                                                     <item name="component" xsi:type="string">PayPal_CommercePlatform/js/view/payment/paypal_spb</item>
                                                                     <item name="methods" xsi:type="array">
