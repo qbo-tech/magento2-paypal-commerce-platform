@@ -2,7 +2,7 @@
 
 namespace PayPal\CommercePlatform\Model\Paypal\Order;
 
-class Order
+class Request
 {
 
     const DECIMAL_PRECISION = 2;
@@ -198,7 +198,7 @@ class Order
 
         $requestBody = $this->buildRequestBody();
 
-        if($paypalCMID){
+        if ($paypalCMID) {
             $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
         }
 
@@ -285,12 +285,13 @@ class Order
             'name' => [
                 'given_name' => $this->_customerAddress->getFirstname(),
                 'surname'    => $this->_customerAddress->getLastname()
+            ],
+            'phone' => [
+                'phone_number' => [
+                    'national_number' => $this->_customerAddress->getTelephone()
+                ]
             ]
         ];
-        
-        if(!$this->_quote->isVirtual()){
-            $ret['address'] = $this->_getShippingAddress() ?? $this->_getBillingAddress() ?? $this->_prepareAddress($this->_customerAddress); 
-        }
 
         return $ret;
     }

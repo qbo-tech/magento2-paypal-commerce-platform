@@ -13,8 +13,8 @@ class Index extends \Magento\Framework\App\Action\Action
     /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_loggerHandler;
 
-    /** @var \PayPal\CommercePlatform\Model\Paypal\Order\Order */
-    protected $_paypalOrder;
+    /** @var \PayPal\CommercePlatform\Model\Paypal\Order\Request */
+    protected $_paypalOrderRequest;
 
     /** @var \Magento\Framework\Controller\Result\JsonFactory */
     protected $_resultJsonFactory;
@@ -22,7 +22,7 @@ class Index extends \Magento\Framework\App\Action\Action
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\Filesystem\Driver\File $driver,
-        \PayPal\CommercePlatform\Model\Paypal\Order\Order $paypalOrder,
+        \PayPal\CommercePlatform\Model\Paypal\Order\Request $paypalOrderRequest,
         \PayPal\CommercePlatform\Logger\Handler $logger,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
     ) {
@@ -30,7 +30,7 @@ class Index extends \Magento\Framework\App\Action\Action
 
         $this->_driver        = $driver;
         $this->_loggerHandler = $logger;
-        $this->_paypalOrder   = $paypalOrder;
+        $this->_paypalOrderRequest = $paypalOrderRequest;
         $this->_resultJsonFactory  = $resultJsonFactory;
     }
 
@@ -48,7 +48,7 @@ class Index extends \Magento\Framework\App\Action\Action
             $this->_loggerHandler->debug(__METHOD__ . ' | paypalCMID: ' . $paypalCMID);
 
             /** @var \PayPalHttp\HttpResponse $response */
-            $response = $this->_paypalOrder->createRequest($paypalCMID);
+            $response = $this->_paypalOrderRequest->createRequest($paypalCMID);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 
