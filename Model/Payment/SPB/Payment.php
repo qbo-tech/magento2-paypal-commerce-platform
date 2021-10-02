@@ -13,5 +13,7 @@ namespace PayPal\CommercePlatform\Model\Payment\SPB;
 
 class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 {
-    protected $_code = "paypalspb";
+    const CODE = 'paypalspb';
+
+    protected $_code = self::CODE;
 }

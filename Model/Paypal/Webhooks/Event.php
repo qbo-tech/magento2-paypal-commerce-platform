@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @author Alvaro Florez <aflorezd@gmail.com>
  */
@@ -38,14 +39,19 @@ class Event
     protected $_salesOrderPaymentTransactionFactory;
 
     /**
-     * @var \Magento\Sales\Model\OrderFactory
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
-    protected $_salesOrderFactory;
+    protected $_orderRepository;
 
     /**
      * @var \Magento\Sales\Model\Order\Payment
      */
     protected $_paymentRepository;
+
+    /**
+     * @var  \Magento\Sales\Api\InvoiceRepositoryInterface
+     */
+    protected $_invoiceRepository;
 
     /**
      * @var \Psr\Log\LoggerInterface
@@ -54,14 +60,16 @@ class Event
 
     public function __construct(
         \Magento\Sales\Model\Order\Payment\TransactionFactory $salesOrderPaymentTransactionFactory,
-        \Magento\Sales\Model\OrderFactory $salesOrderFactory,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Sales\Model\Order\Payment $paymentRepository,
+        \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository,
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->_salesOrderPaymentTransactionFactory = $salesOrderPaymentTransactionFactory;
-        $this->_salesOrderFactory = $salesOrderFactory;
+        $this->_orderRepository   = $orderRepository;
         $this->_paymentRepository = $paymentRepository;
-        $this->_logger = $logger;
+        $this->_invoiceRepository = $invoiceRepository;
+        $this->_logger  = $logger;
     }
 
     /**
@@ -73,22 +81,26 @@ class Event
      */
     public function processWebhook($eventData)
     {
+        $event_type = isset($eventData['event_type']) ? $eventData['event_type'] : '';
 
-        if (in_array($eventData['event_type'], $this->getAvailableEvents())) {
+        if (in_array($event_type, $this->getAvailableEvents())) {
             $this->_payment = $this->getPaymentByTxnId($eventData['resource']['id']);
         } else {
-            $this->_logger->debug(__METHOD__ . ' | ' . __('Event not supported: ') . $eventData['event_type']);
+            $this->_logger->warning(__METHOD__ . ' | ' . __('Event not supported: %1', $event_type));
 
             return;
         }
 
-        if ((!$this->_payment) || (!$this->_payment->getOrder())) {
+        $this->_logger->debug(__METHOD__ . " | event_type: $event_type");
+
+
+        if (((!$this->_payment) || (!$this->_payment->getOrder())) && ($event_type != self::PAYMENT_CAPTURE_REFUNDED)) {
             $this->_logger->debug(__METHOD__ . ' | ' . __('Problem with payment/order'));
 
             return;
         }
 
-        switch ($eventData['event_type']) {
+        switch ($event_type) {
 
             case self::PAYMENT_CAPTURE_PENDING:
 
@@ -182,11 +194,11 @@ class Event
         $paymentResource = $eventData['resource'];
 
         $this->_payment->setIsTransactionClosed(0)
-                       ->registerCaptureNotification($paymentResource['amount']['value'], true);
+            ->registerCaptureNotification($paymentResource['amount']['value'], true);
 
         $this->_payment->getOrder()->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)
-                                   ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING)
-                                   ->save();
+            ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING)
+            ->save();
 
         // notify customer
         $invoice = $this->_payment->getCreatedInvoice();
@@ -208,13 +220,29 @@ class Event
      */
     protected function _paymentRefunded($eventData)
     {
+        $summary = isset($eventData['summary']) ? $eventData['summary'] : '';
+
+        if (!$this->_payment) {
+            $invoice_id = isset($eventData['resource']['invoice_id']) ? $eventData['resource']['invoice_id'] : null;
+
+            if ($invoice_id) {
+                $invoice = $this->_invoiceRepository->get($invoice_id);
+                $order   = $this->_orderRepository->get($invoice->getOrderId());
+
+                $this->_payment = $order->getPayment();
+            } else {
+                return;
+            }
+        }
+
         $this->_payment
-            ->setPreparedMessage($eventData['summary'])
+            ->setPreparedMessage($summary)
             ->setIsTransactionClosed(0);
 
-        $this->_payment->getOrder()->addStatusHistoryComment(
-            __('A refund has been made from PayPal | %1', $eventData['summary'])
-        )
+        $order
+            ->addCommentToStatusHistory(
+                __('A refund has been made from PayPal | %1', $summary)
+            )
             ->setIsCustomerNotified(true)
             ->save();
     }
@@ -226,13 +254,16 @@ class Event
      */
     protected function _paymentReversed($eventData)
     {
+        $summary = isset($eventData['summary']) ? $eventData['summary'] : '';
+
         $this->_payment
-            ->setPreparedMessage($eventDatav)
+            ->setPreparedMessage($summary)
             ->setIsTransactionClosed(0);
 
-        $this->_payment->getOrder()->addStatusHistoryComment(
-            __('Se ha hecho un reembolso desde PayPal | %1', $eventData['summary'])
-        )
+        $this->_payment->getOrder()
+            ->addCommentToStatusHistory(
+                __('Se ha hecho un reembolso desde PayPal | %1', $summary)
+            )
             ->setIsCustomerNotified(true)
             ->save();
     }
@@ -244,8 +275,10 @@ class Event
      */
     protected function _paymentDenied($eventData)
     {
+        $summary = isset($eventData['summary']) ? $eventData['summary'] : '';
+
         try {
-            $this->_payment->setPreparedMessage($eventData['summary']);
+            $this->_payment->setPreparedMessage($summary);
             $this->_payment->setNotificationResult(true);
             $this->_payment->setIsTransactionClosed(true);
             $this->_payment->deny(false);

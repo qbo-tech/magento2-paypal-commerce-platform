@@ -1,4 +1,5 @@
 <?php
+
 namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 
 use Magento\Payment\Model\InfoInterface;
@@ -11,6 +12,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     const PENDING_PAYMENT_NOTIFICATION = 'This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.';
     const DECLINE_ERROR_MESSAGE        = 'Declining Pending Payment Transaction';
     const GATEWAY_ERROR_MESSAGE        = 'Payment has been declined by Payment Gateway';
+    const GATEWAY_NOT_TXN_ID_PRESENT   = 'The transaction id is not present';
     const DENIED_ERROR_MESSAGE         = 'Gateway response error';
     const COMPLETED_SALE_CODE          = 'COMPLETED';
     const DENIED_SALE_CODE             = 'DENIED';
@@ -27,6 +29,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     protected $_isGateway    = true;
 
+    protected $_canRefund    = true;
     protected $_canCapture   = true;
     protected $_canAuthorize = true;
 
@@ -111,6 +114,30 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->paymentSource = null;
     }
 
+    public function refund(InfoInterface $payment, $amount)
+    {
+        /** @var \Magento\Sales\Model\Order\Payment $payment */
+        $paypalOrderId = $payment->getAdditionalInformation('payment_id');
+
+        $paypalRefundRequest = new \PayPalCheckoutSdk\Payments\CapturesRefundRequest($paypalOrderId);
+
+        $creditmemo = $payment->getCreditmemo();
+
+        $memoCurrencyCode = $creditmemo->getBaseCurrencyCode();
+
+        $paypalRefundRequest->body = [
+            'amount' => [
+                'value'         => $amount,
+                'currency_code' => $memoCurrencyCode
+            ],
+            'invoice_id'    => $creditmemo->getInvoiceId(),
+            'note_to_payer' => $creditmemo->getCustomerNote()
+        ];
+
+        $this->_paypalApi->execute($paypalRefundRequest);
+        return $this;
+    }
+
     public function isAvailable(
         \Magento\Quote\Api\Data\CartInterface $quote = null
     ) {
@@ -139,7 +166,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $infoInstance->setAdditionalInformation($key, $value);
         }
 
-      // Set any additional info here if required
+        // Set any additional info here if required
 
         return $this;
     }
@@ -162,14 +189,14 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             //TODO move function.
-            if($payment->getAdditionalInformation('payment_source')) {
+            if ($payment->getAdditionalInformation('payment_source')) {
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
 
-            if($paypalCMID){
+            if ($paypalCMID) {
                 $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
 
@@ -201,13 +228,18 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         if (!in_array($this->_response->statusCode, $this->_successCodes)) {
             throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
         }
-        $state = $this->_response->result->purchase_units[0]->payments->captures[0]->status;
+
+        $state = isset($this->_response->result->purchase_units[0]->payments->captures[0]->status) ? $this->_response->result->purchase_units[0]->payments->captures[0]->status : false;
 
         if (!$state || is_null($state) || !in_array($state, self::SUCCESS_STATE_CODES)) {
             throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
         }
 
-        $_txnId = $this->_response->result->purchase_units[0]->payments->captures[0]->id;
+        $_txnId = isset($this->_response->result->purchase_units[0]->payments->captures[0]->id) ? $this->_response->result->purchase_units[0]->payments->captures[0]->id : null;
+
+        if (!$_txnId) {
+            throw new \Exception(__(self::GATEWAY_NOT_TXN_ID_PRESENT));
+        }
 
         $infoInstance = $this->getInfoInstance();
         $infoInstance->setAdditionalInformation('payment_id', $_txnId);
@@ -272,7 +304,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     public function getConfigValue($field)
     {
         $value =  $this->_scopeConfig->getValue(
-            $this->_preparePathConfig($field),//$configPath,
+            $this->_preparePathConfig($field),
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
         return $value;
