@@ -79,9 +79,6 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
 
         $additionalData = $this->getAdditionalData($customer, $shippingAddress);
 
-        $this->_loggerHandler->debug(__METHOD__ . ' | observer paypalCMID: ' . $paypalCMID);
-        $this->_loggerHandler->debug(__METHOD__ . ' | observer merchantId: ' . $merchantId);
-
         $riskTxnRequest = new \PayPal\CommercePlatform\Model\Paypal\STC\RiskTransactionContextRequest($merchantId, $paypalCMID);
 
         $riskTxnRequest->body = ['additional_data' => $additionalData];
@@ -90,13 +87,10 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             $response = $this->_paypalApi->execute($riskTxnRequest);
         } catch (\Exception $e) {
             $this->_loggerHandler->error(__METHOD__ .  " | error: " . $e->getMessage());
-            //throw new \Magento\Framework\Exception\LocalizedException(__('Gateway error. Reason: %1', $response->message), $e);
         }
 
         if (!in_array($response->statusCode, $this->_successCodes)) {
             $this->_loggerHandler->error(__METHOD__ .  " | error: " . $e->getMessage());
-
-            //throw new \Magento\Framework\Exception\LocalizedException(__('Gateway error. Reason: %1', $response->message));
         }
     }
 
@@ -105,7 +99,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         $additionalData = [
             [
                 'key' => 'sender_acount_id',
-                'value' => $shippingAddress->getCustomerId()
+                'value' => $shippingAddress->getCustomerId() ?? 'guest'
             ],
             [
                 "key" => "sender_first_name",
@@ -129,7 +123,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             ],
             [
                 "key" => "sender_create_date",
-                "value" => $this->_dateTime->gmDate('Y-m-d', $customer->getCreatedAtTimestamp())
+                "value" => $this->_dateTime->gmDate('Y-m-d', $customer->getCreatedAtTimestamp() ?? null )
             ],
             [
                 "key" => "highrisk_txn_flag",
