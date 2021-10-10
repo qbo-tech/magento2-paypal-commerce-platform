@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <payment><!-- payment/paypalcheckout/active   -->
+        <payment>            <!-- payment/paypalcheckout/active   -->
             <paypalcp>
                 <active>0</active>
                 <model>PayPal\CommercePlatform\Model\Payment\Advanced\Payment</model>
@@ -25,6 +25,7 @@
                 <min_order_total>0.50</min_order_total>
                 <paymentInfoKeys>card_type,order_id</paymentInfoKeys>
                 <fncls>fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99</fncls>
+                <enable_stc>0</enable_stc>
                 <stc_vertical>retail</stc_vertical>
             </paypalcp>
             <paypalspb>
