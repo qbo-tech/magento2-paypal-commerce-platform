@@ -90,7 +90,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         }
 
         if (!in_array($response->statusCode, $this->_successCodes)) {
-            $this->_loggerHandler->error(__METHOD__ .  " | error: " . $e->getMessage());
+            $this->_loggerHandler->error(__METHOD__ .  " | NOT SUCCESS statusCode: " . $response->statusCode);
         }
     }
 
