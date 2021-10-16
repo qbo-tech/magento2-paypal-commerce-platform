@@ -58,10 +58,6 @@ define(
             },
             isSelected: function () {
                 var self = this;
-                /* 
-                                if (!self.isActive()) {
-                                    return false;
-                                } */
 
                 if (quote.paymentMethod() && (quote.paymentMethod().method == self.paypalMethod)) {
                     return self.selectedMethod;
@@ -71,7 +67,6 @@ define(
             },
             selectedPayPalMethod: function (method) {
                 var self = this;
-                console.log('selectedPayPalMethod#method', method);
                 var data = this.getData();
 
                 self.selectedMethod = method;
@@ -127,9 +122,6 @@ define(
             },
             getCode: function (method) {
                 var self = this;
-
-                self.logger('paypalaspb-mthod#super', this._super());
-                self.logger('paypalspb-mthod#mthod', method);
 
                 return method;
             },
@@ -196,7 +188,9 @@ define(
                 self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
 
                 if ((typeof paypal === 'undefined')) {
-                    return;
+                    self.loadSdk();
+
+                    if ((typeof paypal === 'undefined')) return;
                 }
 
                 if (!paypal.HostedFields.isEligible()) {
@@ -300,12 +294,16 @@ define(
                                     self.messageContainer.addErrorMessage({
                                         message: $t('An error has occurred on the server, please try again later')
                                     });
+                                    self._enableCheckout();
 
                                     return false;
                                 }
                             }).then(function (data) {
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
                                 return data.result.id;
+                            }).catch(function (error) {
+                                console.log('Hubo un problema con la petición :' + error);
+                                self._enableCheckout();
                             });
 
                         },
@@ -364,7 +362,7 @@ define(
                                     self.orderId = payload.orderId;
                                     self.logger('placeorder', self.placeOrder());
 
-                                    self.enableCheckout();
+                                    self._enableCheckout();
                                 })
                                 .catch(function (err) {
                                     self.logger('catch => ', err);
@@ -375,7 +373,7 @@ define(
                                         });
                                     }
 
-                                    self.enableCheckout();
+                                    self._enableCheckout();
                                 });
                             return false;
                         });
@@ -396,7 +394,9 @@ define(
 
                     return response;
                 }
-                ).fail(function (response) { });
+                ).fail(function (response) {
+                    self._enableCheckout();
+                });
             },
             loadFraudnet: function () {
                 var self = this;
@@ -424,11 +424,9 @@ define(
                     return paypalSdkAdapter.loadSdk(function () {
                         self.renderButtons();
 
-                        //$('#card-form button#submit').attr('disabled', true);
                         body.loader('hide');
 
                         return this;
-
                     });
                 }
             },
@@ -545,13 +543,13 @@ define(
                     ).done(function (response) {
 
                         $('li#card-' + tokenId).remove();
-                        body.loader('hide');
+                        self._enableCheckout();
 
                         return response;
                     }
                     ).fail(function (response) {
-                        console.error('fail DELETE | response :', response);
-                        body.loader('hide');
+                        console.error('FAIL DELETE | response :', response);
+                        self._enableCheckout();
 
                     });
                 });
@@ -605,18 +603,20 @@ define(
                     $('#submit').prop('disabled', false);
                 });
             },
+            _enableCheckout: function () {
+                $('#submit').prop('disabled', false);
+
+                var body = $('body').loader();
+                body.loader('hide');
+            },
             completeRender: function () {
                 var self = this;
 
                 $('.ppcp.payment-method').removeClass('_active');
-
-                var body = $('body').loader();
-
-                console.log('completeRenderSPB');
-
                 self.initializeEvents();
 
-                body.loader('hide');
+                self._enableCheckout();
+
             },
             logger: function (message, obj) {
                 if (window.checkoutConfig.payment.paypalcp.debug) {
