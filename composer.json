@@ -20,5 +20,7 @@
         "psr-4": {
             "PayPal\\CommercePlatform\\": ""
         }
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
