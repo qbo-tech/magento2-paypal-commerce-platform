@@ -19,7 +19,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const SDK_CONFIG_INTENT     = 'intent';
     const SDK_CONFIG_DISABLE_FUNDING = 'disable-funding';
 
-    const LENGTH_IDENTIFIER = 20;
+    const LENGTH_IDENTIFIER = 15;
 
     protected $_payment_code = \PayPal\CommercePlatform\Model\Config::PAYMENT_COMMERCE_PLATFORM_CODE;
 
@@ -101,7 +101,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'fraudNet' => [
                         'sourceWebIdentifier' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_SWI),
                         'fncls' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_FNCLS),
-                        'sessionIdentifier' => bin2hex(random_bytes(self::LENGTH_IDENTIFIER)),
+                        'sessionIdentifier' => 'M2' . bin2hex(random_bytes(self::LENGTH_IDENTIFIER)),
                     ]
                 ]
             ]
