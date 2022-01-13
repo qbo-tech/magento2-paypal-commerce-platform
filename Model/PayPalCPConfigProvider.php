@@ -10,7 +10,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
     const ENDPOINT_ACCESS_TOKEN = '/v1/oauth2/token';
     const ENDPOINT_GENERATE_CLIENT_TOKEN = '/v1/identity/generate-token';
- 
+
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
     const SDK_CONFIG_CURRENCY   = 'currency';
     const SDK_CONFIG_DEBUG      = 'debug';
@@ -88,6 +88,9 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'bcdc' => [
                         'enable' => $this->_paypalConfig->isEnableBcdc(),
                     ],
+                    'oxxo' => [
+                        'enable' => $this->_paypalConfig->isEnableBcdc(),
+                    ],
                     'acdc' => [
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
                         'enable_installments' => $this->_paypalConfig->isEnableMsi(),
@@ -96,6 +99,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'splitOptions' => [
                         'title_method_paypal' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_PAYPAL),
                         'title_method_card'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_CARD),
+                        'title_method_oxxo'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_OXXO),
                     ],
                     self::SDK_CONFIG_DEBUG => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE),
                     'fraudNet' => [

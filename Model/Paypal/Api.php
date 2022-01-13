@@ -117,4 +117,14 @@ class Api
     {
         return $this->_paypalClient->environment->authorizationString();
     }
+
+    /**
+     * Create confirm request
+     * @param $orderId
+     * @return \PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest
+     */
+    public function getOrdersConfirmRequest($orderId)
+    {
+        return new \PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest($orderId);
+    }
 }
