@@ -6,6 +6,8 @@
 
 namespace PayPal\CommercePlatform\Model\Paypal;
 
+use PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest;
+use PayPal\CommercePlatform\Model\Paypal\Oxxo\GetVoucher;
 use stdClass;
 
 class Api
@@ -125,6 +127,18 @@ class Api
      */
     public function getOrdersConfirmRequest($orderId)
     {
-        return new \PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest($orderId);
+        return new ConfirmRequest($orderId);
     }
+
+    /**
+     * Create confirm request
+     * @param $orderId
+     * @return \PayPal\CommercePlatform\Model\Paypal\Oxxo\GetVoucher
+     */
+    public function getVoucherRequest($orderId)
+    {
+        return new GetVoucher($orderId);
+    }
+
+
 }

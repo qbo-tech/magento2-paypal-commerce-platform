@@ -89,7 +89,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'enable' => $this->_paypalConfig->isEnableBcdc(),
                     ],
                     'oxxo' => [
-                        'enable' => $this->_paypalConfig->isEnableBcdc(),
+                        'enable' => (boolean)$this->_paypalConfig->isEnableOxxo(),
                     ],
                     'acdc' => [
                         'enable' => $this->_paypalConfig->isEnableAcdc(),

@@ -22,10 +22,20 @@ define(
             componentName: "paypalSdkComponent",
             paypalMethod: 'paypaloxxo',
             orderId: null,
+            isOxxoEnable: window.checkoutConfig.payment.paypalcp.oxxo.enable,
             paypalConfigs: window.checkoutConfig.payment.paypalcp,
             fraudNetSwi: window.checkoutConfig.payment.paypalcp.fraudNet.sourceWebIdentifier, //Source Website Identifier
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             selectedMethod: null,
+
+            /**
+             *
+             * @returns {any}
+             */
+            isOxxoActive: function () {
+                var self = this;
+                return self.isOxxoEnable;
+            },
 
             /**
              * Return payment method code
@@ -69,7 +79,6 @@ define(
                 data.method = this.paypalMethod;
 
                 selectPaymentMethodAction(data);
-                console.log(this.item.method);
                 checkoutData.setSelectedPaymentMethod(this.item.method);
             },
 
@@ -78,6 +87,7 @@ define(
              */
             placeOxxoOrder: function () {
                 let self = this;
+                $('body').trigger('processStart');
                 this.createOrder().done(function (response) {
                     self.orderId = response.result.id;
                     self.placeOrder();
@@ -103,7 +113,7 @@ define(
                             oxxo: {
                                 'name': billing.firstname + ' ' + billing.lastname,
                                 'email': quote.guestEmail,
-                                'country_code': billing.countryId
+                                'country_code': 'MX'
                             }
                         })
                     }

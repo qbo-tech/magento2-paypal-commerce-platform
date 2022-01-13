@@ -1,34 +1,36 @@
-<div class="ppcp payment-method"
-    data-bind="css: {'_active': ( 'paypaloxxo' == isSelected())}, attr: {isSel: isSelected()}">
-    <div class="payment-method-title field choice">
-        <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode()}, value: 'paypaloxxo', checked: isChecked, click: selectedPayPalMethod('paypaloxxo'), visible: isRadioButtonVisible()" />
-        <label class="label" data-bind="attr: {'for': getCode('paypaloxxo')}">
-            <span data-bind="text: getTitleMethodCard()"></span>
-        </label>
-    </div>
-    <div class="payment-method-content">
-        <!--         ko foreach: getRegion('messages') -->
-        <!--         ko template: getTemplate() -->
-        <!-- /ko -->
-        <!--         /ko -->
-
-        <div class="checkout-agreements-block">
-            <!--             ko foreach: $parent.getRegion('before-place-order') -->
-            <!--                 ko template: getTemplate() -->
+<!--ko if: isOxxoActive()  -->
+    <div class="ppcp payment-method"
+        data-bind="css: {'_active': ( 'paypaloxxo' == isSelected())}, attr: {isSel: isSelected()}">
+        <div class="payment-method-title field choice">
+            <input type="radio" name="payment[method]" class="radio"
+                data-bind="attr: {'id': getCode()}, value: 'paypaloxxo', checked: isChecked, click: selectedPayPalMethod('paypaloxxo'), visible: isRadioButtonVisible()" />
+            <label class="label" data-bind="attr: {'for': getCode('paypaloxxo')}">
+                <span data-bind="text: getTitleMethodCard()"></span>
+            </label>
+        </div>
+        <div class="payment-method-content">
+            <!--         ko foreach: getRegion('messages') -->
+            <!--         ko template: getTemplate() -->
             <!-- /ko -->
-            <!--             /ko -->
-        </div>
+            <!--         /ko -->
 
-        <div class="actions-toolbar">
-            <button class="action primary checkout" type="submit" data-bind="
-                        click: placeOxxoOrder,
-                        attr: {title: $t('Place Order')},
-                        css: {disabled: !isPlaceOrderActionAllowed()},
-                        enable: (getCode() == isChecked())
-                        " title="Place Order">
-                <span data-bind="i18n: 'Pay'"></span>
-            </button>
+            <div class="checkout-agreements-block">
+                <!--             ko foreach: $parent.getRegion('before-place-order') -->
+                <!--                 ko template: getTemplate() -->
+                <!-- /ko -->
+                <!--             /ko -->
+            </div>
+
+            <div class="actions-toolbar">
+                <button class="action primary checkout" type="submit" data-bind="
+                            click: placeOxxoOrder,
+                            attr: {title: $t('Place Order')},
+                            css: {disabled: !isPlaceOrderActionAllowed()},
+                            enable: (getCode() == isChecked())
+                            " title="Place Order">
+                    <span data-bind="i18n: 'Pay'"></span>
+                </button>
+            </div>
         </div>
     </div>
-</div>
+<!--/ko -->

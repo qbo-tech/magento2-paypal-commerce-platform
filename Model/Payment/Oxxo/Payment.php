@@ -17,7 +17,8 @@ namespace PayPal\CommercePlatform\Model\Payment\Oxxo;
  */
 class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 {
-    const CODE = 'paypaloxxo';
+    const CODE                         = 'paypaloxxo';
+    const SUCCESS_STATE_CODES          = array("PENDING", "PAYER_ACTION_REQUIRED");
 
     protected $_code = self::CODE;
 
@@ -33,6 +34,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      * @param float $amount
      * @return \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      * @throws \Magento\Framework\Validator\Exception
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
@@ -51,20 +53,41 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             ];
 
             $this->_eventManager->dispatch('paypaloxxo_order_capture_before', ['payment' => $payment]);
-            $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
-            $this->_logger->error(json_encode($this->_response));
-            throw new \Magento\Framework\Exception\LocalizedException(__("no process"));
-
+            $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
             $this->_processTransaction($payment);
+            $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
             $this->_eventManager->dispatch('paypaloxxo_order_capture_after', ['payment' => $payment]);
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
             $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
-            throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
-            //throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
+            throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
         }
         return $this;
+    }
+
+    /**
+     * Process Payment Transaction based on response data
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @return \Magento\Payment\Model\InfoInterface $payment
+     * @throws \Exception
+     */
+    protected function _processTransaction(&$payment): \Magento\Payment\Model\InfoInterface
+    {
+        if (!in_array($this->_response->statusCode, $this->_successCodes)) {
+            throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
+        }
+
+        $state = $this->_response->result->status;
+
+        if (!$state || is_null($state) || !in_array($state, self::SUCCESS_STATE_CODES)) {
+            throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
+        }
+
+        $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
+        $payment->setIsTransactionPending(true)->setIsTransactionClosed(false);
+        return $payment;
     }
 
 }

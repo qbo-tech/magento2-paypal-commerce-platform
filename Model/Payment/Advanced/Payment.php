@@ -2,6 +2,7 @@
 
 namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 
+use Magento\Checkout\Model\Session;
 use Magento\Payment\Model\InfoInterface;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
@@ -63,6 +64,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     private $paymentSource;
 
     /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected Session $checkoutSession;
+
+    /**
      *
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -91,6 +97,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Event\ManagerInterface $eventManager,
+        Session $checkoutSession,
         array $data = []
     ) {
         parent::__construct(
@@ -110,7 +117,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_paypalApi    = $paypalApi;
         $this->_scopeConfig  = $scopeConfig;
         $this->_eventManager = $eventManager;
-
+        $this->checkoutSession = $checkoutSession;
         $this->paymentSource = null;
     }
 
@@ -282,7 +289,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     /**
      * Set order comments
-     * 
+     *
      * @param type $order
      * @param type $comment
      * @param type $isCustomerNotified
@@ -298,7 +305,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     /**
      * Get payment store config
-     * 
+     *
      * @return string
      */
     public function getConfigValue($field)

@@ -154,7 +154,7 @@ class Config
 
     public function isEnableOxxo()
     {
-        return $this->isSetFLag(self::CONFIG_XML_ENABLE_OXXO);
+        return $this->getConfigValue(self::CONFIG_XML_ENABLE_OXXO);
     }
 
     public function isEnableAcdc()
