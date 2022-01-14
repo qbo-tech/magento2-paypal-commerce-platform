@@ -29,7 +29,7 @@
 ?>
 <?php /** @var $block \PayPal\CommercePlatform\Block\Success */ ?>
 <?php if($block->isOxxoPay()): ?>
-    <div class="oxxo-voucher">
-        <iframe src="<?= $block->getVoucherUrl() ?>"></iframe>
-    </div>
+    <script>
+        window.open('<?= $block->getVoucherUrl() ?>', '_blank');
+    </script>
 <?php endif; ?>

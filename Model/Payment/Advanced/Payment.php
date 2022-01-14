@@ -4,6 +4,7 @@ namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Framework\Mail\Template\TransportBuilder;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 {
@@ -69,7 +70,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     protected Session $checkoutSession;
 
     /**
-     *
+     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     */
+    protected TransportBuilder $transportBuilder;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -82,6 +87,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param \Magento\Framework\Event\ManagerInterface $eventManager
+     * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param array $data
      */
     public function __construct(
@@ -97,6 +104,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Event\ManagerInterface $eventManager,
+        TransportBuilder $transportBuilder,
         Session $checkoutSession,
         array $data = []
     ) {
@@ -118,6 +126,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_scopeConfig  = $scopeConfig;
         $this->_eventManager = $eventManager;
         $this->checkoutSession = $checkoutSession;
+        $this->transportBuilder = $transportBuilder;
         $this->paymentSource = null;
     }
 

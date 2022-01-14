@@ -57,6 +57,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->_processTransaction($payment);
             $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
             $this->_eventManager->dispatch('paypaloxxo_order_capture_after', ['payment' => $payment]);
+
+            $this->sendOxxoEmail($paypalOrderId);
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -90,4 +92,58 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
         return $payment;
     }
 
+    /**
+     * @param $paypalOrderId
+     * @return void
+     * @throws \Exception
+     */
+    protected function sendOxxoEmail($paypalOrderId)
+    {
+        try {
+            $voucherRequest = $this->_paypalApi->getVoucherRequest($paypalOrderId);
+            $response = $this->_paypalApi->execute($voucherRequest);
+            if (!in_array($response->statusCode, $this->_successCodes)) {
+                throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
+            }
+            $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO data : ' . json_encode($response));
+            $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
+            $this->sendEmail($voucherUrl);
+        } catch (\Exception $e) {
+            $this->_logger->error(__METHOD__ . ' | PAYPAL OXXO EmailException : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * @param $voucherUrl
+     * @return void
+     */
+    public function sendEmail($voucherUrl)
+    {
+        $templateId = 'oxxo_paypment_voucher';
+        $toEmail = $this->_order->getCustomerEmail();
+
+        try {
+            $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO url : ' . $voucherUrl);
+            $templateVars = [
+                'OxxoVoucher' => $voucherUrl
+            ];
+
+            $storeId = $this->storeManager->getStore()->getId();
+            $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+            $templateOptions = [
+                'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                'store' => $storeId
+            ];
+            $transport = $this->transportBuilder->setTemplateIdentifier($templateId, $storeScope)
+                ->setTemplateOptions($templateOptions)
+                ->setTemplateVars($templateVars)
+                ->setFromByScope('sales', $storeId)
+                ->addTo($toEmail)
+                ->getTransport();
+            $transport->sendMessage();
+            $this->inlineTranslation->resume();
+        } catch (\Exception $e) {
+            $this->_logger->info($e->getMessage());
+        }
+    }
 }
