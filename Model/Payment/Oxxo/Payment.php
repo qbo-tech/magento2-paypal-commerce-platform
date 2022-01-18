@@ -55,7 +55,9 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->_eventManager->dispatch('paypaloxxo_order_capture_before', ['payment' => $payment]);
             $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
             $this->_processTransaction($payment);
+
             $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
+            $this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
             $this->_eventManager->dispatch('paypaloxxo_order_capture_after', ['payment' => $payment]);
 
             $this->sendOxxoEmail($paypalOrderId);
@@ -97,13 +99,13 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      * @return void
      * @throws \Exception
      */
-    protected function sendOxxoEmail($paypalOrderId)
+    public function sendOxxoEmail($paypalOrderId)
     {
         try {
             $voucherRequest = $this->_paypalApi->getVoucherRequest($paypalOrderId);
             $response = $this->_paypalApi->execute($voucherRequest);
             if (!in_array($response->statusCode, $this->_successCodes)) {
-                throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
+                throw new \Exception(__('Gateway error. Reason: %1', $response->message));
             }
             $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO data : ' . json_encode($response));
             $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
@@ -120,7 +122,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     public function sendEmail($voucherUrl)
     {
         $templateId = 'oxxo_paypment_voucher';
-        $toEmail = $this->_order->getCustomerEmail();
+        $order = $this->checkoutSession->getLastRealOrder();
+        $toEmail = $order->getCustomerEmail();
 
         try {
             $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO url : ' . $voucherUrl);
@@ -143,7 +146,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $transport->sendMessage();
             $this->inlineTranslation->resume();
         } catch (\Exception $e) {
-            $this->_logger->info($e->getMessage());
+            $this->_logger->error($e->getMessage());
         }
     }
 }

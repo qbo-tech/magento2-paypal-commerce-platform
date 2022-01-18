@@ -31,5 +31,10 @@
 <?php if($block->isOxxoPay()): ?>
     <script>
         window.open('<?= $block->getVoucherUrl() ?>', '_blank');
+        require(['jquery'], function($){
+            $.ajax({
+                url: '<?= $block->getEmailUrl() ?>'
+            });
+        });
     </script>
 <?php endif; ?>

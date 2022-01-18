@@ -78,6 +78,9 @@ class Success extends Template
         $this->logger = $logger;
     }
 
+    /**
+     * @return void
+     */
     public function  getVoucherUrl()
     {
         try {
@@ -89,10 +92,24 @@ class Success extends Template
         }
     }
 
+    /**
+     * @return bool
+     */
     public function isOxxoPay()
     {
         $order = $this->checkoutSession->getLastRealOrder();
         $paymentCode = $order->getPayment()->getMethod();
         return $paymentCode == 'paypaloxxo';
     }
+
+    /**
+     * @return string
+     */
+    public function getEmailUrl()
+    {
+        $paypalOrderId = $this->checkoutSession->getData('paypal_order_id');
+        return $this->getUrl('paypalcheckout/order/email', ['order_id' => $paypalOrderId]);
+    }
+
+
 }
