@@ -25,6 +25,7 @@ class Config
     const CONFIG_XML_INTENT               = 'intent';
     const CONFIG_XML_ENABLE_BCDC          = 'enable_bcdc';
     const CONFIG_XML_ENABLE_ACDC          = 'enable_acdc';
+    const CONFIG_XML_ENABLE_OXXO          = 'enable_oxxo';
     const CONFIG_XML_ENABLE_INSTALLMENTS  = 'enable_installments';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
     const CONFIG_XML_CURRENCY_CODE        = 'currency';
@@ -32,6 +33,7 @@ class Config
     const CONFIG_XML_ENABLE_DEBUG         = 'enable_debug';
     const CONFIG_XML_TITLE_METHOD_PAYPAL  = 'title_paypal';
     const CONFIG_XML_TITLE_METHOD_CARD    = 'title_card';
+    const CONFIG_XML_TITLE_METHOD_OXXO    = 'title_oxxo';
     const CONFIG_XML_ENABLE_ITEMS         = 'enable_items';
     const CONFIG_XML_DEBUG_MODE           = 'debug_mode';
     const CONFIG_XML_FRAUDNET_SWI         = 'source_web_identifier';
@@ -98,7 +100,7 @@ class Config
 
     /**
      * Retrieve config flag by path and scope
-     * 
+     *
      * @param string $flag
      * @return bool
      */
@@ -148,6 +150,11 @@ class Config
     public function isEnableBcdc()
     {
         return $this->isSetFLag(self::CONFIG_XML_ENABLE_BCDC);
+    }
+
+    public function isEnableOxxo()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_ENABLE_OXXO);
     }
 
     public function isEnableAcdc()

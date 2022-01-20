@@ -2,7 +2,10 @@
 
 namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 
+use Magento\Checkout\Model\Session;
 use Magento\Payment\Model\InfoInterface;
+use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Store\Model\StoreManagerInterface;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 {
@@ -63,7 +66,21 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     private $paymentSource;
 
     /**
-     *
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected Session $checkoutSession;
+
+    /**
+     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     */
+    protected TransportBuilder $transportBuilder;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    protected StoreManagerInterface $storeManager;
+
+    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -76,6 +93,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param \Magento\Framework\Event\ManagerInterface $eventManager
+     * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param array $data
      */
     public function __construct(
@@ -91,6 +110,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Event\ManagerInterface $eventManager,
+        TransportBuilder $transportBuilder,
+        StoreManagerInterface $storeManager,
+        Session $checkoutSession,
         array $data = []
     ) {
         parent::__construct(
@@ -110,7 +132,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_paypalApi    = $paypalApi;
         $this->_scopeConfig  = $scopeConfig;
         $this->_eventManager = $eventManager;
-
+        $this->checkoutSession = $checkoutSession;
+        $this->transportBuilder = $transportBuilder;
+        $this->storeManager = $storeManager;
         $this->paymentSource = null;
     }
 
@@ -282,7 +306,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     /**
      * Set order comments
-     * 
+     *
      * @param type $order
      * @param type $comment
      * @param type $isCustomerNotified
@@ -298,7 +322,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     /**
      * Get payment store config
-     * 
+     *
      * @return string
      */
     public function getConfigValue($field)
