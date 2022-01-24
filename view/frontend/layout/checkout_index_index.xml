@@ -30,7 +30,7 @@
                                                                     <item name="component" xsi:type="string">PayPal_CommercePlatform/js/view/payment/paypal_oxxo</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="paypaloxxo" xsi:type="array">
-                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">false</item>
+                                                                            <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
                                                                     </item>
                                                                 </item>
