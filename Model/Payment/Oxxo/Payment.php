@@ -144,7 +144,6 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
                 ->addTo($toEmail)
                 ->getTransport();
             $transport->sendMessage();
-            $this->inlineTranslation->resume();
         } catch (\Exception $e) {
             $this->_logger->error($e->getMessage());
         }
