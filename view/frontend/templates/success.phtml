@@ -32,8 +32,10 @@
     <script>
         window.open('<?= $block->getVoucherUrl() ?>', '_blank');
         require(['jquery'], function($){
-            $.ajax({
-                url: '<?= $block->getEmailUrl() ?>'
+            $(document).ready(function () {
+                $.ajax({
+                    url: '<?= $block->getEmailUrl() ?>'
+                });
             });
         });
     </script>
