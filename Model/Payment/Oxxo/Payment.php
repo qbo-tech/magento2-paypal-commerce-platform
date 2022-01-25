@@ -60,7 +60,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
             $this->_eventManager->dispatch('paypaloxxo_order_capture_after', ['payment' => $payment]);
 
-            $this->sendOxxoEmail($paypalOrderId);
+            //$this->sendOxxoEmail($paypalOrderId);
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -108,8 +108,10 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
                 throw new \Exception(__('Gateway error. Reason: %1', $response->message));
             }
             $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO data : ' . json_encode($response));
-            $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
-            $this->sendEmail($voucherUrl);
+            if (isset($response->result->payment_source->oxxo->document_references[0])) {
+                $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
+                $this->sendEmail($voucherUrl);
+            }
         } catch (\Exception $e) {
             $this->_logger->error(__METHOD__ . ' | PAYPAL OXXO EmailException : ' . $e->getMessage());
         }
