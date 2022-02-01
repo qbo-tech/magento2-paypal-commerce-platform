@@ -19,7 +19,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 {
     const CODE                         = 'paypaloxxo';
     const SUCCESS_STATE_CODES          = array("PENDING", "PAYER_ACTION_REQUIRED");
-
+    const OXXO_ERROR_MESSAGE           = 'There was an error while the oxxo voucher creation';
     protected $_code = self::CODE;
 
     /**
@@ -38,29 +38,12 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        $paypalOrderId = $payment->getAdditionalInformation('order_id');
-        /** @var \Magento\Sales\Model\Order */
-        $this->_order = $payment->getOrder();
         try {
-            $this->paypalOrderConfirmRequest = $this->_paypalApi->getOrdersConfirmRequest($paypalOrderId);
-            $paymentSource = json_decode($payment->getAdditionalInformation('payment_source'),1);
-            $this->paypalOrderConfirmRequest->body = [
-                'payment_source' => $paymentSource,
-                'processing_instruction' => 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL',
-                'application_context' => [
-                    'locale' => 'es-MX'
-                ]
-            ];
-
-            $this->_eventManager->dispatch('paypaloxxo_order_capture_before', ['payment' => $payment]);
-            $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
+            $paypalOrderId = $payment->getAdditionalInformation('order_id');
+            /** @var \Magento\Sales\Model\Order */
+            $this->_order = $payment->getOrder();
             $this->_processTransaction($payment);
-
-            $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
-            $this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
-            $this->_eventManager->dispatch('paypaloxxo_order_capture_after', ['payment' => $payment]);
-
-            //$this->sendOxxoEmail($paypalOrderId);
+            $this->sendOxxoEmail($paypalOrderId);
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -68,6 +51,41 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
         }
         return $this;
+    }
+
+    /**
+     * Call oxxo to create voucher
+     * @param $paymentSource
+     * @param $paypalOrderId
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function createOxxoVoucher($paymentSource, $paypalOrderId)
+    {
+        try {
+            $this->paypalOrderConfirmRequest = $this->_paypalApi->getOrdersConfirmRequest($paypalOrderId);
+            $this->paypalOrderConfirmRequest->body = [
+                'payment_source' => [
+                    'oxxo' => $paymentSource
+                ],
+                'processing_instruction' => 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL',
+                'application_context' => [
+                    'locale' => 'es-MX'
+                ]
+            ];
+
+            $this->_eventManager->dispatch('paypaloxxo_create_voucher_before');
+            $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
+            $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
+            $this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
+            $this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
+        } catch (\Exception $e) {
+            $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
+            $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
+            $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
+            throw new \Magento\Framework\Exception\LocalizedException(__(self::OXXO_ERROR_MESSAGE));
+        }
+        return $this->_response;
     }
 
     /**
@@ -79,16 +97,6 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      */
     protected function _processTransaction(&$payment): \Magento\Payment\Model\InfoInterface
     {
-        if (!in_array($this->_response->statusCode, $this->_successCodes)) {
-            throw new \Exception(__('Gateway error. Reason: %1', $this->_response->message));
-        }
-
-        $state = $this->_response->result->status;
-
-        if (!$state || is_null($state) || !in_array($state, self::SUCCESS_STATE_CODES)) {
-            throw new \Exception(__(self::GATEWAY_ERROR_MESSAGE));
-        }
-
         $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
         $payment->setIsTransactionPending(true)->setIsTransactionClosed(false);
         return $payment;
@@ -111,9 +119,12 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             if (isset($response->result->payment_source->oxxo->document_references[0])) {
                 $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
                 $this->sendEmail($voucherUrl);
+            } else {
+                throw new \Exception(self::OXXO_ERROR_MESSAGE);
             }
         } catch (\Exception $e) {
             $this->_logger->error(__METHOD__ . ' | PAYPAL OXXO EmailException : ' . $e->getMessage());
+            throw new \Magento\Framework\Exception\LocalizedException(__(self::OXXO_ERROR_MESSAGE));
         }
     }
 

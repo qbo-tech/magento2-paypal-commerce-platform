@@ -29,14 +29,12 @@
 ?>
 <?php /** @var $block \PayPal\CommercePlatform\Block\Success */ ?>
 <?php if($block->isOxxoPay()): ?>
-    <script>
-        window.open('<?= $block->getVoucherUrl() ?>', '_blank');
-        require(['jquery'], function($){
-            $(document).ready(function () {
-                $.ajax({
-                    url: '<?= $block->getEmailUrl() ?>'
-                });
-            });
-        });
-    </script>
+    <?php $url = $block->getVoucherUrl() ?>
+    <?php if($url): ?>
+        <a class="action primary checkout" href="<?= $url ?>" target="popup"
+           onclick="window.open('<?= $url ?>','popup','width=600,height=600'); return false;"  title="Place Order">
+            <span><?= __('Open oxxo voucher') ?></span>
+        </a>
+        <br><br>
+    <?php endif; ?>
 <?php endif; ?>

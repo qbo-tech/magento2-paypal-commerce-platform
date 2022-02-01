@@ -32,6 +32,7 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Model\Config;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use PayPal\CommercePlatform\Logger\Handler;
 use PayPal\CommercePlatform\Model\Paypal\Api;
 
@@ -39,7 +40,7 @@ use PayPal\CommercePlatform\Model\Paypal\Api;
  * Class Success
  * @package PayPal\CommercePlatform\Block
  */
-class Success extends Template
+class OrderAccount extends Template
 {
     protected $_successCodes = ['200', '201'];
 
@@ -59,6 +60,11 @@ class Success extends Template
     private Handler $logger;
 
     /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    private OrderRepositoryInterface $orderRepository;
+
+    /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi
      * @param \Magento\Checkout\Model\Session $checkoutSession
@@ -70,12 +76,14 @@ class Success extends Template
         Api $paypalApi,
         Session $checkoutSession,
         Handler $logger,
+        OrderRepositoryInterface $orderRepository,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->paypalApi = $paypalApi;
         $this->checkoutSession = $checkoutSession;
         $this->logger = $logger;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -84,11 +92,19 @@ class Success extends Template
     public function  getVoucherUrl()
     {
         try {
-            $voucher = $this->checkoutSession->getData('paypal_voucher');
-            return $voucher->href;
+            $order = $this->getOrder();
+            $paypalOrderId = $order->getPayment()->getAdditionalInformation('order_id');
+            $voucherRequest = $this->paypalApi->getVoucherRequest($paypalOrderId);
+            $response = $this->paypalApi->execute($voucherRequest);
+            if (isset($response->result->payment_source->oxxo->document_references[0])) {
+                return $response->result->payment_source->oxxo->document_references[0]->value;
+            } else {
+                return;
+            }
         } catch (\Exception $e) {
             $this->logger->error(sprintf('[PAYPAL COMMERCE SUCCESS ERROR] - %s', $e->getMessage()));
             $this->logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
+            return;
         }
     }
 
@@ -97,9 +113,19 @@ class Success extends Template
      */
     public function isOxxoPay()
     {
-        $order = $this->checkoutSession->getLastRealOrder();
+        $order = $this->getOrder();
         $paymentCode = $order->getPayment()->getMethod();
         return $paymentCode == 'paypaloxxo';
     }
+
+    /**
+     * @return \Magento\Sales\Api\Data\OrderInterface
+     */
+    public function getOrder(): \Magento\Sales\Api\Data\OrderInterface
+    {
+        $orderId = $this->getRequest()->getParam('order_id');
+        return $this->orderRepository->get($orderId);
+    }
+
 
 }
