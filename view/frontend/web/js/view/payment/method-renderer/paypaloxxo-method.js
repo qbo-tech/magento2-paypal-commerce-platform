@@ -90,10 +90,15 @@ define(
                 $('body').trigger('processStart');
                 this.createOrder().done(function (response) {
                     self.orderId = response.result.id;
-                    self.placeOrder();
+                    window.open(response.result.links[1].href,'popup','width=600,height=600');
+                    setTimeout(function() {
+                        $('body').trigger('processStop');
+                        self.placeOrder();
+                    }, 2000);
                 }).fail(function (response) {
                     console.error('FAILED paid whit token card', response);
                     $('#submit').prop('disabled', false);
+                    $('body').trigger('processStop');
                 });
             },
 
@@ -107,15 +112,7 @@ define(
                 let data = {
                     method: self.paypalMethod,
                     additional_data: {
-                        order_id: self.orderId,
-                        fraudNetCMI: self.sessionIdentifier,
-                        payment_source: JSON.stringify({
-                            oxxo: {
-                                'name': billing.firstname + ' ' + billing.lastname,
-                                'email': quote.guestEmail,
-                                'country_code': 'MX'
-                            }
-                        })
+                        order_id: self.orderId
                     }
                 };
 
@@ -129,12 +126,20 @@ define(
              */
             createOrder: function (requestBody) {
                 var self = this;
-
-                return storage.post('/paypalcheckout/order', JSON.stringify({ 'fraudNetCMI': self.sessionIdentifier })
+                let billing = quote.billingAddress();
+                return storage.post('/paypalcheckout/order',
+                    JSON.stringify({
+                        'fraudNetCMI': self.sessionIdentifier,
+                        'payment_method': 'paypaloxxo',
+                        'payment_source': {
+                            'name': billing.firstname + ' ' + billing.lastname,
+                            'email': quote.guestEmail,
+                            'country_code': 'MX'
+                        }
+                    })
                 ).done(function (response) {
                         return response;
-                    }
-                ).fail(function (response) { });
+                }).fail(function (response) { });
             },
 
             /**
