@@ -135,8 +135,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     public function sendEmail($voucherUrl)
     {
         $templateId = 'oxxo_paypment_voucher';
-        $order = $this->checkoutSession->getLastRealOrder();
-        $toEmail = $order->getCustomerEmail();
+        $toEmail = $this->_order->getCustomerEmail();
 
         try {
             $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO url : ' . $voucherUrl);
