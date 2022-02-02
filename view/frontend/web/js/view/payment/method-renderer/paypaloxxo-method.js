@@ -90,7 +90,7 @@ define(
                 $('body').trigger('processStart');
                 this.createOrder().done(function (response) {
                     self.orderId = response.result.id;
-                    window.open(response.result.links[1].href,'popup','width=600,height=600');
+                    window.open(response.result.links[1].href,'popup','width=850,height=600');
                     setTimeout(function() {
                         $('body').trigger('processStop');
                         self.placeOrder();
