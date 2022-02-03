@@ -28,7 +28,11 @@ class Event
     /**
      * Payment capture denied event type code
      */
-    const PAYMENT_CAPTURE_DENIED = 'PAYMENT.CAPTURE.DENIED';
+    const PAYMENT_CAPTURE_DENIED  = 'PAYMENT.CAPTURE.DENIED';
+
+    const CHECKOUT_ORDER_APPROVED = 'CHECKOUT.ORDER.APPROVED';
+
+    const PAYMENT_ORDER_DENIED    = 'PAYMENT.ORDER.CANCELLED';
 
     /** @var \Magento\Sales\Model\Order\Payment */
     protected $_payment;
@@ -93,7 +97,6 @@ class Event
 
         $this->_logger->debug(__METHOD__ . " | event_type: $event_type");
 
-
         if (((!$this->_payment) || (!$this->_payment->getOrder())) && ($event_type != self::PAYMENT_CAPTURE_REFUNDED)) {
             $this->_logger->debug(__METHOD__ . ' | ' . __('Problem with payment/order'));
 
@@ -126,6 +129,14 @@ class Event
 
                 $this->_paymentDenied($eventData);
                 break;
+            case self::CHECKOUT_ORDER_APPROVED:
+
+                $this->_paymentCompleted($eventData);
+                break;
+            case self::PAYMENT_ORDER_DENIED:
+
+                $this->_paymentDenied($eventData);
+                break;
 
             default:
                 break;
@@ -144,7 +155,9 @@ class Event
             self::PAYMENT_CAPTURE_PENDING,
             self::PAYMENT_CAPTURE_REFUNDED,
             self::PAYMENT_CAPTURE_REVERSED,
-            self::PAYMENT_CAPTURE_DENIED
+            self::PAYMENT_CAPTURE_DENIED,
+            self::CHECKOUT_ORDER_APPROVED,
+            self::PAYMENT_ORDER_DENIED
         ];
     }
 
