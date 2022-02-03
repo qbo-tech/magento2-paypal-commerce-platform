@@ -11,6 +11,8 @@
 
 namespace PayPal\CommercePlatform\Model\Payment\Oxxo;
 
+use Magento\Sales\Api\Data\TransactionInterface;
+
 /**
  * Class Payment
  * @package PayPal\CommercePlatform\Model\Payment\Oxxo
@@ -27,6 +29,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      */
     private $paypalOrderConfirmRequest;
 
+    private $paypalOrderId;
+
     /**
      * Payment capturing
      *
@@ -39,11 +43,14 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         try {
-            $paypalOrderId = $payment->getAdditionalInformation('order_id');
+            $this->paypalOrderId = $payment->getAdditionalInformation('order_id');
             /** @var \Magento\Sales\Model\Order */
             $this->_order = $payment->getOrder();
             $this->_processTransaction($payment);
-            $this->sendOxxoEmail($paypalOrderId);
+
+            if(!$this->paypalConfig->isSandbox()) {
+                $this->sendOxxoEmail($this->paypalOrderId);
+            }
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -97,10 +104,36 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      */
     protected function _processTransaction(&$payment): \Magento\Payment\Model\InfoInterface
     {
+        $oxxoData = [
+            'paypal_order_id' => $this->paypalOrderId
+        ];
+        $payment->setLastTransId($this->paypalOrderId);
+        $payment->setTransactionId($this->paypalOrderId);
+        $payment->setAdditionalInformation(
+            ['paypal_order_id' => $this->paypalOrderId]
+        );
+
+        $message = __('Order created with Paypal OxxoPay');
+        $trans = $this->transactionBuilderInterface;
+        $transaction = $trans->setPayment($payment)
+            ->setOrder($this->_order)
+            ->setTransactionId($this->paypalOrderId)
+            ->setAdditionalInformation(
+                [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => $oxxoData]
+            )
+            ->setFailSafe(true)
+            ->build(TransactionInterface::TYPE_CAPTURE);
+
+        $payment->addTransactionCommentsToOrder(
+            $transaction,
+            $message
+        );
         $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
         $payment->setIsTransactionPending(true)->setIsTransactionClosed(false);
         return $payment;
     }
+
+
 
     /**
      * @param $paypalOrderId

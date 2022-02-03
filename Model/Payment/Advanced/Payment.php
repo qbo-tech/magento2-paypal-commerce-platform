@@ -5,7 +5,9 @@ namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PayPal\CommercePlatform\Model\Config;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 {
@@ -79,6 +81,15 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected StoreManagerInterface $storeManager;
+    /**
+     * @var \PayPal\CommercePlatform\Model\Config
+     */
+    protected Config $paypalConfig;
+
+    /**
+     * @var \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface
+     */
+    protected BuilderInterface $transactionBuilderInterface;
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -93,7 +104,9 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param \Magento\Framework\Event\ManagerInterface $eventManager
+     * @param \PayPal\CommercePlatform\Model\Config $paypalConfig
      * @param \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param array $data
      */
@@ -110,6 +123,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Event\ManagerInterface $eventManager,
+        BuilderInterface $transactionBuilderInterface,
+        Config $paypalConfig,
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
@@ -133,6 +148,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_scopeConfig  = $scopeConfig;
         $this->_eventManager = $eventManager;
         $this->checkoutSession = $checkoutSession;
+        $this->transactionBuilderInterface = $transactionBuilderInterface;
+        $this->paypalConfig = $paypalConfig;
         $this->transportBuilder = $transportBuilder;
         $this->storeManager = $storeManager;
         $this->paymentSource = null;
