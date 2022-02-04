@@ -32,15 +32,12 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     private $paypalOrderId;
 
     /**
-     * Payment capturing
-     *
      * @param \Magento\Payment\Model\InfoInterface $payment
-     * @param float $amount
-     * @return \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
-     * @throws \Magento\Framework\Validator\Exception
+     * @param $amount
+     * @return $this|\PayPal\CommercePlatform\Model\Payment\Oxxo\Payment
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         try {
             $this->paypalOrderId = $payment->getAdditionalInformation('order_id');
@@ -56,6 +53,25 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
             $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
             throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
+        }
+        return $this;
+    }
+
+    /**
+     * Capture payment abstract method
+     *
+     * @param \Magento\Framework\DataObject|InfoInterface $payment
+     * @param float $amount
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @api
+     * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+     * @deprecated 100.2.0
+     */
+    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    {
+        if (!$this->canCapture()) {
+            throw new \Magento\Framework\Exception\LocalizedException(__('The capture action is not available.'));
         }
         return $this;
     }
@@ -114,20 +130,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
         );
 
         $message = __('Order created with Paypal OxxoPay');
-        $trans = $this->transactionBuilderInterface;
-        $transaction = $trans->setPayment($payment)
-            ->setOrder($this->_order)
-            ->setTransactionId($this->paypalOrderId)
-            ->setAdditionalInformation(
-                [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => $oxxoData]
-            )
-            ->setFailSafe(true)
-            ->build(TransactionInterface::TYPE_CAPTURE);
-
-        $payment->addTransactionCommentsToOrder(
-            $transaction,
-            $message
-        );
+        $payment->addTransactionCommentsToOrder($this->paypalOrderId, $message);
         $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
         $payment->setIsTransactionPending(true)->setIsTransactionClosed(false);
         return $payment;

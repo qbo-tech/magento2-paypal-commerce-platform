@@ -87,11 +87,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     protected Config $paypalConfig;
 
     /**
-     * @var \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface
-     */
-    protected BuilderInterface $transactionBuilderInterface;
-
-    /**
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
@@ -123,7 +118,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Event\ManagerInterface $eventManager,
-        BuilderInterface $transactionBuilderInterface,
         Config $paypalConfig,
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager,
@@ -148,7 +142,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_scopeConfig  = $scopeConfig;
         $this->_eventManager = $eventManager;
         $this->checkoutSession = $checkoutSession;
-        $this->transactionBuilderInterface = $transactionBuilderInterface;
         $this->paypalConfig = $paypalConfig;
         $this->transportBuilder = $transportBuilder;
         $this->storeManager = $storeManager;
