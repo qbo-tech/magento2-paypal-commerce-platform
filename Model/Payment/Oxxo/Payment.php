@@ -37,7 +37,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      * @return $this|\PayPal\CommercePlatform\Model\Payment\Oxxo\Payment
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function authorize(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         try {
             $this->paypalOrderId = $payment->getAdditionalInformation('order_id');
@@ -130,9 +130,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
         );
 
         $message = __('Order created with Paypal OxxoPay');
-        $payment->addTransactionCommentsToOrder($this->paypalOrderId, $message);
         $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
-        $payment->setIsTransactionPending(true)->setIsTransactionClosed(false);
+        $payment->setIsTransactionPending(false)->setIsTransactionClosed(false);
         return $payment;
     }
 
