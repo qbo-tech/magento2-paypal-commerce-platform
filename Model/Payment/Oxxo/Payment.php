@@ -129,9 +129,9 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             ['paypal_order_id' => $this->paypalOrderId]
         );
 
-        $message = __('Order created with Paypal OxxoPay');
         $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
         $payment->setIsTransactionPending(false)->setIsTransactionClosed(false);
+        $payment->getSkipOrderProcessing();
         return $payment;
     }
 
