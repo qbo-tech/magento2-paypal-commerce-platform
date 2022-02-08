@@ -47,22 +47,22 @@ class OrderAccount extends Template
     /**
      * @var \PayPal\CommercePlatform\Model\Paypal\Api
      */
-    private Api $paypalApi;
+    private $paypalApi;
 
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    private Session $checkoutSession;
+    private $checkoutSession;
 
     /**
      * @var \PayPal\CommercePlatform\Logger\Handler
      */
-    private Handler $logger;
+    private $logger;
 
     /**
      * @var \Magento\Sales\Api\OrderRepositoryInterface
      */
-    private OrderRepositoryInterface $orderRepository;
+    private $orderRepository;
 
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context

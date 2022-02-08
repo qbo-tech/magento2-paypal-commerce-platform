@@ -70,21 +70,21 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    protected Session $checkoutSession;
+    protected $checkoutSession;
 
     /**
      * @var \Magento\Framework\Mail\Template\TransportBuilder
      */
-    protected TransportBuilder $transportBuilder;
+    protected $transportBuilder;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
-    protected StoreManagerInterface $storeManager;
+    protected $storeManager;
     /**
      * @var \PayPal\CommercePlatform\Model\Config
      */
-    protected Config $paypalConfig;
+    protected $paypalConfig;
 
     /**
      * @param \Magento\Framework\Model\Context $context

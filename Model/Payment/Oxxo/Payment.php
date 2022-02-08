@@ -99,9 +99,13 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 
             $this->_eventManager->dispatch('paypaloxxo_create_voucher_before');
             $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
-            $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
-            $this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
-            $this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
+			if(in_array($this->_response->statusCode,$this->_successCodes)) {
+				$this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
+				$this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
+				$this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
+			} else {
+				throw new \Exception(__(self::OXXO_ERROR_MESSAGE));
+			}
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -131,7 +135,6 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 
         $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
         $payment->setIsTransactionPending(false)->setIsTransactionClosed(false);
-        $payment->getSkipOrderProcessing();
         return $payment;
     }
 
