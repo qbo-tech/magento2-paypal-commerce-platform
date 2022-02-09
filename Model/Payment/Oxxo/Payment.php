@@ -22,8 +22,8 @@ use Magento\Sales\Model\Order;
 class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 {
     const CODE                         = 'paypaloxxo';
-    const SUCCESS_STATE_CODES          = array("PENDING", "PAYER_ACTION_REQUIRED");
-    const OXXO_ERROR_MESSAGE           = 'There was an error while the oxxo voucher creation';
+    const SUCCESS_STATE_CODES          =  array("PENDING", "PAYER_ACTION_REQUIRED");
+    const OXXO_ERROR_MESSAGE           = 'There was an error while creating the  Oxxo voucher';
     protected $_code = self::CODE;
 
     /**
@@ -46,10 +46,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             /** @var \Magento\Sales\Model\Order */
             $this->_order = $payment->getOrder();
             $this->_processTransaction($payment);
+            $this->sendOxxoEmail($this->paypalOrderId);
 
-            if(!$this->paypalConfig->isSandbox()) {
-                $this->sendOxxoEmail($this->paypalOrderId);
-            }
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -149,18 +147,23 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     public function sendOxxoEmail($paypalOrderId)
     {
         try {
-            $voucherRequest = $this->_paypalApi->getVoucherRequest($paypalOrderId);
-            $response = $this->_paypalApi->execute($voucherRequest);
-            if (!in_array($response->statusCode, $this->_successCodes)) {
-                throw new \Exception(__('Gateway error. Reason: %1', $response->message));
-            }
-            $this->_logger->debug(__METHOD__ . ' | PAYPAL OXXO data : ' . json_encode($response));
-            if (isset($response->result->payment_source->oxxo->document_references[0])) {
-                $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
-                $this->sendEmail($voucherUrl);
+            if($this->paypalConfig->isSandbox()) {
+                $voucherUrl = "https://sandbox.paypal.com";
             } else {
-                throw new \Exception(self::OXXO_ERROR_MESSAGE);
+                $voucherRequest = $this->_paypalApi->getVoucherRequest($paypalOrderId);
+                $response = $this->_paypalApi->execute($voucherRequest);
+
+                if (!in_array($response->statusCode, $this->_successCodes)) {
+                    throw new \Exception(__('Gateway error. Reason: %1', $response->message));
+                }
+
+                if (isset($response->result->payment_source->oxxo->document_references[0])) {
+                    $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
+                } else {
+                    throw new \Exception(self::OXXO_ERROR_MESSAGE);
+                }         
             }
+            $this->sendEmail($voucherUrl);
         } catch (\Exception $e) {
             $this->_logger->error(__METHOD__ . ' | PAYPAL OXXO EmailException : ' . $e->getMessage());
             throw new \Magento\Framework\Exception\LocalizedException(__(self::OXXO_ERROR_MESSAGE));
