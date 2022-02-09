@@ -1,0 +1,12 @@
+<!--@subject {{var store.frontend_name}} | {{trans "Tu ticket de pago en Oxxo "}} @-->
+{{template config_path="design/email/header_template"}}
+<table style="float:left; margin-right: 10px" class="fue-abc-items">
+    <tr>
+        <td>
+            <div class="greeting">{{trans "Thanks for your purchase. Below you will find your ticket or card to make your payment at Oxxo Stores."}}</div>
+            <!-- Custom Image with your email-->
+            <a href="{{var OxxoVoucher}}">{{trans "Download vourcher"}}</a>
+        </td>
+    </tr>
+</table>
+{{template config_path="design/email/footer_template"}}

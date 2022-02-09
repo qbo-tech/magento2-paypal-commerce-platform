@@ -66,7 +66,7 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
         $eventData = json_decode($this->_driver->fileGetContents('php://input'), true);
 
         if ((!$this->getRequest()->isPost()) || (!$this->isValidWebhookSignature($eventData))) {
-            $this->_logger->debug(__METHOD__ . ' | INVALID INCOMING REQUEST: ' . print_r($eventData, true));
+            $this->_logger->debug('PAYPAL COMMERCE - WEBHOOK VERIFICATION VALIED: ' . print_r($eventData, true));
             return;
         }
 
