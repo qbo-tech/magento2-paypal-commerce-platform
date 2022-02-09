@@ -98,16 +98,16 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
                     'locale' => 'es-MX'
                 ]
             ];
-
             $this->_eventManager->dispatch('paypaloxxo_create_voucher_before');
             $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
-			if(in_array($this->_response->statusCode,$this->_successCodes)) {
-				$this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
-				$this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
-				$this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
-			} else {
-				throw new \Exception(__(self::OXXO_ERROR_MESSAGE));
-			}
+
+	    if(in_array($this->_response->statusCode,$this->_successCodes)) {
+   	        $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
+		$this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
+		$this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
+            } else {
+	        throw new \Exception(__(self::OXXO_ERROR_MESSAGE));
+	    }
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
