@@ -12,6 +12,8 @@
 namespace PayPal\CommercePlatform\Model\Payment\Oxxo;
 
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Model\Order\Payment\Transaction;
+use Magento\Sales\Model\Order;
 
 /**
  * Class Payment
@@ -124,17 +126,16 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
      */
     protected function _processTransaction(&$payment): \Magento\Payment\Model\InfoInterface
     {
-        $oxxoData = [
-            'paypal_order_id' => $this->paypalOrderId
-        ];
         $payment->setLastTransId($this->paypalOrderId);
         $payment->setTransactionId($this->paypalOrderId);
         $payment->setAdditionalInformation(
             ['paypal_order_id' => $this->paypalOrderId]
         );
-
-        $this->setComments($this->_order, __(self::PENDING_PAYMENT_NOTIFICATION), false);
-        $payment->setIsTransactionPending(false)->setIsTransactionClosed(false);
+		$payment->getOrder()->setState(Order::STATE_PENDING_PAYMENT);
+		$payment->getOrder()->addCommentToStatusHistory( __(self::PENDING_PAYMENT_NOTIFICATION), true);
+		$payment->setIsTransactionPending(false)->setIsTransactionClosed(false);
+		$payment->setSkipOrderProcessing(true);
+		$payment->addTransaction(Transaction::TYPE_ORDER);
         return $payment;
     }
 
