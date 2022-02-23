@@ -107,17 +107,18 @@ define(
                         self.placeOrder();
                     }, 2000);
                 }).fail(function (response) {
-									console.error('FAILED paid whit token card', response);
-									$('#submit').prop('disabled', false);
-									$('body').trigger('processStop');
-									alert({
-											title: $.mage.__('Alert'),
-											modalClass: 'alert',
-											content: response.responseJSON.reason,
-											actions: {
-												always: function(){}
-											}
-										});
+                  console.error('FAILED paid whit token card', response);
+                  $('#submit').prop('disabled', false);
+                  $('body').trigger('processStop');
+                  alert({
+                    title: $.mage.__('Alert'),
+                    modalClass: 'alert',
+                    content: response.responseJSON.reason,
+                    actions: {
+                      always: function () {
+                      }
+                    }
+                  });
                 });
             },
 
