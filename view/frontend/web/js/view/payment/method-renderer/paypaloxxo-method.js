@@ -38,15 +38,15 @@ define(
                 return self.isOxxoEnable && self.grandTotal() < 10000;
             },
 
-					/**
-					 * Return order total
-					 * @returns {*}
-					 */
-						grandTotal: function() {
-							/** @type {Object} */
-							var totals = quote.getTotals()();
-							return (totals ? totals : quote)['grand_total'];
-						},
+          /**
+           * Return order total
+           * @returns {*}
+           */
+          grandTotal: function () {
+            /** @type {Object} */
+            var totals = quote.getTotals()();
+            return (totals ? totals : quote)['grand_total'];
+          },
 
             /**
              * Return payment method code
