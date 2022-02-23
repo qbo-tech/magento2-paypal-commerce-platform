@@ -10,9 +10,10 @@ define(
         'Magento_Checkout/js/model/quote',
         'ko',
         'Magento_Checkout/js/model/totals',
-        'mage/translate'
+        'mage/translate',
+				'Magento_Ui/js/modal/alert',
     ],
-    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
+    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t, alert) {
         'use strict';
 
         return Component.extend({
@@ -34,8 +35,18 @@ define(
              */
             isOxxoActive: function () {
                 var self = this;
-                return self.isOxxoEnable;
+                return self.isOxxoEnable && self.grandTotal() < 10000;
             },
+
+					/**
+					 * Return order total
+					 * @returns {*}
+					 */
+						grandTotal: function() {
+							/** @type {Object} */
+							var totals = quote.getTotals()();
+							return (totals ? totals : quote)['grand_total'];
+						},
 
             /**
              * Return payment method code
@@ -96,9 +107,17 @@ define(
                         self.placeOrder();
                     }, 2000);
                 }).fail(function (response) {
-                    console.error('FAILED paid whit token card', response);
-                    $('#submit').prop('disabled', false);
-                    $('body').trigger('processStop');
+									console.error('FAILED paid whit token card', response);
+									$('#submit').prop('disabled', false);
+									$('body').trigger('processStop');
+									alert({
+											title: $.mage.__('Alert'),
+											modalClass: 'alert',
+											content: response.responseJSON.reason,
+											actions: {
+												always: function(){}
+											}
+										});
                 });
             },
 
