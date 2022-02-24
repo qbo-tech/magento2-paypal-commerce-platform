@@ -10,9 +10,7 @@ class RiskTransactionContextRequest extends \PayPalHttp\HttpRequest
 
         $this->path = str_replace("{merchant_id}", urlencode($merchantId), $this->path);
         $this->path = str_replace("{cmid}", urlencode($cmid), $this->path);
-
-        \file_put_contents('/srv/www/var/log/debug.log', "\n" . __METHOD__ . " | path: " . $this->path . "\n", \FILE_APPEND);
-
+        
         $this->headers["Content-Type"] = "application/json";
     }
 }
