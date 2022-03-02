@@ -138,10 +138,6 @@ class Event
 
                 $this->_paymentCompleted($eventData);
                 break;
-            case self::PAYMENT_ORDER_DENIED:
-
-                $this->_paymentDenied($eventData);
-                break;
 
             default:
                 break;
@@ -183,18 +179,11 @@ class Event
         $this->_payment->setIsTransactionClosed(0)
             ->registerCaptureNotification($eventData['resource']['amount']['value'], true);
 
-        $this->_payment->getOrder()->update(false)->save();
-
         // notify customer
-        $invoice = $this->_payment->getCreatedInvoice();
-        if ($invoice && !$this->_payment->getOrder()->getEmailSent()) {
-            $this->_payment->getOrder()->queueNewOrderEmail()
-                ->addStatusHistoryComment(
-                    __(
-                        'Registered invoice #%1.',
-                        $invoice->getIncrementId()
-                    )
-                )->setIsCustomerNotified(false)->save();
+        if (!$this->_payment->getOrder()->getEmailSent()) {
+            $this->_payment->getOrder()->addStatusHistoryComment(
+                    __('This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.')
+                )->setIsCustomerNotified(true)->save();
         }
     }
 
@@ -217,14 +206,11 @@ class Event
             ->save();
 
         // notify customer
-        $invoice = $this->_payment->getCreatedInvoice();
-        $this->_payment->getOrder()->queueNewOrderEmail()
-            ->addStatusHistoryComment(
+        $this->_payment->getOrder()->addStatusHistoryComment(
                 __(
-                    'Your Order #%1 is in process',
-                    $this->_payment->getOrder()
+                    'Thank you for your payment. Registered notification about captured amount.'
                 )
-            )->setIsCustomerNotified(true)->save();
+        )->setIsCustomerNotified(true)->save();
 
     }
 
@@ -256,7 +242,7 @@ class Event
 
         $order
             ->addCommentToStatusHistory(
-                __('A refund has been made from PayPal | %1', $summary)
+                __('A refund has been registered from PayPal | %1', $summary)
             )
             ->setIsCustomerNotified(true)
             ->save();
@@ -277,7 +263,7 @@ class Event
 
         $this->_payment->getOrder()
             ->addCommentToStatusHistory(
-                __('Se ha hecho un reembolso desde PayPal | %1', $summary)
+                __('A reversal has been registered from PayPal | %1', $summary)
             )
             ->setIsCustomerNotified(true)
             ->save();
@@ -300,7 +286,7 @@ class Event
 
             $this->_payment->getOrder()            
                 ->addCommentToStatusHistory(
-                    __('Pedido cancelado | %1', $summary)
+                    __('Your order #%1 has been canceled.', $summary)
                 )->setIsCustomerNotified(true)
                 ->save();
 
