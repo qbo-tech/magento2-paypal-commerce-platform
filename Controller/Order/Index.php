@@ -65,11 +65,14 @@ class Index extends \Magento\Framework\App\Action\Action
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
             $paypalCMID = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
-            $this->_loggerHandler->debug(__METHOD__ . ' | paypalCMID: ' . $paypalCMID);
+            
             $response = $this->_paypalOrderRequest->createRequest($paypalCMID);
 
-            if(isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') {
+            if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
                 $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);
+            } else {
+                $this->_loggerHandler->error(print_r($response, true));
+                throw new \Exception("[OXXO ERROR] Error comunicating with paypal");
             }
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());

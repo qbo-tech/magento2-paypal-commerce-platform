@@ -97,7 +97,7 @@ class Event
             $relatedTxnId = isset($eventData['resource']['supplementary_data']['related_ids']['order_id']) ? $eventData['resource']['supplementary_data']['related_ids']['order_id'] : null;
             $this->_payment = $this->getPaymentByTxnId($eventData['resource']['id']) ? : $this->getPaymentByTxnId($relatedTxnId);
         } else {
-            $this->_logger->warning(__METHOD__ . ' | ' . __('Event not supported: %1', $event_type));
+            $this->_logger->warning(__('Event not supported: %1', $event_type));
             return;
         }
 
@@ -106,7 +106,7 @@ class Event
             return;
         }
 
-        $this->_logger->debug(__METHOD__ . " | event_type: $event_type");
+        $this->_logger->debug("[WEBHOOK EVENT TYPE: {$event_type} TNX ID: {$eventData['resource']['id']}]");
 
         switch ($event_type) {
 
