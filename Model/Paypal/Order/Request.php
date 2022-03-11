@@ -234,7 +234,11 @@ class Request
         $subtotal       = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
         $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
         $taxAmount      = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
-
+        
+        if(!$this->_quote->getReserveOrderId()) {
+            $this->_quote->reserveOrderId();
+        }
+        
         $requestBody = [
             'intent' => 'CAPTURE',
             'application_context' => [
@@ -242,6 +246,7 @@ class Request
             ],
             'payer' => $this->_getPayer(),
             'purchase_units' => [[
+                'invoice_id' => $this->_quote->getReservedOrderId(),
                 'amount' => [
                     'currency_code' => $currencyCode,
                     'value' => $amount
