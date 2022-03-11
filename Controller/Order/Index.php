@@ -70,9 +70,7 @@ class Index extends \Magento\Framework\App\Action\Action
 
             if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
                 $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);
-            } else {
                 $this->_loggerHandler->error(print_r($response, true));
-                throw new \Exception("[OXXO ERROR] Error comunicating with paypal");
             }
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());

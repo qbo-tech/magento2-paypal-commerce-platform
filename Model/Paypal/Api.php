@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author Alvaro Florez <aflorezd@gmail.com>
+ * @author Alvaro Florez
  */
 
 namespace PayPal\CommercePlatform\Model\Paypal;

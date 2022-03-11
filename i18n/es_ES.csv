@@ -1,0 +1,80 @@
+"An error has occurred on the server, please try again later","An error has occurred on the server, please try again later"
+Vertical,Vertical
+Horizontal,Horizontal
+Gold,Gold
+Blue,Blue
+Silver,Silver
+White,White
+Black,Black
+Pill,Pill
+Rectangle,Rectangle
+Checkout,Checkout
+Pay,Pay
+"Buy Now","Buy Now"
+PayPal,PayPal
+Installment,Installment
+True,True
+False,False
+"Gateway error. Reason: %1","Gateway error. Reason: %1"
+"The capture action is not available.","The capture action is not available."
+"Event not supported: %1","Event not supported: %1"
+"Order nor found by TXN ID","Order nor found by TXN ID"
+"This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.","This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway."
+"Thank you for your payment. Registered notification about captured amount.","Thank you for your payment. Registered notification about captured amount."
+"A refund has been registered from PayPal | %1","A refund has been registered from PayPal | %1"
+"A reversal has been registered from PayPal | %1","A reversal has been registered from PayPal | %1"
+"Your order #%1 has been canceled.","Your order #%1 has been canceled."
+"Open oxxo voucher","Open oxxo voucher"
+"Tu ticket de pago en Oxxo ","Tu ticket de pago en Oxxo "
+"Thanks for your purchase. Below you will find your ticket or card to make your payment at Oxxo Stores.","Thanks for your purchase. Below you will find your ticket or card to make your payment at Oxxo Stores."
+"Download vourcher","Download vourcher"
+"Generate Voucher and complete order","Generate Voucher and complete order"
+"Pay with","Pay with"
+"New card","New card"
+"Pay to MSI","Pay to MSI"
+"Card Number","Card Number"
+"Expiration date","Expiration date"
+CVV,CVV
+"Card holder name","Card holder name"
+"Remember card","Remember card"
+"Transaction cannot be processed, please verify your card information or try another.","Transaction cannot be processed, please verify your card information or try another."
+"Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.","Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes."
+MONTHS,MONTHS
+Alert,Alert
+"PayPal Checkout Mexico","PayPal Checkout Mexico"
+Enabled,Enabled
+"Sandbox Mode","Sandbox Mode"
+"Client ID","Client ID"
+"Secret ID","Secret ID"
+"Webhook ID","Webhook ID"
+Title,Title
+"Transfer Items (Line Items)","Transfer Items (Line Items)"
+"New Order Status","New Order Status"
+"Handle Pending Payments","Handle Pending Payments"
+"Debug Mode","Debug Mode"
+"PayPal Basic Credit and Debit Card","PayPal Basic Credit and Debit Card"
+"Enable BCDC with Credit and Debit Card Payment Solutions","Enable BCDC with Credit and Debit Card Payment Solutions"
+"PayPal Oxxo","PayPal Oxxo"
+"Enable OXXO Payment Solutions","Enable OXXO Payment Solutions"
+"PayPal Advanced Credit and Debit Card","PayPal Advanced Credit and Debit Card"
+"Enable ACDC","Enable ACDC"
+"Enable MSI","Enable MSI"
+"Remember Card (Vaulting)","Remember Card (Vaulting)"
+FraudNet,FraudNet
+"Source Web Identifier","Source Web Identifier"
+STC,STC
+"Enable STC","Enable STC"
+"STC Merchant ID","STC Merchant ID"
+highrisk_txn_flag,highrisk_txn_flag
+vertical,vertical
+"Split display options","Split display options"
+"Title Method PayPal","Title Method PayPal"
+"Title Method Credit/Debit Card","Title Method Credit/Debit Card"
+"Title Method Oxxo","Title Method Oxxo"
+"Button Options","Button Options"
+"Customize Button","Customize Button"
+Layout,Layout
+Color,Color
+Shape,Shape
+Label,Label
+Tagline,Tagline

@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Alvaro Florez <aflorezd@gmail.com>
+ * @author Alvaro Florez <info@qbo.tech>
  */
 declare(strict_types=1);
 

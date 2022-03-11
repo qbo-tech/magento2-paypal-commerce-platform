@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author Alvaro Florez <aflorezd@gmail.com>
+ * @author Alvaro Florez <info@qbo.tech>
  */
 
 namespace PayPal\CommercePlatform\Model\Paypal\Webhooks;
