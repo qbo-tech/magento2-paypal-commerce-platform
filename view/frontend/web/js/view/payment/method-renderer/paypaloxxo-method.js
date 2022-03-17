@@ -100,12 +100,19 @@ define(
                 let self = this;
                 $('body').trigger('processStart');
                 this.createOrder().done(function (response) {
-                    self.orderId = response.result.id;
-                    window.open(response.result.links[1].href,'popup','width=850,height=600');
-                    setTimeout(function() {
-                        $('body').trigger('processStop');
-                        self.placeOrder();
-                    }, 2000);
+                  self.orderId = response.result.id;
+
+                  window.open(response.result.links[1].href,'popup','width=850,height=600');
+                  let iframe;
+                  iframe = document.createElement('iframe');
+                  iframe.src = response.result.links[1].href;
+                  iframe.style.display = 'none';
+                  document.body.appendChild(iframe);
+
+                  setTimeout(function() {
+                    $('body').trigger('processStop');
+                    self.placeOrder();
+                  }, 3000);
                 }).fail(function (response) {
                   console.error('FAILED paid whit token card', response);
                   $('#submit').prop('disabled', false);

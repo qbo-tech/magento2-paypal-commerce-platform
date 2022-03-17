@@ -148,8 +148,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     public function sendOxxoEmail($paypalOrderId)
     {
         try {
-            $voucherUrl = '';
-            if(!$this->paypalConfig->isSandbox()) {
+            if($this->paypalConfig->isSandbox()) {
                 $voucherUrl = "https://sandbox.paypal.com";
             } else {
                 $voucherRequest = $this->_paypalApi->getVoucherRequest($paypalOrderId);
@@ -159,13 +158,13 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
                     throw new \Exception(__('Gateway error. Reason: %1', $response->message));
                 }
 
-                if (!empty($response->result->payment_source->oxxo->document_references) && isset($response->result->payment_source->oxxo->document_references[0])) {
+                if (isset($response->result->payment_source->oxxo->document_references[0])) {
                     $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
+                } else {
+                    throw new \Exception(self::OXXO_DOCUMENT_ERROR_MESSAGE);
                 }
             }
-            if ($voucherUrl) {
-                $this->sendEmail($voucherUrl);
-            }
+            $this->sendEmail($voucherUrl);
         } catch (\Exception $e) {
             $this->_logger->error(__METHOD__ . ' | PAYPAL OXXO EmailException : ' . $e->getMessage());
             throw new \Magento\Framework\Exception\LocalizedException(__(self::OXXO_ERROR_MESSAGE));
