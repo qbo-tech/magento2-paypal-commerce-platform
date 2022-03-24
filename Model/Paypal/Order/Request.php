@@ -38,11 +38,6 @@ class Request
      * @var \Magento\Quote\Model\Quote
      */
     protected $_quote;
-    /**
-     *
-     * @var \Magento\Checkout\Model\Cart
-     */
-    protected $_cart;
 
     /**
      * Request's order model
@@ -83,11 +78,7 @@ class Request
      * @var type
      */
     protected $_storeManager;
-    /**
-     *
-     * @var Magento\Quote\Api\ShippingMethodManagementInterface
-     */
-    protected $_shippingMethodManager;
+
     /**
      *
      * @var type
@@ -125,8 +116,24 @@ class Request
 
     const PAYPAL_CLIENT_METADATA_ID_HEADER = 'PayPal-Client-Metadata-Id';
 
-    //private $paymentSource;
+    /**
+     * @var \Magento\Quote\Model\QuoteRepository
+     */
+    private $quoteRepository;
 
+    /**
+     * @var \Magento\Framework\DataObject
+     */
+    private $_adressData;
+    /**
+     * @var \Magento\Quote\Api\ShippingMethodManagementInterface
+     */
+    private $shippingMethodManager;
+
+    /**
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
@@ -143,7 +150,8 @@ class Request
         \Magento\Payment\Model\Cart\SalesModel\Factory $cartFactory,
         \Magento\Framework\DataObject $dataObject,
         \Magento\Customer\Model\Session $customerSession,
-        \Magento\Framework\Event\ManagerInterface $eventManager
+        \Magento\Framework\Event\ManagerInterface $eventManager,
+        \Magento\Quote\Model\QuoteRepository $quoteRepository
     ) {
         $this->_loggerHandler  = $logger;
 
@@ -157,8 +165,7 @@ class Request
 
         $this->_data = $data;
         $this->_adressData = $address;
-        $this->_cart = $cart;
-        $this->_quote = $cart->getQuote();
+        $this->_quote = $checkoutSession->getQuote();
         $this->_cartFactory = $cartFactory;
         $this->_cartPayment = $this->_cartFactory->create($this->_quote);
         $this->_customer = $customerSession->getCustomer();
@@ -178,7 +185,7 @@ class Request
         $this->localeResolver = $localeResolver;
         $this->shippingMethodManager = $shippingMethodManager;
         $this->_storeManager = $storeManager;
-
+        $this->quoteRepository = $quoteRepository;
         self::$_cancelUrl = $this->_storeManager->getStore()->getUrl('checkout/cart');
         self::$_returnUrl = $this->_storeManager->getStore()->getUrl('checkout/cart');
         self::$_notifyUrl = $this->_storeManager->getStore()->getUrl('paypal/ipn');
@@ -205,12 +212,12 @@ class Request
         $this->_orderCreateRequest->body = $requestBody;
 
         try {
-            $this->_eventManager->dispatch('paypalcp_create_order_before', ['paypalCMID' => $paypalCMID, 'cart' => $this->_cart, 'customer' => $this->_customer]);
+            $this->_eventManager->dispatch('paypalcp_create_order_before', ['paypalCMID' => $paypalCMID, 'cart' => $this->_quote, 'customer' => $this->_customer]);
 
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
 
-            $this->_eventManager->dispatch('paypalcp_create_order_after', ['cart' => $this->_cart, 'paypalResponse' => $response]);
+            $this->_eventManager->dispatch('paypalcp_create_order_after', ['cart' => $this->_quote, 'paypalResponse' => $response]);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 
@@ -223,7 +230,7 @@ class Request
     /**
      * Setting up the JSON request body for creating the order with minimum request body. The intent in the
      * request body should be "AUTHORIZE" for authorize intent flow.
-     * 
+     *
      * @param \Magento\Quote\Model\Quote $quote
      *
      */
@@ -234,11 +241,12 @@ class Request
         $subtotal       = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
         $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
         $taxAmount      = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
-        
+
         if(!$this->_quote->getReserveOrderId()) {
             $this->_quote->reserveOrderId();
+            $this->quoteRepository->save($this->_quote);
         }
-        
+
         $requestBody = [
             'intent' => 'CAPTURE',
             'application_context' => [
@@ -385,7 +393,7 @@ class Request
      * Prepare and get format address request data
      *
      * @param \Magento\Quote\Model\Quote\Address $address
-     * 
+     *
      * @return array
      */
     protected function _prepareAddress($address)
