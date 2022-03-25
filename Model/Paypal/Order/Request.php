@@ -212,12 +212,12 @@ class Request
         $this->_orderCreateRequest->body = $requestBody;
 
         try {
-            $this->_eventManager->dispatch('paypalcp_create_order_before', ['paypalCMID' => $paypalCMID, 'cart' => $this->_quote, 'customer' => $this->_customer]);
+            $this->_eventManager->dispatch('paypalcp_create_order_before', ['paypalCMID' => $paypalCMID, 'quote' => $this->_quote, 'customer' => $this->_customer]);
 
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
 
-            $this->_eventManager->dispatch('paypalcp_create_order_after', ['cart' => $this->_quote, 'paypalResponse' => $response]);
+            $this->_eventManager->dispatch('paypalcp_create_order_after', ['quote' => $this->_quote, 'paypalResponse' => $response]);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 

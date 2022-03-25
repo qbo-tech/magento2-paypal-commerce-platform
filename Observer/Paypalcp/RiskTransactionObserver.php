@@ -57,12 +57,11 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
 
         if ($observer->getEvent()->getName() == self::EVENT_CREATE_ORDER_BEFORE) {
 
-            /** @var \Magento\Checkout\Model\Cart $cart */
-            $cart = $observer->getData('cart');
+            $quote = $observer->getData('quote');
 
             /** @var \Magento\Customer\Model\Customer $customer */
             $customer = $observer->getData('customer');
-            $shippingAddress = $cart->getQuote()->getShippingAddress();
+            $shippingAddress = $quote->getShippingAddress();
         } elseif ($observer->getEvent()->getName() == self::EVENT_CAPTURE_ORDER_BEFORE) {
 
             /** @var \Magento\Sales\Model\Order */
