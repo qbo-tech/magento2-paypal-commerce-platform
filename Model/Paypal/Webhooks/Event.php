@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author Alvaro Florez <aflorezd@gmail.com>
+ * @author Alvaro Florez <info@qbo.tech>
  */
 
 namespace PayPal\CommercePlatform\Model\Paypal\Webhooks;
@@ -28,7 +28,8 @@ class Event
     /**
      * Payment capture denied event type code
      */
-    const PAYMENT_CAPTURE_DENIED = 'PAYMENT.CAPTURE.DENIED';
+    const PAYMENT_CAPTURE_DENIED  = 'PAYMENT.CAPTURE.DENIED';
+
 
     /** @var \Magento\Sales\Model\Order\Payment */
     protected $_payment;
@@ -58,17 +59,25 @@ class Event
      */
     protected $_logger;
 
+    /**
+    * @var \Magento\Sales\Api\OrderManagementInterface
+    */
+    protected $orderManagement;
+
+
     public function __construct(
         \Magento\Sales\Model\Order\Payment\TransactionFactory $salesOrderPaymentTransactionFactory,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository,
         \Magento\Sales\Model\Order\Payment $paymentRepository,
         \Magento\Sales\Api\InvoiceRepositoryInterface $invoiceRepository,
+        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
         \Psr\Log\LoggerInterface $logger
     ) {
         $this->_salesOrderPaymentTransactionFactory = $salesOrderPaymentTransactionFactory;
         $this->_orderRepository   = $orderRepository;
         $this->_paymentRepository = $paymentRepository;
         $this->_invoiceRepository = $invoiceRepository;
+        $this->orderManagement = $orderManagement;
         $this->_logger  = $logger;
     }
 
@@ -80,25 +89,24 @@ class Event
      * @throws \Exception
      */
     public function processWebhook($eventData)
-    {
+    {   
         $event_type = isset($eventData['event_type']) ? $eventData['event_type'] : '';
 
         if (in_array($event_type, $this->getAvailableEvents())) {
-            $this->_payment = $this->getPaymentByTxnId($eventData['resource']['id']);
+            $txnId = $eventData['resource']['id'];
+            $relatedTxnId = isset($eventData['resource']['supplementary_data']['related_ids']['order_id']) ? $eventData['resource']['supplementary_data']['related_ids']['order_id'] : null;
+            $this->_payment = $this->getPaymentByTxnId($eventData['resource']['id']) ? : $this->getPaymentByTxnId($relatedTxnId);
         } else {
-            $this->_logger->warning(__METHOD__ . ' | ' . __('Event not supported: %1', $event_type));
-
+            $this->_logger->warning(__('Event not supported: %1', $event_type));
             return;
         }
-
-        $this->_logger->debug(__METHOD__ . " | event_type: $event_type");
-
 
         if (((!$this->_payment) || (!$this->_payment->getOrder())) && ($event_type != self::PAYMENT_CAPTURE_REFUNDED)) {
-            $this->_logger->debug(__METHOD__ . ' | ' . __('Problem with payment/order'));
-
+            $this->_logger->debug(__('Order nor found by TXN ID'));
             return;
         }
+
+        $this->_logger->debug("[WEBHOOK EVENT TYPE: {$event_type} TNX ID: {$eventData['resource']['id']}]");
 
         switch ($event_type) {
 
@@ -126,6 +134,10 @@ class Event
 
                 $this->_paymentDenied($eventData);
                 break;
+            case self::CHECKOUT_ORDER_APPROVED:
+
+                $this->_paymentCompleted($eventData);
+                break;
 
             default:
                 break;
@@ -152,7 +164,7 @@ class Event
     {
         $payment = $this->_paymentRepository->load($txnId, 'last_trans_id');
 
-        return $payment;
+        return $payment->getId() ? $payment : false;
     }
 
     /**
@@ -167,17 +179,10 @@ class Event
         $this->_payment->setIsTransactionClosed(0)
             ->registerCaptureNotification($eventData['resource']['amount']['value'], true);
 
-        $this->_payment->getOrder()->update(false)->save();
-
         // notify customer
-        $invoice = $this->_payment->getCreatedInvoice();
-        if ($invoice && !$this->_payment->getOrder()->getEmailSent()) {
-            $this->_payment->getOrder()->queueNewOrderEmail()
-                ->addStatusHistoryComment(
-                    __(
-                        'Notified customer about invoice #%1.',
-                        $invoice->getIncrementId()
-                    )
+        if (!$this->_payment->getOrder()->getEmailSent()) {
+            $this->_payment->getOrder()->addStatusHistoryComment(
+                    __('This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.')
                 )->setIsCustomerNotified(true)->save();
         }
     }
@@ -191,26 +196,22 @@ class Event
      */
     protected function _paymentCompleted($eventData)
     {
-        $paymentResource = $eventData['resource'];
+        $paymentResource = isset($eventData['resource']['amount']) ?  $eventData['resource']['amount'] : $eventData['resource']['purchase_units'][0]['amount'];
 
         $this->_payment->setIsTransactionClosed(0)
-            ->registerCaptureNotification($paymentResource['amount']['value'], true);
+            ->registerCaptureNotification($paymentResource['value'], true);
 
         $this->_payment->getOrder()->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)
             ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING)
             ->save();
 
         // notify customer
-        $invoice = $this->_payment->getCreatedInvoice();
-        if ($invoice && !$this->_payment->getOrder()->getEmailSent()) {
-            $this->_payment->getOrder()->queueNewOrderEmail()
-                ->addStatusHistoryComment(
-                    __(
-                        'Notified customer about invoice #%1.',
-                        $invoice->getIncrementId()
-                    )
-                )->setIsCustomerNotified(true)->save();
-        }
+        $this->_payment->getOrder()->addStatusHistoryComment(
+                __(
+                    'Thank you for your payment. Registered notification about captured amount.'
+                )
+        )->setIsCustomerNotified(true)->save();
+
     }
 
     /**
@@ -241,7 +242,7 @@ class Event
 
         $order
             ->addCommentToStatusHistory(
-                __('A refund has been made from PayPal | %1', $summary)
+                __('A refund has been registered from PayPal | %1', $summary)
             )
             ->setIsCustomerNotified(true)
             ->save();
@@ -262,7 +263,7 @@ class Event
 
         $this->_payment->getOrder()
             ->addCommentToStatusHistory(
-                __('Se ha hecho un reembolso desde PayPal | %1', $summary)
+                __('A reversal has been registered from PayPal | %1', $summary)
             )
             ->setIsCustomerNotified(true)
             ->save();
@@ -275,18 +276,24 @@ class Event
      */
     protected function _paymentDenied($eventData)
     {
-        $summary = isset($eventData['summary']) ? $eventData['summary'] : '';
+        $summary = isset($eventData['summary']) ? $eventData['summary'] : 'Pago en OXXO';
 
         try {
             $this->_payment->setPreparedMessage($summary);
             $this->_payment->setNotificationResult(true);
             $this->_payment->setIsTransactionClosed(true);
-            $this->_payment->deny(false);
-            $this->_payment->getOrder()->save();
+            //$this->_payment->deny(false);
+
+            $this->_payment->getOrder()            
+                ->addCommentToStatusHistory(
+                    __('Your order #%1 has been canceled.', $summary)
+                )->setIsCustomerNotified(true)
+                ->save();
+
+            $this->orderManagement->cancel($this->_payment->getOrder()->getId());
+
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            if ($e->getMessage() != __('We cannot cancel this order.')) {
-                throw $e;
-            }
+            $this->_logger->debug($e->getMessage());
         }
     }
 }

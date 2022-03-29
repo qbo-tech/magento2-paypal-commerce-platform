@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <payment>            <!-- payment/paypalcheckout/active   -->
+        <payment>
             <paypalcp>
                 <active>0</active>
                 <model>PayPal\CommercePlatform\Model\Payment\Advanced\Payment</model>
@@ -38,12 +38,30 @@
                 <sandbox_flag>1</sandbox_flag>
                 <status_pending>1</status_pending>
                 <installments_active>0</installments_active>
+				<sort_order>1</sort_order>
                 <client_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <webhook_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
                 <currency>MXN</currency>
                 <min_order_total>0.50</min_order_total>
             </paypalspb>
+            <paypaloxxo>
+                <active>1</active>
+                <model>PayPal\CommercePlatform\Model\Payment\Oxxo\Payment</model>
+                <order_status>pending_payment</order_status>
+                <title>PayPal Oxxo</title>
+                <allowspecific>0</allowspecific>
+                <payment_action>order</payment_action>
+                <sandbox_flag>1</sandbox_flag>
+                <status_pending>1</status_pending>
+                <installments_active>0</installments_active>
+				<sort_order>2</sort_order>
+                <client_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <secret_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <webhook_id backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
+                <currency>MXN</currency>
+                <min_order_total>0.50</min_order_total>
+            </paypaloxxo>
         </payment>
     </default>
 </config>
