@@ -197,12 +197,13 @@ class Request
      * @param string $paypalCMID
      * @return \PayPalHttp\HttpResponse
      */
-    public function createRequest($paypalCMID)
+    public function createRequest($customerEmail, $paypalCMID)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
         $this->_orderCreateRequest->prefer('return=representation');
 
+		$this->_quote->setCustomerEmail($customerEmail);
         $requestBody = $this->buildRequestBody();
 
         if ($paypalCMID) {

@@ -57,17 +57,19 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
 
         if ($observer->getEvent()->getName() == self::EVENT_CREATE_ORDER_BEFORE) {
 
+			/** @var \Magento\Quote\Api\Data\CartInterface $quote */
             $quote = $observer->getData('quote');
-
             /** @var \Magento\Customer\Model\Customer $customer */
             $customer = $observer->getData('customer');
+
             $shippingAddress = $quote->getShippingAddress();
+			$email = $quote->getCustomerEmail();
         } elseif ($observer->getEvent()->getName() == self::EVENT_CAPTURE_ORDER_BEFORE) {
 
             /** @var \Magento\Sales\Model\Order */
             $order = $observer->getData('payment')->getOrder();
             $shippingAddress = $order->getShippingAddress();
-
+			$email = $order->getCustomerEmail();
             $customer = $order->getCustomer();
         } else {
             return;
@@ -76,7 +78,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         $paypalCMID = $observer->getData('paypalCMID');
         $merchantId = $this->_paypalConfig->getStcMerchantId();
 
-        $additionalData = $this->getAdditionalData($customer, $shippingAddress);
+        $additionalData = $this->getAdditionalData($email, $customer, $shippingAddress);
 
         $riskTxnRequest = new \PayPal\CommercePlatform\Model\Paypal\STC\RiskTransactionContextRequest($merchantId, $paypalCMID);
 
@@ -93,7 +95,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         }
     }
 
-    public function getAdditionalData($customer, $shippingAddress)
+    public function getAdditionalData($email, $customer, $shippingAddress)
     {
         $additionalData = [
             [
@@ -114,7 +116,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             ],
             [
                 "key" => "sender_phone",
-                "value" => $shippingAddress->getTelephone()
+                "value" => $email
             ],
             [
                 "key" => "sender_country_code",
