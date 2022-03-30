@@ -171,7 +171,7 @@ define(
                 return storage.post('/paypalcheckout/order',
                     JSON.stringify({
                         'fraudNetCMI': self.sessionIdentifier,
-												'customer_email': quote.guestEmail,
+                        'customer_email': quote.guestEmail,
                         'payment_method': 'paypaloxxo',
                         'payment_source': {
                             'name': billing.firstname + ' ' + billing.lastname,
