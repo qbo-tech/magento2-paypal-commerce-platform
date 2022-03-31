@@ -63,13 +63,13 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             $customer = $observer->getData('customer');
 
             $shippingAddress = $quote->getShippingAddress();
-			$email = $quote->getCustomerEmail();
+	    $email = $quote->getCustomerEmail();
         } elseif ($observer->getEvent()->getName() == self::EVENT_CAPTURE_ORDER_BEFORE) {
 
             /** @var \Magento\Sales\Model\Order */
             $order = $observer->getData('payment')->getOrder();
             $shippingAddress = $order->getShippingAddress();
-			$email = $order->getCustomerEmail();
+	    $email = $order->getCustomerEmail();
             $customer = $order->getCustomer();
         } else {
             return;

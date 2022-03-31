@@ -59,7 +59,8 @@ class Api
             $this->_logger->debug(__METHOD__ . ' | REQUEST ' . print_r([
                 'requestType' => get_class($httpRequest),
                 'headers' => $httpRequest->headers,
-                'body' => $httpRequest->body
+                'body' => $httpRequest->body,
+                'path' => $httpRequest->path
             ], true));
 
             $response = $this->_paypalClient->execute($httpRequest);
