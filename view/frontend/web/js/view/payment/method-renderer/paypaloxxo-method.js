@@ -10,9 +10,10 @@ define(
         'Magento_Checkout/js/model/quote',
         'ko',
         'Magento_Checkout/js/model/totals',
-        'mage/translate'
+        'mage/translate',
+				'Magento_Ui/js/modal/alert',
     ],
-    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
+    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t, alert) {
         'use strict';
 
         return Component.extend({
@@ -34,8 +35,18 @@ define(
              */
             isOxxoActive: function () {
                 var self = this;
-                return self.isOxxoEnable;
+                return self.isOxxoEnable && self.grandTotal() < 10000;
             },
+
+          /**
+           * Return order total
+           * @returns {*}
+           */
+          grandTotal: function () {
+            /** @type {Object} */
+            var totals = quote.getTotals()();
+            return (totals ? totals : quote)['grand_total'];
+          },
 
             /**
              * Return payment method code
@@ -89,16 +100,46 @@ define(
                 let self = this;
                 $('body').trigger('processStart');
                 this.createOrder().done(function (response) {
+                  try {
                     self.orderId = response.result.id;
                     window.open(response.result.links[1].href,'popup','width=850,height=600');
+                    let iframe;
+                    iframe = document.createElement('iframe');
+                    iframe.src = response.result.links[1].href;
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+
                     setTimeout(function() {
-                        $('body').trigger('processStop');
-                        self.placeOrder();
-                    }, 2000);
-                }).fail(function (response) {
-                    console.error('FAILED paid whit token card', response);
-                    $('#submit').prop('disabled', false);
+                      $('body').trigger('processStop');
+                      self.placeOrder();
+                    }, 3000);
+                  } catch (error) {
+                    console.log(error);
+                    alert({
+                      title: $.mage.__('Alert'),
+                      modalClass: 'alert',
+                      content: $.mage.__('An error occurred during the payment process.'),
+                      actions: {
+                        always: function () {
+                        }
+                      }
+                    });
                     $('body').trigger('processStop');
+                  }
+
+                }).fail(function (response) {
+                  console.error('FAILED paid whit token card', response);
+                  $('#submit').prop('disabled', false);
+                  $('body').trigger('processStop');
+                  alert({
+                    title: $.mage.__('Alert'),
+                    modalClass: 'alert',
+                    content: response.responseJSON.reason,
+                    actions: {
+                      always: function () {
+                      }
+                    }
+                  });
                 });
             },
 
@@ -130,6 +171,7 @@ define(
                 return storage.post('/paypalcheckout/order',
                     JSON.stringify({
                         'fraudNetCMI': self.sessionIdentifier,
+                        'customer_email': quote.guestEmail,
                         'payment_method': 'paypaloxxo',
                         'payment_source': {
                             'name': billing.firstname + ' ' + billing.lastname,

@@ -23,7 +23,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
 {
     const CODE                         = 'paypaloxxo';
     const SUCCESS_STATE_CODES          =  array("PENDING", "PAYER_ACTION_REQUIRED");
-    const OXXO_ERROR_MESSAGE           = 'There was an error while creating the  Oxxo voucher';
+	const OXXO_ERROR_MESSAGE           = 'There was an error while creating the  Oxxo voucher';
+    const OXXO_DOCUMENT_ERROR_MESSAGE  = 'There was an error while confirming the Oxxo information';
     protected $_code = self::CODE;
 
     /**
@@ -99,13 +100,13 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->_eventManager->dispatch('paypaloxxo_create_voucher_before');
             $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);
 
-	    if(in_array($this->_response->statusCode,$this->_successCodes)) {
-   	        $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
-		$this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
-		$this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
+	        if(in_array($this->_response->statusCode,$this->_successCodes)) {
+   	            $this->checkoutSession->setData("paypal_voucher", $this->_response->result->links[1]);
+                $this->checkoutSession->setData("paypal_order_id", $paypalOrderId);
+                $this->_eventManager->dispatch('paypaloxxo_create_voucher_after');
             } else {
-	        throw new \Exception(__(self::OXXO_ERROR_MESSAGE));
-	    }
+                throw new \Exception(__(self::OXXO_ERROR_MESSAGE));
+            }
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CONFIRMING ERROR] - %s', $e->getMessage()));
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -160,8 +161,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
                 if (isset($response->result->payment_source->oxxo->document_references[0])) {
                     $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
                 } else {
-                    throw new \Exception(self::OXXO_ERROR_MESSAGE);
-                }         
+                    throw new \Exception(self::OXXO_DOCUMENT_ERROR_MESSAGE);
+                }
             }
             $this->sendEmail($voucherUrl);
         } catch (\Exception $e) {

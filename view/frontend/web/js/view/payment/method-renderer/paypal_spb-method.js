@@ -384,6 +384,7 @@ define(
                 var self = this;
 
                 requestBody.fraudNetCMI = self.sessionIdentifier;
+                requestBody.customer_email = quote.guestEmail;
 
                 console.log('createOrder#requestBody', requestBody);
 

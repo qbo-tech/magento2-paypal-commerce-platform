@@ -13,6 +13,7 @@ class Index extends \Magento\Framework\App\Action\Action
 {
 
     const FRAUDNET_CMI_PARAM = 'fraudNetCMI';
+	const CUSTOMER_ID_PARAM = 'customer_email';
 
     /** @var \Magento\Framework\Filesystem\DriverInterface */
     protected $_driver;
@@ -65,16 +66,16 @@ class Index extends \Magento\Framework\App\Action\Action
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
             $paypalCMID = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
-            $this->_loggerHandler->debug(__METHOD__ . ' | paypalCMID: ' . $paypalCMID);
-            $response = $this->_paypalOrderRequest->createRequest($paypalCMID);
+			$customerEmail = $paramsData[self::CUSTOMER_ID_PARAM] ?? null;
 
-            if(isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') {
+            $response = $this->_paypalOrderRequest->createRequest($customerEmail, $paypalCMID);
+
+            if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
                 $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);
             }
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
-
-            $resultJson->setData(array('reason' => $e->getMessage()));
+            $resultJson->setData(array('reason' => __('An error has occurred on the server, please try again later')));
 
             return $resultJson->setHttpResponseCode($httpErrorCode);
         }

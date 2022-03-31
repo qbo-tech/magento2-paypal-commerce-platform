@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @author Alvaro Florez <aflorezd@gmail.com>
+ * @author Alvaro Florez <info@qbo.tech>
  */
 
 namespace PayPal\CommercePlatform\Model\Paypal\Webhooks;
@@ -97,7 +97,7 @@ class Event
             $relatedTxnId = isset($eventData['resource']['supplementary_data']['related_ids']['order_id']) ? $eventData['resource']['supplementary_data']['related_ids']['order_id'] : null;
             $this->_payment = $this->getPaymentByTxnId($eventData['resource']['id']) ? : $this->getPaymentByTxnId($relatedTxnId);
         } else {
-            $this->_logger->warning(__METHOD__ . ' | ' . __('Event not supported: %1', $event_type));
+            $this->_logger->warning(__('Event not supported: %1', $event_type));
             return;
         }
 
@@ -106,7 +106,7 @@ class Event
             return;
         }
 
-        $this->_logger->debug(__METHOD__ . " | event_type: $event_type");
+        $this->_logger->debug("[WEBHOOK EVENT TYPE: {$event_type} TNX ID: {$eventData['resource']['id']}]");
 
         switch ($event_type) {
 
@@ -137,10 +137,6 @@ class Event
             case self::CHECKOUT_ORDER_APPROVED:
 
                 $this->_paymentCompleted($eventData);
-                break;
-            case self::PAYMENT_ORDER_DENIED:
-
-                $this->_paymentDenied($eventData);
                 break;
 
             default:
@@ -183,18 +179,11 @@ class Event
         $this->_payment->setIsTransactionClosed(0)
             ->registerCaptureNotification($eventData['resource']['amount']['value'], true);
 
-        $this->_payment->getOrder()->update(false)->save();
-
         // notify customer
-        $invoice = $this->_payment->getCreatedInvoice();
-        if ($invoice && !$this->_payment->getOrder()->getEmailSent()) {
-            $this->_payment->getOrder()->queueNewOrderEmail()
-                ->addStatusHistoryComment(
-                    __(
-                        'Registered invoice #%1.',
-                        $invoice->getIncrementId()
-                    )
-                )->setIsCustomerNotified(false)->save();
+        if (!$this->_payment->getOrder()->getEmailSent()) {
+            $this->_payment->getOrder()->addStatusHistoryComment(
+                    __('This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.')
+                )->setIsCustomerNotified(true)->save();
         }
     }
 
@@ -217,14 +206,11 @@ class Event
             ->save();
 
         // notify customer
-        $invoice = $this->_payment->getCreatedInvoice();
-        $this->_payment->getOrder()->queueNewOrderEmail()
-            ->addStatusHistoryComment(
+        $this->_payment->getOrder()->addStatusHistoryComment(
                 __(
-                    'Your Order #%1 is in process',
-                    $this->_payment->getOrder()
+                    'Thank you for your payment. Registered notification about captured amount.'
                 )
-            )->setIsCustomerNotified(true)->save();
+        )->setIsCustomerNotified(true)->save();
 
     }
 
@@ -256,7 +242,7 @@ class Event
 
         $order
             ->addCommentToStatusHistory(
-                __('A refund has been made from PayPal | %1', $summary)
+                __('A refund has been registered from PayPal | %1', $summary)
             )
             ->setIsCustomerNotified(true)
             ->save();
@@ -277,7 +263,7 @@ class Event
 
         $this->_payment->getOrder()
             ->addCommentToStatusHistory(
-                __('Se ha hecho un reembolso desde PayPal | %1', $summary)
+                __('A reversal has been registered from PayPal | %1', $summary)
             )
             ->setIsCustomerNotified(true)
             ->save();
@@ -300,7 +286,7 @@ class Event
 
             $this->_payment->getOrder()            
                 ->addCommentToStatusHistory(
-                    __('Pedido cancelado | %1', $summary)
+                    __('Your order #%1 has been canceled.', $summary)
                 )->setIsCustomerNotified(true)
                 ->save();
 

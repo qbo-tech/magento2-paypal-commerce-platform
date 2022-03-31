@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Alvaro Florez <aflorezd@gmail.com>
+ * @author Alvaro Florez
  */
 
 \Magento\Framework\Component\ComponentRegistrar::register(
