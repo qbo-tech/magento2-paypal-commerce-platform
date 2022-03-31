@@ -83,7 +83,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         $riskTxnRequest = new \PayPal\CommercePlatform\Model\Paypal\STC\RiskTransactionContextRequest($merchantId, $paypalCMID);
 
         $riskTxnRequest->body = ['additional_data' => $additionalData];
-
+		$this->_loggerHandler->debug(__METHOD__ .  " | data: " . json_encode($additionalData));
         try {
             $response = $this->_paypalApi->execute($riskTxnRequest);
         } catch (\Exception $e) {
