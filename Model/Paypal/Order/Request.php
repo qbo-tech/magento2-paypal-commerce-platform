@@ -203,7 +203,9 @@ class Request
 
         $this->_orderCreateRequest->prefer('return=representation');
 
-		$this->_quote->setCustomerEmail($customerEmail);
+        if($customerEmail) {
+            $this->_quote->setCustomerEmail($customerEmail);
+        }
         $requestBody = $this->buildRequestBody();
 
         if ($paypalCMID) {
