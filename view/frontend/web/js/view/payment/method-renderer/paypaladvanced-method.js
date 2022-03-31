@@ -593,6 +593,8 @@ define(
                     paypalFraudNetAdapter.loadFraudNetSdk(function () {
                         self.logger('completeRender#loadFraudNetSdk ', this)
                     });
+                } else {
+                    console.log("UNABLE TO LOAF FNT");
                 }
             },
             loadSdk: function () {
