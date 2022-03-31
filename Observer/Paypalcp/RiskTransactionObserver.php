@@ -112,11 +112,11 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             ],
             [
                 "key" => "sender_email",
-                "value" => $shippingAddress->getEmail()
+                "value" => $email
             ],
             [
                 "key" => "sender_phone",
-                "value" => $email
+                "value" => $shippingAddress->getTelephone()
             ],
             [
                 "key" => "sender_country_code",
