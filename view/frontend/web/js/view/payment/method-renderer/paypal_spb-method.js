@@ -510,10 +510,10 @@ define(
                 var body = $('body').loader();
 
                 self.isVisibleCard(true);
+                self.loadFraudnet();
 
                 if (self.customerCards().length > 0) {
                     $('#paypalcheckout').hide();
-                    self.loadFraudnet();
                 } else {
                     self.loadSdk();
                 }
