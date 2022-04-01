@@ -80,13 +80,12 @@ define(
 
             /**
              * Set seleted paymen method
-             * @param method
              */
-            selectedPayPalMethod: function (method) {
+            selectedPayPalMethod: function () {
                 var self = this;
                 var data = this.getData();
 
-                this.selectedMethod = method;
+                this.selectedMethod = this.paypalMethod;
                 data.method = this.paypalMethod;
 
                 selectPaymentMethodAction(data);
