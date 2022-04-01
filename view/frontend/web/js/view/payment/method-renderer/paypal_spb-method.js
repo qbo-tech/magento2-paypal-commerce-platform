@@ -282,9 +282,11 @@ define(
                         createOrder: function (data) {
                             let requestBody = {};
                             requestBody.customer_email = quote.guestEmail;
+                            requestBody.fraudNetCMI = self.sessionIdentifier;
+
                             return fetch('/paypalcheckout/order', {
                                 method: 'post',
-																body: JSON.stringify(requestBody),
+				body: JSON.stringify(requestBody),
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
