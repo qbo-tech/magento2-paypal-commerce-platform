@@ -284,7 +284,7 @@ define(
                             requestBody.customer_email = quote.guestEmail;
                             return fetch('/paypalcheckout/order', {
                                 method: 'post',
-																body: JSON.stringify(requestBody),
+                                body: JSON.stringify(requestBody),
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
