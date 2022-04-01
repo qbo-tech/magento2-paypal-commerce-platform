@@ -63,6 +63,10 @@
                         <comment>If set to "No", payments with status "Pending payment" will be rejected at checkout</comment>
                         <config_path>payment/paypalcp/handle_pending_payments</config_path>
                     </field>
+                    <field id="sort_order" translate="label" type="text" sortOrder="96" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Sort Order</label>
+                        <config_path>payment/paypalcp/sort_order</config_path>
+                    </field>
                     <field id="debug_mode" type="select" sortOrder="97" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Debug Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
