@@ -348,4 +348,29 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     {
         return sprintf('payment/%s/%s', self::CODE, $field);
     }
+
+    /**
+     * Retrieve information from payment configuration
+     *
+     * @param string $field
+     * @param int|string|null|\Magento\Store\Model\Store $storeId
+     *
+     * @return mixed
+     */
+    public function getConfigData($field, $storeId = null)
+    {
+        if ('order_place_redirect_url' === $field) {
+            return $this->getOrderPlaceRedirectUrl();
+        }
+        if (null === $storeId) {
+            $storeId = $this->getStore();
+        }
+
+        if ('sort_order' === $field) {
+            $path = 'payment/paypalcp/' . $field;
+        } else {
+            $path = 'payment/' . $this->_code . '/' . $field;
+        }
+        return $this->_scopeConfig->getValue($path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+    }
 }
