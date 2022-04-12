@@ -124,7 +124,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             ],
             [
                 "key" => "sender_create_date",
-                "value" => $this->_dateTime->formatDate($customer->getCreatedAtTimestamp() ?? date("Y-m-d H:i:s"))
+                "value" => $this->_dateTime->formatDate($customer->getCreatedAtTimestamp() ?? date("Y-m-d"), false)
             ],
             [
                 "key" => "highrisk_txn_flag",
