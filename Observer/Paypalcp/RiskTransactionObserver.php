@@ -49,15 +49,13 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
     public function execute(
         \Magento\Framework\Event\Observer $observer
     ) {
-        $this->_loggerHandler->debug(__METHOD__ . " | eventName: " . $observer->getEvent()->getName());
-
         if (!$this->_paypalConfig->isEnableStc()) {
             return;
         }
 
         if ($observer->getEvent()->getName() == self::EVENT_CREATE_ORDER_BEFORE) {
 
-			/** @var \Magento\Quote\Api\Data\CartInterface $quote */
+	    /** @var \Magento\Quote\Api\Data\CartInterface $quote */
             $quote = $observer->getData('quote');
             /** @var \Magento\Customer\Model\Customer $customer */
             $customer = $observer->getData('customer');
@@ -78,24 +76,39 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         $paypalCMID = $observer->getData('paypalCMID');
         $merchantId = $this->_paypalConfig->getStcMerchantId();
 
-        $additionalData = $this->getAdditionalData($email, $customer, $shippingAddress);
+        $quoteItem = false;
+
+        if($quote) {
+           $this->_loggerHandler->debug("QUOTE");
+           foreach($quote->getAllVisibleItems() as $item) {
+               $this->_loggerHandler->debug($item->getName());
+               if($item->getName()) {
+                   $quoteItem = $item;
+                   $this->_loggerHandler->debug("QUOTE item HAS NAME"); 
+                   break;
+               }
+           }
+        }
+
+        $additionalData = $this->getAdditionalData($email, $customer, $shippingAddress, $quoteItem);
+        $this->_loggerHandler->debug("STC_DATA" . json_encode($additionalData));
 
         $riskTxnRequest = new \PayPal\CommercePlatform\Model\Paypal\STC\RiskTransactionContextRequest($merchantId, $paypalCMID);
 
         $riskTxnRequest->body = ['additional_data' => $additionalData];
-		$this->_loggerHandler->debug(__METHOD__ .  " | data: " . json_encode($additionalData));
+
         try {
             $response = $this->_paypalApi->execute($riskTxnRequest);
         } catch (\Exception $e) {
-            $this->_loggerHandler->error(__METHOD__ .  " | error: " . $e->getMessage());
+            $this->_loggerHandler->error("STC ERROR: " . $e->getMessage());
         }
 
         if (!in_array($response->statusCode, $this->_successCodes)) {
-            $this->_loggerHandler->error(__METHOD__ .  " | NOT SUCCESS statusCode: " . $response->statusCode);
+            $this->_loggerHandler->error("STC STATUS_CODE: " . $response->statusCode);
         }
     }
 
-    public function getAdditionalData($email, $customer, $shippingAddress)
+    public function getAdditionalData($email, $customer, $shippingAddress, $quoteItem = false)
     {
         $additionalData = [
             [
@@ -139,6 +152,15 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
                 "value" => 0
             ]
         ];
+
+        // Fraud prevention: If line item sending is disabled,  PayPal requires to send "cd_string_two" parameter with the name of the first item
+        if(!$this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS) && $quoteItem) {
+           $this->_loggerHandler->debug("STC - LINE ITEMS DISABLED - ENABLING CD_STRING_TWO");
+            $additionalData[] = [
+                "key" => "cd_string_two",
+                "value" => $quoteItem->getName()
+            ];
+        }
 
         return $additionalData;
     }
