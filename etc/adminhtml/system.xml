@@ -63,7 +63,11 @@
                         <comment>If set to "No", payments with status "Pending payment" will be rejected at checkout</comment>
                         <config_path>payment/paypalcp/handle_pending_payments</config_path>
                     </field>
-                    <field id="sort_order" translate="label" type="text" sortOrder="96" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <field id="locale" translate="label" type="text" sortOrder="96" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Locale</label>
+                        <config_path>payment/paypalcp/locale</config_path>
+                    </field>
+                    <field id="sort_order" translate="label" type="text" sortOrder="97" showInDefault="1" showInWebsite="1" showInStore="0">
                         <label>Sort Order</label>
                         <config_path>payment/paypalcp/sort_order</config_path>
                     </field>
@@ -84,6 +88,7 @@
                         <label>PayPal Oxxo</label>
                         <field id="enable_bcdc" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                             <label>Enable OXXO Payment Solutions</label>
+                            <comment>Oxxo accepts only MXN transactions</comment>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_oxxo</config_path>
                         </field>
@@ -92,6 +97,7 @@
                         <label>PayPal Advanced Credit and Debit Card</label>
                         <field id="enable_acdc" type="select" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                             <label>Enable ACDC</label>
+                            <comment>ACDC accepts only MXN transactions</comment>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_acdc</config_path>
                         </field>

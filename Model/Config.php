@@ -5,6 +5,8 @@
 namespace PayPal\CommercePlatform\Model;
 
 use Magento\Payment\Helper\Formatter;
+use Magento\Framework\Locale\ResolverInterface;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
 * Config model that is aware of all \PayPal\CommercePlatform payment methods
@@ -28,7 +30,7 @@ class Config
     const CONFIG_XML_ENABLE_OXXO          = 'enable_oxxo';
     const CONFIG_XML_ENABLE_INSTALLMENTS  = 'enable_installments';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
-    const CONFIG_XML_CURRENCY_CODE        = 'currency';
+    const CONFIG_XML_LOCALE_CODE          = 'locale';
     const CONFIG_XML_COUNTRY_CODE         = 'country_code';
     const CONFIG_XML_ENABLE_DEBUG         = 'enable_debug';
     const CONFIG_XML_TITLE_METHOD_PAYPAL  = 'title_paypal';
@@ -64,14 +66,27 @@ class Config
     protected $_logger;
 
     /**
+     * @var \Magento\Framework\Locale\ResolverInterface
+     */
+    private $resolverInterface;
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Psr\Log\LoggerInterface $logger
+        \Psr\Log\LoggerInterface $logger,
+        StoreManagerInterface $storeManager,
+        ResolverInterface $resolverInterface
     ) {
         $this->_scopeConfig = $scopeConfig;
         $this->_logger      = $logger;
+        $this->resolverInterface = $resolverInterface;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -139,7 +154,16 @@ class Config
 
     public function getCurrency()
     {
-        return $this->getConfigValue(self::CONFIG_XML_CURRENCY_CODE);
+        return $this->storeManager->getStore()->getBaseCurrency()->getCode();
+    }
+
+    public function getLocale()
+    {
+        $locale = $this->getConfigValue(self::CONFIG_XML_CURRENCY_CODE);
+        if (!$locale) {
+            $locale = $this->resolverInterface->getLocale();
+        }
+        return $locale;
     }
 
     public function getCountryCode()
