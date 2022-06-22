@@ -159,7 +159,7 @@ class Config
 
     public function getLocale()
     {
-        $locale = $this->getConfigValue(self::CONFIG_XML_CURRENCY_CODE);
+        $locale = $this->getConfigValue(self::CONFIG_XML_LOCALE_CODE);
         if (!$locale) {
             $locale = $this->resolverInterface->getLocale();
         }
