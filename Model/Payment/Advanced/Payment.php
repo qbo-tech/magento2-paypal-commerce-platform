@@ -35,6 +35,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_isGateway    = true;
 
     protected $_canRefund    = true;
+    protected $_canRefundInvoicePartial    = true;
     protected $_canCapture   = true;
     protected $_canAuthorize = true;
 
@@ -164,7 +165,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 'value'         => $amount,
                 'currency_code' => $memoCurrencyCode
             ],
-            'invoice_id'    => $creditmemo->getInvoiceId(),
+            'invoice_id'    => $creditmemo->getInvoiceId() . '-' . $creditmemo->getId(),
             'note_to_payer' => $creditmemo->getCustomerNote()
         ];
 
