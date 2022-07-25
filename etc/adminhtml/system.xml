@@ -32,7 +32,7 @@
                     <field id="webhook_id" translate="label" type="obscure" sortOrder="54" showInDefault="1" showInWebsite="1">
                         <label>Webhook ID</label>
                         <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                        <comment>Get and configure your Webjook ID on your PayPal Account to recieve payment notifications. Example URL: https://www.your-store.com/paypalcheckout/webhooks</comment>
+                        <comment>Get and configure your Webhook ID on your PayPal Account to recieve payment notifications. Example URL: https://www.your-store.com/paypalcheckout/webhooks</comment>
                         <config_path>payment/paypalcp/webhook_id</config_path>
                     </field>
                     <field id="title" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
