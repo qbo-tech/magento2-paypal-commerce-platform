@@ -308,9 +308,14 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $paymentSource = $this->_response->result->payment_source;
 
             if ($paymentSource) {
-                $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
-                $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
-                $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
+                if (property_exists($paymentSource, 'card')) {
+                    $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
+                    $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
+                    $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
+                } else {
+                    $infoInstance->setAdditionalInformation('Paypal Email Address', $paymentSource->paypal->email_address);
+                    $infoInstance->setAdditionalInformation('Paypal Account Id', $paymentSource->paypal->account_id);
+                }
             }
         }
 
