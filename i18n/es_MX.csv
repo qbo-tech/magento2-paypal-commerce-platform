@@ -23,11 +23,11 @@ False,False
 "We cannot cancel this order.","We cannot cancel this order."
 "Place Order","Place Order"
 "Card Number","Número de Tarjeta"
-"Expiration date","Fecha de Vencimineto"
+"Expiration date","Fecha de Vencimiento"
 CVV,CVV
 "Card holder name","Nombre del titular de tarjeta"
 "Remember card","Recordar tarjeta"
-"An error has occurred on the server, please try again later","An error has occurred on the server, please try again later"
+"An error has occurred on the server, please try again later","Se ha producido un error. Inténtalo más tarde o recarga la página."
 "Transaction cannot be processed, please verify your card information or try another.","La transacción no puede ser procesada, por favor verifica la información de tu tarjeta o intenta con otra."
 "Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.","Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes."
 MONTHS,"MESES"

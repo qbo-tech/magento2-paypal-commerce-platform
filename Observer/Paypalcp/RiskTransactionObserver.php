@@ -112,7 +112,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
     {
         $additionalData = [
             [
-                'key' => 'sender_acount_id',
+                'key' => 'sender_account_id',
                 'value' => $shippingAddress->getCustomerId() ?? 'guest'
             ],
             [
