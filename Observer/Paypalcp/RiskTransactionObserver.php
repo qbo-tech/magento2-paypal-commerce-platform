@@ -113,7 +113,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         $additionalData = [
             [
                 'key' => 'sender_account_id',
-                'value' => $this->getSenderAccount($shippingAddress)
+                'value' => $shippingAddress->getCustomerId() ?? $email
             ],
             [
                 "key" => "sender_first_name",
@@ -129,7 +129,7 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
             ],
             [
                 "key" => "sender_phone",
-                "value" => $shippingAddress->getTelephone() ? : "N/A"
+                "value" => $shippingAddress->getTelephone()
             ],
             [
                 "key" => "sender_country_code",
@@ -163,19 +163,5 @@ class RiskTransactionObserver implements \Magento\Framework\Event\ObserverInterf
         }
 
         return $additionalData;
-    }
-    /**
-    * Get Customer Id and telephone
-    */
-    public function getSenderAccount($shippingAddress) 
-    {
-        $value = "guest";
-
-        if ($shippingAddress->getCustomerId() && $shippingAddress->getTelephone()) {
-           $value = $shippingAddress->getCustomerId() . "-" .  $shippingAddress->getTelephone();
-        } else if ($shippingAddress->getCustomerId()) {
-           $value = $shippingAddress->getCustomerId();
-        }
-        return $value;
     }
 }
