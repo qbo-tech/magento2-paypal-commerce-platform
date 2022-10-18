@@ -458,6 +458,14 @@ define(
                     self.renderButton(fundingSource, FUNDING_SOURCES[fundingSource])
                 });
 
+                if (self.isAcdcEnable && window.checkoutConfig.payment.paypalcp.acdc.card_fisrt_acdc) {
+                    $('#acdc_card').each(function () {
+                        if (!$(this).text().match(/^\s*$/)) {
+                            $(this).insertBefore($(this).prev('#acdc_button'));
+                        }
+                    });
+                }
+
             },
             validateInstallment: function (submitOptions) {
                 var self = this;

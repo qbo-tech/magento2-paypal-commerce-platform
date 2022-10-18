@@ -101,6 +101,15 @@
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/enable_acdc</config_path>
                         </field>
+                        <field id="card_fisrt_acdc" type="select" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Card as first option</label>
+                            <comment>Set card as first option</comment>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/card_fisrt_acdc</config_path>
+                            <depends>
+                                <field id="enable_acdc">1</field>
+                            </depends>
+                        </field>
                         <field id="enable_installments" type="select" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                             <label>Enable MSI</label>
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
