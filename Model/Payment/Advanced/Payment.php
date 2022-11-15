@@ -200,7 +200,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $additionalData = $data->getData('additional_data') ?: $data->getData();
 
         foreach ($additionalData as $key => $value) {
-            $infoInstance->setAdditionalInformation($key, $value);
+            #In some cases, additonal data may include extension_attribites which is an object. Skip setting objects to additional data as it will throw an exception in @Magento\Payment\Model\Info
+            if(!is_object($value)) {
+                $infoInstance->setAdditionalInformation($key, $value);
+            }
         }
 
         // Set any additional info here if required
