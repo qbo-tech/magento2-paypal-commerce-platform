@@ -203,4 +203,21 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->_logger->error($e->getMessage());
         }
     }
+
+	/**
+	 * Retrieve information from payment configuration
+	 *
+	 * @param string $field
+	 * @param int|string|null|\Magento\Store\Model\Store $storeId
+	 *
+	 * @return mixed
+	 */
+	public function getConfigData($field, $storeId = null)
+	{
+		$value = parent::getConfigData($field, $storeId = null);
+		if ('sort_order' === $field) {
+			$value++;
+		}
+		return $value;
+	}
 }
