@@ -309,15 +309,27 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         if (property_exists($this->_response->result, 'payment_source')) {
             $paymentSource = $this->_response->result->payment_source;
-
+            $storeId = $this->getStoreId();
+            $paypalButtonTittle =  $this->_scopeConfig->getValue('payment/paypalcp/title_paypal', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+            $paypalCardTitle = $this->_scopeConfig->getValue('payment/paypalcp/title_card', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
+            
             if ($paymentSource) {
                 if (property_exists($paymentSource, 'card')) {
-                    $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
-                    $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
-                    $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
+                    $infoInstance->setAdditionalInformation('method_title', $paypalCardTitle);
+                    if (property_exists($paymentSource->card, 'last_digits'))
+                        $infoInstance->setAdditionalInformation('card_last_digits', $paymentSource->card->last_digits);
+                    if (property_exists($paymentSource->card, 'brand'))
+                        $infoInstance->setAdditionalInformation('card_brand', $paymentSource->card->brand);
+                    if (property_exists($paymentSource->card, 'type'))
+                        $infoInstance->setAdditionalInformation('card_type', $paymentSource->card->type);
                 } else {
-                    $infoInstance->setAdditionalInformation('Paypal Email Address', $paymentSource->paypal->email_address);
-                    $infoInstance->setAdditionalInformation('Paypal Account Id', $paymentSource->paypal->account_id);
+                    $infoInstance->setAdditionalInformation('method_title', $paypalButtonTittle);
+                    if (property_exists($paymentSource->paypal, 'email_address')) {
+                        $infoInstance->setAdditionalInformation('Paypal Email Address', $paymentSource->paypal->email_address);
+                    }
+                    if (property_exists($paymentSource->paypal, 'account_id')) {
+                        $infoInstance->setAdditionalInformation('Paypal Account Id', $paymentSource->paypal->account_id);
+                    }
                 }
             }
         }

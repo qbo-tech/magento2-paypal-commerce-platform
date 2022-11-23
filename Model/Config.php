@@ -27,6 +27,7 @@ class Config
     const CONFIG_XML_INTENT               = 'intent';
     const CONFIG_XML_ENABLE_BCDC          = 'enable_bcdc';
     const CONFIG_XML_ENABLE_ACDC          = 'enable_acdc';
+    const CONFIG_XML_CARD_FIRST_ACDC      = 'card_fisrt_acdc';
     const CONFIG_XML_ENABLE_OXXO          = 'enable_oxxo';
     const CONFIG_XML_ENABLE_INSTALLMENTS  = 'enable_installments';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
@@ -214,5 +215,10 @@ class Config
     public function getVertical()
     {
         return $this->getConfigValue(self::CONFIG_XML_ENABLE_STC_VERTICAL);
+    }
+
+    public function isCardFirstAcdc()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_CARD_FIRST_ACDC);
     }
 }
