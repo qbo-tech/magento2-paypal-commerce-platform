@@ -10,7 +10,4 @@
     <type name="Magento\Framework\App\Request\CsrfValidator">
         <plugin name="csrf_validator_skip" type="PayPal\CommercePlatform\Plugin\CsrfValidatorSkip" />
     </type>
-    <type name="Magento\Payment\Block\Info">
-        <plugin name="paypal_commerceplatform_view_override_template" type="PayPal\CommercePlatform\Plugin\Payment\Block\Info" />
-    </type>
 </config>
