@@ -8,6 +8,6 @@
         </arguments>
     </type>
     <type name="Magento\Framework\App\Request\CsrfValidator">
-    <plugin name="csrf_validator_skip" type="PayPal\CommercePlatform\Plugin\CsrfValidatorSkip" />
-</type>
+        <plugin name="csrf_validator_skip" type="PayPal\CommercePlatform\Plugin\CsrfValidatorSkip" />
+    </type>
 </config>

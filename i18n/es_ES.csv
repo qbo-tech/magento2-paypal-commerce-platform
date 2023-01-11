@@ -90,3 +90,8 @@ There was an error while the oxxo voucher creation,Hubo un error mientras se cre
 Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "There was an error while confirming the Oxxo information","Hubo un error al confirmar la información del Oxxo"
 "An error occurred during the payment process.","Ocurrió un error durante el proceso de pago."
+"Payment has been declined by Payment Gateway","El pago ha sido declinado. Por favor, intenta con otra tarjeta o con otra forma de pago."
+"This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.","Este pedido está en espera debido a un pago pendiente. El pedido se procesará después de que se apruebe el pago en la pasarela de pago."
+"Declining Pending Payment Transaction","Rechazar transacción de pago pendiente"
+"The transaction id is not present","El ID de la transacción no está presente."
+"Gateway response error","Error de respuesta de la puerta de enlace"

@@ -38,6 +38,11 @@ class Info extends \Magento\Payment\Block\Info
 {
 
     /**
+     * @var string
+     */
+    protected $_template = 'PayPal_CommercePlatform::info/default.phtml';
+
+    /**
      * Constructor
      *
      * @param \Magento\Framework\View\Element\Template\Context $context
