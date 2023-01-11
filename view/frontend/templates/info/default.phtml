@@ -9,9 +9,13 @@
  * @see \Magento\Payment\Block\Info
  */
 $specificInfo = $block->getSpecificInformation();
-$additionalInformation = $block->getInfo()->getAdditionalInformation();
-$title = $additionalInformation['method_title'];
-
+if (isset($additionalInformation['method_title'])){
+    $additionalInformation = $block->getInfo()->getAdditionalInformation();
+    $title = $additionalInformation['method_title'];
+}
+else {
+    $title = $block->escapeHtml($block->getMethod()->getTitle());
+}
 ?>
 <dl class="payment-method">
     <dt class="title"><?= /* @noEscape */ $title ?></dt>
