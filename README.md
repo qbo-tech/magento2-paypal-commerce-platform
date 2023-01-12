@@ -1,7 +1,7 @@
 # Magento 2: qbo/module-paypal-commerce-platform payment module (MX)
 Magento 2 PayPal Commerce Platform (México)
 
-# Installation via composer (recommend)
+## Installation via composer (recommend)
 
 From the root folder of your project:
 ```
