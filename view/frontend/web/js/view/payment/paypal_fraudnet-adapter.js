@@ -22,7 +22,7 @@ define([
 
             self.onLoadedCallback = callbackOnLoaded;
 
-            var componentUrl = '';
+            var componentUrl = "";
 
             if (self.isVaultingEnable && (self.fraudNetSwi != '')) {
                 var objCallback = {
@@ -51,22 +51,31 @@ define([
                 var reqFraudNet = requirejs.load({
                     contextName: '_',
                     onScriptLoad: $.proxy(objCallback, "onLoadedCallback"),
+                    config: {
+                        baseUrl: componentUrl
+                    }
                 }, self.componentName, componentUrl);
 
                 var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
 
-                htmlElement.setAttribute('data-error', 'window.ErrorCallback');
-                htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
-                htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
-                htmlElement.setAttribute('type', 'application/json');
-                htmlElement.setAttribute('fncls', self.fncls);
-                htmlElement.textContent = `{
+                if(typeof htmlElement !== "undefined") 
+                {
+                    htmlElement.setAttribute('data-error', 'window.ErrorCallback');
+                    htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
+                    htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
+                    htmlElement.setAttribute('type', 'application/json');
+                    htmlElement.setAttribute('fncls', self.fncls);
+                    htmlElement.textContent = `{
                         "f": "${self.fraudNetSi}",
                         "s": "${self.fraudNetSwi}"
                     }`;
+                }
 
                 var fbFraudNet = requirejs.load({
                     contextName: '_',
+                     config: {
+                        baseUrl: self.fbComponentUrl
+                    }
                 }, self.componentFBName, self.fbComponentUrl);
             }
         },
