@@ -116,13 +116,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
         \PayPal\CommercePlatform\Logger\Handler $logger,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         \Magento\Framework\Event\ManagerInterface $eventManager,
         Config $paypalConfig,
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         parent::__construct(
@@ -312,7 +312,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $storeId = $this->getStoreId();
             $paypalButtonTittle =  $this->_scopeConfig->getValue('payment/paypalcp/title_paypal', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
             $paypalCardTitle = $this->_scopeConfig->getValue('payment/paypalcp/title_card', \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $storeId);
-            
+
             if ($paymentSource) {
                 if (property_exists($paymentSource, 'card')) {
                     $infoInstance->setAdditionalInformation('method_title', $paypalCardTitle);
