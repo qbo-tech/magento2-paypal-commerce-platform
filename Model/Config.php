@@ -42,6 +42,8 @@ class Config
     const CONFIG_XML_FRAUDNET_SWI         = 'source_web_identifier';
     const CONFIG_XML_FRAUDNET_FNCLS       = 'fncls';
 
+    const CONFIG_XML_ENABLE_REFERENCE_TRANSACTION  = 'enable_reference_transaction';
+
     /** STC CONFIGS */
 
     const CONFIG_XML_ENABLE_STC                    = 'enable_stc';
@@ -170,6 +172,11 @@ class Config
     public function getCountryCode()
     {
         return $this->getConfigValue(self::CONFIG_XML_COUNTRY_CODE);
+    }
+
+    public function isEnableReferenceTransaction()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_ENABLE_REFERENCE_TRANSACTION);
     }
 
     public function isEnableBcdc()

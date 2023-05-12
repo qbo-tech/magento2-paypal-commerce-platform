@@ -13,7 +13,58 @@
         <!-- /ko -->
         <!--         /ko -->
 
-        <div id="paypal-button-container" style="min-height: 50px;"></div>
+        <div class="customer-card-list" data-bind="visible: customerCards().length > 0">
+            <ul>
+                <li>
+                    <!-- ko i18n: 'Pay with' -->
+                    <!-- /ko -->
+                </li>
+                <!-- ko foreach: customerCards -->
+                <li data-bind="attr: {id: 'card-' + id}">
+                    <input type="radio" name="card" data-bind="attr: {'id': id, 'value': id}">
+                    <label data-bind="attr: {for: id}">
+                        <span class="brand" data-bind="css: brand"></span>
+                        <span data-bind="text: ' x-' + last_digits"> </span>
+                    </label>
+                    <span class="card-delete" data-bind="attr: {'data-id': id}">&nbsp;</span>
+                </li>
+                <!-- /ko -->
+                <li>
+                    <input id="new-card" type="radio" name="card" value="new-card">
+                    <label for="new-card">
+                        <!-- ko i18n: 'New card' -->
+                        <!-- /ko -->
+                    </label>
+                </li>
+            </ul>
+            <div id="customer-card-token">
+                <label for='installmentsCustomerCard' data-bind="visible: canShowInstallments">
+                    <!-- ko i18n: 'Pay to MSI' -->
+                    <!-- /ko -->
+                </label>
+                <select class="form-control" style="font-size: 14px;" name="installmentsCustomerCard"
+                        id="installmentsCustomerCard" data-bind=" visible: canShowInstallments,
+                                    disable: !installmentsAvailable(),
+                                    options: installmentOptions,
+                                    optionsText: function(i) {
+                                        return [
+                                            i.value,
+                                            i.currency_code,
+                                            i.term,
+                                            i.interval
+                                        ].join('    ');
+                                    },
+                                    value: selectedInstallments
+                                ">
+                </select>
+                <button value="submit" id="token-submit" class="btn" disabled="disable">
+                    <!-- ko i18n: 'Pay' -->
+                    <!-- /ko -->
+                </button>
+            </div>
+        </div>
+
+        <div id="paypal-button-container" style="min-height: 86px;"></div>
 
         <div id="card-button-container" style="min-height: 50px;"></div>
 

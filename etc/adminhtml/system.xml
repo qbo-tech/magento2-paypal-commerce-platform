@@ -71,7 +71,12 @@
                         <label>Sort Order</label>
                         <config_path>payment/paypalcp/sort_order</config_path>
                     </field>
-                    <field id="debug_mode" type="select" sortOrder="97" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <field id="enable_reference_transaction" type="select" sortOrder="98" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enable Reference Transaction</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/paypalcp/enable_reference_transaction</config_path>
+                    </field>
+                    <field id="debug_mode" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Debug Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/debug_mode</config_path>

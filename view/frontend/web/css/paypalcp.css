@@ -125,17 +125,17 @@ select:disabled {
     margin: 20px 0;
 }
 
-.customer-card-list {
+.customer-card-list, .agreement-list {
     margin: 20px;
     padding: 0 0 20px 10px;
 }
 
-.customer-card-list > ul {
+.customer-card-list > ul, .agreement-list > ul {
     list-style: none;
     border: 1px solid #ddd;
 }
 
-.customer-card-list > ul > li {
+.customer-card-list > ul > li, .agreement-list > ul > li {
     padding: 8px 16px;
     border-bottom: 1px solid #ddd;
     margin-bottom: 0;
@@ -159,7 +159,7 @@ select:disabled {
     background-image: url("../images/amex.svg");
 }
 
-.customer-card-list > ul > li > span.card-delete {
+.customer-card-list > ul > li > span.card-delete, .agreement-list > ul > li > span.card-delete {
     height: 32px;
     width: 20px;
     background-size: 20px 32px;
@@ -170,11 +170,11 @@ select:disabled {
     float: right;
 }
 
-.customer-card-list > ul > li:last-child {
+.customer-card-list > ul > li:last-child, .agreement-list > ul > li:last-child {
     border-bottom: none;
 }
 
-#token-submit {
+#token-submit, #token-ba-submit {
     width: 100%;
     margin: 15px 0px;
 }

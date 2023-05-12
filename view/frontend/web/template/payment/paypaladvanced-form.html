@@ -13,6 +13,57 @@
         <!-- /ko -->
         <!--         /ko -->
 
+        <div class="agreement-list" data-bind="if: isActiveReferenceTransaction(), visible: customerBillingAgreements().length > 0">
+            <ul>
+                <li>
+                    <!-- ko i18n: 'Pay with' -->
+                    <!-- /ko -->
+                </li>
+                <!-- ko foreach: customerBillingAgreements -->
+                <li data-bind="attr: {id: 'agreement-' + id}">
+                    <input type="radio" name="pp-input-agreement" data-bind="attr: {'id': id, 'value': id}">
+                    <label data-bind="attr: {for: id}">
+                        <img width="60px" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" class="paypal-logo" alt="paypal"/>
+                        <span data-bind="text: email"> </span>
+                    </label>
+                    <span class="agreement-delete" data-bind="attr: {'data-id': id}">&nbsp;</span>
+                </li>
+                <!-- /ko -->
+                <li>
+                    <input id="new-agreement" type="radio" name="pp-input-agreement" value="new-agreement">
+                    <label for="new-agreement">
+                        <!-- ko i18n: 'New agreement' -->
+                        <!-- /ko -->
+                    </label>
+                </li>
+            </ul>
+            <div id="agreement-token">
+                <label for='installmentsCustomerCard' data-bind="visible: canShowInstallments">
+                    <!-- ko i18n: 'Pay to MSI' -->
+                    <!-- /ko -->
+                </label>
+                <select class="form-control" style="font-size: 14px;" name="installmentsCustomerCard"
+                        id="installmentsCustomerCard" data-bind=" visible: canShowInstallments,
+                                    disable: !installmentsAvailable(),
+                                    options: installmentOptions,
+                                    optionsText: function(i) {
+                                        return [
+                                            i.value,
+                                            i.currency_code,
+                                            i.term,
+                                            i.interval
+                                        ].join('    ');
+                                    },
+                                    value: selectedInstallments
+                                ">
+                </select>
+                <button value="submit" id="token-ba-submit" class="btn" disabled="disable">
+                    <!-- ko i18n: 'Pay' -->
+                    <!-- /ko -->
+                </button>
+            </div>
+        </div>
+
         <div id="paypal-button-container" style="min-height: 50px;"></div>
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->

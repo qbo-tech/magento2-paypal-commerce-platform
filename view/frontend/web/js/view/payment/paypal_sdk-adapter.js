@@ -7,9 +7,7 @@ define([
 ], function (Component, storage, $, paypalTokenAdapter, customerData) {
     'use strict';
     return {
-
         componentName: "paypalSdkComponent",
-
         paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
         onLoadedCallback: '',
         customerId: window.checkoutConfig.payment.paypalcp.customer.id,

@@ -6,9 +6,11 @@
 
 namespace PayPal\CommercePlatform\Model\Paypal;
 
+use PayPal\CommercePlatform\Model\Paypal\Agreement\AgreementCreateRequest;
+use PayPal\CommercePlatform\Model\Paypal\Agreement\Financing\FinancingOptionsCreateRequest;
+use PayPal\CommercePlatform\Model\Paypal\Agreement\Token\AgreementTokenCreateRequest;
 use PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest;
 use PayPal\CommercePlatform\Model\Paypal\Oxxo\GetVoucher;
-use stdClass;
 
 class Api
 {
@@ -21,6 +23,15 @@ class Api
 
     /** @var \PayPalCheckoutSdk\Core\PayPalHttpClient */
     protected $_paypalClient;
+
+    /** @var AgreementTokenCreateRequest */
+    protected $_agreementTokenCreateRequest;
+
+    /** @var FinancingOptionsCreateRequest */
+    protected $_financingOptionsCreateRequest;
+
+    /** @var AgreementCreateRequest */
+    protected $_AgreementCreateRequest;
 
     /** @var \PayPalCheckoutSdk\Orders\OrdersCreateRequest */
     protected $_orderCreateRequest;
@@ -81,6 +92,48 @@ class Api
 
             return (object) $errorResponse;
         }
+    }
+
+    /**
+     * Retrieve instance OrderCreateRequest
+     *
+     * @return FinancingOptionsCreateRequest
+     */
+    public function getFinancingOptionsCreateRequest()
+    {
+        if (!($this->_financingOptionsCreateRequest instanceof FinancingOptionsCreateRequest)) {
+            $this->_financingOptionsCreateRequest = new FinancingOptionsCreateRequest();
+        }
+
+        return $this->_financingOptionsCreateRequest;
+    }
+
+    /**
+     * Retrieve instance OrderCreateRequest
+     *
+     * @return AgreementTokenCreateRequest
+     */
+    public function getAgreementTokenCreateRequest()
+    {
+        if (!($this->_agreementTokenCreateRequest instanceof AgreementTokenCreateRequest)) {
+            $this->_agreementTokenCreateRequest = new AgreementTokenCreateRequest();
+        }
+
+        return $this->_agreementTokenCreateRequest;
+    }
+
+    /**
+     * Retrieve instance OrderCreateRequest
+     *
+     * @return AgreementCreateRequest
+     */
+    public function getAgreementCreateRequest($billingToken)
+    {
+        if (!($this->_AgreementCreateRequest instanceof AgreementCreateRequest)) {
+            $this->_AgreementCreateRequest = new AgreementCreateRequest($billingToken);
+        }
+
+        return $this->_AgreementCreateRequest;
     }
 
     /**

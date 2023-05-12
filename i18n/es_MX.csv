@@ -58,6 +58,7 @@ Label,Label
 Tagline,Tagline,
 Pay with,Pagar con
 New card, Nueva tarjeta
+New agreement, Nuevo acuerdo de pago
 MSI,Meses sin intereses.
 Pay to MSI,Pago a meses sin intereses
 Download vourcher,Descargar vourcher
@@ -70,6 +71,7 @@ Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "An error occurred during the payment process.","Ocurrió un error durante el proceso de pago."
 "Thank you for your payment. Registered notification about captured amount.","Su pago ha sido registradi con éxito. Gracias por su pago."
 "Payment has been declined by Payment Gateway","El pago ha sido declinado. Por favor, intenta con otra tarjeta o con otra forma de pago."
+"It is not possible to use this payment agreement, please try another","No es posible usar este acuerdo de pago intente con otro"
 "This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.","Este pedido está en espera debido a un pago pendiente. El pedido se procesará después de que se apruebe el pago en la pasarela de pago."
 "Declining Pending Payment Transaction","Rechazar transacción de pago pendiente"
 "The transaction id is not present","El ID de la transacción no está presente."
