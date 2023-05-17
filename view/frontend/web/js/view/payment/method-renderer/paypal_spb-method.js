@@ -174,8 +174,7 @@ define(
 
                 console.info('self.isActiveReferenceTransaction()', self.isActiveReferenceTransaction());
                 if (self.isActiveReferenceTransaction()) {
-                    // var CREATE_ORDER_URL = '/paypalcheckout/order';
-                    // var CAPTURE_ORDER_URL = '/paypalcheckout/order';
+                    elementId = elementId+'-ba';
                     // Initialize the buttons
                     var button = paypal.Buttons({
                         fundingSource: fundingSource,
@@ -228,8 +227,6 @@ define(
                         }
                     });
                 }
-
-
 
                 // Check if the button is eligible
                 if (button.isEligible()) {
@@ -820,7 +817,7 @@ define(
                 var self = this;
 
                 if(self.customerBillingAgreements().length > 0){
-                    $('#paypal-button-container').hide();
+                    $('#paypal-button-container-ba').hide();
                 }
 
                 // agreements events
@@ -834,13 +831,13 @@ define(
 
                     if (this.id == 'new-agreement') {
                         $('#agreement-token').hide();
-                        $('#paypal-button-container').show();
+                        $('#paypal-button-container-ba').show();
                         console.info('cliking paypal button');
-                        $('#paypal-button-container').click();
+                        $('#paypal-button-container-ba').click();
                     } else {
 
                         $('#agreement-token').show();
-                        $('#paypal-button-container').hide();
+                        $('#paypal-button-container-ba').hide();
 
                         var agreementId = this.id;
                         const agreement = self.customerBillingAgreements().find(element => element.id == agreementId);
