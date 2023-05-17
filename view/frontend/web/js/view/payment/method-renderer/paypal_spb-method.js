@@ -143,7 +143,7 @@ define(
             },
             getData: function () {
                 var self = this;
-                console.info('self.currentMethod', self.currentMethod );
+
                 if(self.currentMethod == 'paypalcp_spb' && self.isActiveReferenceTransaction()){
                     var paymentType = 'BILLING_AGREEMENT';
                     var submitOptions = self.validateBillingAgreementInstallment({});
@@ -169,6 +169,7 @@ define(
                 return data;
             },
             renderButton: function (fundingSource, elementId) {
+                console.info('elementId', elementId);
                 var self = this;
 
                 console.info('self.isActiveReferenceTransaction()', self.isActiveReferenceTransaction());
@@ -177,7 +178,6 @@ define(
                     // var CAPTURE_ORDER_URL = '/paypalcheckout/order';
                     // Initialize the buttons
                     var button = paypal.Buttons({
-
                         fundingSource: fundingSource,
                         // Generate billing agreement token
                         createBillingAgreement: function (data, actions) {
@@ -720,9 +720,7 @@ define(
                 console.info('customerCards', self.customerCards());
                 console.info('customerBillingAgreements', self.customerBillingAgreements());
 
-                if (self.isActiveAcdc() && self.customerCards().length > 0 ) {
-                    $('#paypalcheckout').hide();
-                } else {
+                if (self.isActiveBcdc() ) {
                     self.loadSdk();
                 }
 
@@ -837,6 +835,8 @@ define(
                     if (this.id == 'new-agreement') {
                         $('#agreement-token').hide();
                         $('#paypal-button-container').show();
+                        console.info('cliking paypal button');
+                        $('#paypal-button-container').click();
                     } else {
 
                         $('#agreement-token').show();
