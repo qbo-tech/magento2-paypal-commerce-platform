@@ -169,25 +169,20 @@ define(
                 return data;
             },
             renderButton: function (fundingSource, elementId) {
-                console.info('elementId', elementId);
                 var self = this;
-
-                console.info('self.isActiveReferenceTransaction()', self.isActiveReferenceTransaction());
                 if (self.isActiveReferenceTransaction()) {
                     elementId = elementId+'-ba';
                     // Initialize the buttons
                     var button = paypal.Buttons({
+                        style: {
+                            label:   'pay'
+                        },
                         fundingSource: fundingSource,
                         // Generate billing agreement token
                         createBillingAgreement: function (data, actions) {
-
                             return self.createBillingAgreementToken(data, actions).then(function (response) {
                                 return response.result.token_id;
                             });
-
-                            //     .then(function (res) {
-                            //     return res;
-                            // });
                         },
 
                         // Finalize billing agreement
@@ -871,6 +866,9 @@ define(
 
                 $('.agreement-list button#token-ba-submit').click(function (event) {
 
+                    var body = $('body').loader();
+                    body.loader('show');
+
                     $('#token-ba-submit').prop('disabled', true);
                     event.preventDefault();
 
@@ -889,10 +887,12 @@ define(
                         }).fail(function (response) {
                             console.error('FAILED paid whit token card', response);
                             $('#submit').prop('disabled', false);
+                            body.loader('hide');
                         });
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
                         $('#submit').prop('disabled', false);
+                        body.loader('hide');
                     });
 
                     $('#submit').prop('disabled', false);

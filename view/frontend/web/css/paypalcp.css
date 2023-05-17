@@ -175,18 +175,33 @@ select:disabled {
 }
 
 #token-submit, #token-ba-submit {
-    margin: 15px 10px;
     height: 50px;
-    font-size: 16px;
-    width: 96%;
+    font-size: 18px;
+    width: 100%;
     outline: 0;
     border: none;
     font-weight: 500;
     cursor: pointer;
     background: #ffc439;
+    font-weight: 600;
+}
+
+#token-submit:hover, #token-ba-submit:hover {
+    filter: brightness(0.95);
+}
+
+#agreement-token {
+    border-top: #ccc 1px solid;
+    margin-top: 40px;
+}
+
+#agreement-token label{
+    margin-top: 25px;
+    margin-left: 0;
 }
 
 select#installmentsCustomerCard {
     width: 100%;
-    margin: 20px 0px;
+    margin: 20px 0;
+    border: 1px solid #ccc !important;
 }
