@@ -257,7 +257,7 @@ class Request
             ],
             'payer' => $this->_getPayer(),
             'purchase_units' => [[
-                'invoice_id' => $this->_quote->getReservedOrderId(),
+                'invoice_id' => sprintf('%s-%s', \date('Ymdhis'), $this->_quote->getReservedOrderId()),
                 'amount' => [
                     'currency_code' => $currencyCode,
                     'value' => $amount
@@ -302,11 +302,11 @@ class Request
                 'given_name' => $this->_customerAddress->getFirstname(),
                 'surname'    => $this->_customerAddress->getLastname()
             ],
-            'phone' => [
-                'phone_number' => [
-                    'national_number' => $this->_customerAddress->getTelephone()
-                ]
-            ]
+//            'phone' => [
+//                'phone_number' => [
+//                    'national_number' => $this->_customerAddress->getTelephone()
+//                ]
+//            ]
         ];
 
         return $ret;
