@@ -188,11 +188,12 @@ define(
                         // Finalize billing agreement
                         onApprove: function (data, actions) {
                             return self.createBillingAgreement(data, actions).then(function (response) {
-                                console.info('onApprove data', data);
-                                console.info('onApprove response', response);
                                 self.orderId = data.orderID;
-                                // self.placeOrder();
                             });
+                        },
+
+                        onError: function (err) {
+                            self._enableCheckout();
                         }
                     });
                 } else {
@@ -218,7 +219,7 @@ define(
                         },
 
                         onError: function (err) {
-                            console.info('error om create order', err);
+                            self._enableCheckout();
                         }
                     });
                 }
@@ -883,16 +884,15 @@ define(
                             $(this).prop('checked', false);
                             $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
                             self.placeOrder();
-                            $('#submit').prop('disabled', false);
+                            self._enableCheckout();
                         }).fail(function (response) {
                             console.error('FAILED paid whit token card', response);
-                            $('#submit').prop('disabled', false);
-                            body.loader('hide');
+                            self._enableCheckout();
                         });
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
                         $('#submit').prop('disabled', false);
-                        body.loader('hide');
+                        self._enableCheckout();
                     });
 
                     $('#submit').prop('disabled', false);

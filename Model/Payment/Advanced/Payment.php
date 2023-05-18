@@ -5,9 +5,7 @@ namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
-use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use PayPal\CommercePlatform\Model\Billing\Agreement;
 use PayPal\CommercePlatform\Model\Config;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
@@ -244,18 +242,15 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             }
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
-
             if ($paypalCMID) {
                 $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
 
             $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
-
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
-
             $this->_processTransaction($payment);
-
             $this->_eventManager->dispatch('paypalcp_order_capture_after', ['payment' => $payment]);
+
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
 
@@ -264,7 +259,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $paymentSource = json_decode($payment->getAdditionalInformation('payment_source'));
             $errorMessage = self::GATEWAY_ERROR_MESSAGE;
 
-            if (isset($paymentSource->token->type) && $paymentSource->token->type == 'BILLING_AGREEMENT') {
+            if (
+                isset($paymentSource->token->type)
+                && $paymentSource->token->type == 'BILLING_AGREEMENT'
+                && isset($this->_response->message)
+                && json_decode($this->_response->message)->name == 'AGREEMENT_ALREADY_CANCELLED'
+            ) {
                 $this->removeBillingAgreement();
                 $errorMessage = self::BA_ERROR_MESSAGE;
             }
