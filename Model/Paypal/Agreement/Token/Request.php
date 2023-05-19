@@ -249,9 +249,9 @@ class Request
             'plan' => [
                 'type' => 'MERCHANT_INITIATED_BILLING_SINGLE_AGREEMENT',
                 'merchant_preferences' => [
-                  'notify_url' => "http://www.acme.com/payment_status/notify",
-                  "cancel_url" =>"http://www.acme.com/payment_status/cancel",
-                  "return_url" => "http://www.acme.com/payment_status/success",
+                  'notify_url' => self::$_notifyUrl,
+                  "cancel_url" => self::$_cancelUrl,
+                  "return_url" => self::$_returnUrl,
                   "accepted_pymt_type" => "Instant",
                   "experience_id" => "",
                   "skip_shipping_address" => false,
@@ -266,19 +266,12 @@ class Request
 
     protected function _getPayer()
     {
-        $ret = [
+        return [
             'email_address' => $this->_customerAddress->getEmail(),
             'name' => [
                 'given_name' => $this->_customerAddress->getFirstname(),
                 'surname'    => $this->_customerAddress->getLastname()
-            ],
-            'phone' => [
-                'phone_number' => [
-                    'national_number' => $this->_customerAddress->getTelephone()
-                ]
             ]
         ];
-
-        return $ret;
     }
 }

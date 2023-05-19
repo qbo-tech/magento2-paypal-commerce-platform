@@ -444,6 +444,7 @@ define(
 
                 requestBody.fraudNetCMI = self.sessionIdentifier;
                 requestBody.customer_email = quote.guestEmail;
+                requestBody.ba = Number(self.isActiveReferenceTransaction());
 
                 console.log('createOrder#requestBody', requestBody);
 
