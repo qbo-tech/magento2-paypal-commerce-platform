@@ -31,11 +31,7 @@ use PayPal\CommercePlatform\Model\ResourceModel\Billing\Agreement\CollectionFact
 class Agreement extends \Magento\Framework\Model\AbstractModel
 {
     const STATUS_ACTIVE = 'active';
-
     const STATUS_CANCELED = 'canceled';
-
-    const cryptKey  = 'qJB0rGtIn5UB1xG03efyCp';
-
 
     /**
      * @var \PayPal\CommercePlatform\Model\ResourceModel\Billing\Agreement\CollectionFactory
