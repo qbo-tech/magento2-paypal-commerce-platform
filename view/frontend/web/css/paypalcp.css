@@ -205,3 +205,8 @@ select#installmentsCustomerCard {
     margin: 20px 0;
     border: 1px solid #ccc !important;
 }
+
+#paypal-button-container-ba{
+    min-height: 50px;
+    margin-top: 30px;
+}

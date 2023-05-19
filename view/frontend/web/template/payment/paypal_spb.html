@@ -41,6 +41,7 @@
         <!-- /ko -->
         <!--         /ko -->
 
+        <!-- ko if: (isActiveReferenceTransaction()) -->
         <div class="agreement-list" data-bind="if: isActiveReferenceTransaction(), visible: customerBillingAgreements().length > 0">
             <ul>
                 <li>
@@ -90,10 +91,14 @@
                     <!-- /ko -->
                 </button>
             </div>
+            <div id="paypal-button-container-ba"></div>
         </div>
+        <!-- /ko -->
 
-        <div id="paypal-button-container-ba" style="min-height: 50px;"></div>
-        <div id="paypal-button-container" style="min-height: 50px;"></div>
+        <!-- ko ifnot: (isActiveReferenceTransaction()) -->
+        <div data-bind="if: !isActiveReferenceTransaction()" id="paypal-button-container" style="min-height: 50px;"></div>
+        <!-- /ko -->
+
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
             <!--                 ko template: getTemplate() -->
