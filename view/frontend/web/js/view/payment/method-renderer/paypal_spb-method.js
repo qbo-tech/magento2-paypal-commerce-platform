@@ -42,6 +42,7 @@ define(
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             customerCards: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.payments.cards),
             customerBillingAgreements: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.agreements),
+            customerId: window.checkoutConfig.payment.paypalcp.customer.id,
             canShowInstallments: ko.observable(false),
             installmentsAvailable: ko.observable(false),
             installmentOptions: ko.observableArray(),
@@ -51,7 +52,7 @@ define(
             isActiveReferenceTransaction: function () {
                 var self = this;
 
-                if (self.isEnableReferenceTransactions) {
+                if (self.isEnableReferenceTransactions && self.customerId > 0) {
                     return true;
                 }
 
@@ -586,14 +587,6 @@ define(
                     self.renderButton(fundingSource, FUNDING_SOURCES[fundingSource])
                 });
 
-                if (self.isAcdcEnable && window.checkoutConfig.payment.paypalcp.acdc.card_fisrt_acdc) {
-                    $('#acdc_card').each(function () {
-                        if (!$(this).text().match(/^\s*$/)) {
-                            $(this).insertBefore($(this).prev('#acdc_button'));
-                        }
-                    });
-                }
-
             },
             validateInstallment: function (submitOptions) {
                 var self = this;
@@ -711,8 +704,13 @@ define(
                 self.isVisibleCard(true);
                 self.loadFraudnet();
 
-                console.info('customerCards', self.customerCards());
-                console.info('customerBillingAgreements', self.customerBillingAgreements());
+                if (self.isAcdcEnable && window.checkoutConfig.payment.paypalcp.acdc.card_fisrt_acdc) {
+                    $('#acdc_card').each(function () {
+                        if (!$(this).text().match(/^\s*$/)) {
+                            $(this).insertBefore($(this).prev('#acdc_button'));
+                        }
+                    });
+                }
 
                 if (self.isActiveBcdc() ) {
                     self.loadSdk();
@@ -829,8 +827,6 @@ define(
                     if (this.id == 'new-agreement') {
                         $('#agreement-token').hide();
                         $('#paypal-button-container-ba').show();
-                        console.info('cliking paypal button');
-                        $('#paypal-button-container-ba').click();
                     } else {
 
                         $('#agreement-token').show();
