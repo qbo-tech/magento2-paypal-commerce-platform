@@ -15,5 +15,10 @@
                 <value id="paypalobjects" type="host">*.paypalobjects.com</value>
             </values>
         </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="paypal" type="host">https://paypal.com/</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>
