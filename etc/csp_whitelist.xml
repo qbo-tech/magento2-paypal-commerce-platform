@@ -17,7 +17,16 @@
         </policy>
         <policy id="frame-src">
             <values>
-                <value id="paypal" type="host">https://paypal.com/</value>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="sandbospaypal" type="host">*.sandbox.paypal.com</value>
+                <value id="paypalobjects" type="host">*.paypalobjects.com</value>
+            </values>
+        </policy>
+        <policy id="img-src">
+            <values>
+                <value id="paypal" type="host">*.paypal.com</value>
+                <value id="sandbospaypal" type="host">*.sandbox.paypal.com</value>
+                <value id="paypalobjects" type="host">*.paypalobjects.com</value>
             </values>
         </policy>
     </policies>
