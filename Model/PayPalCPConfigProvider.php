@@ -10,7 +10,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?vault=true&';
     const ENDPOINT_ACCESS_TOKEN = '/v1/oauth2/token';
     const ENDPOINT_GENERATE_CLIENT_TOKEN = '/v1/identity/generate-token';
-
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
     const SDK_CONFIG_CURRENCY   = 'currency';
     const SDK_CONFIG_DEBUG      = 'debug';
@@ -18,7 +17,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const SDK_CONFIG_LOCALE     = 'locale';
     const SDK_CONFIG_INTENT     = 'intent';
     const SDK_CONFIG_DISABLE_FUNDING = 'disable-funding';
-
     const LENGTH_IDENTIFIER = 15;
 
     protected $_payment_code = \PayPal\CommercePlatform\Model\Config::PAYMENT_COMMERCE_PLATFORM_CODE;
@@ -79,7 +77,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'color'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_COLOR),
                         'shape'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
                         'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
-                        //'tagline' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_TAGLINE),
                     ],
                     'urlAccessToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_ACCESS_TOKEN,
                     'urlGenerateClientToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_GENERATE_CLIENT_TOKEN,
@@ -91,6 +88,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ],
                     'referenceTransaction' => [
                         'enable' => $this->_paypalConfig->isEnableReferenceTransaction(),
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum()
                     ],
                     'bcdc' => [
                         'enable' => $this->_paypalConfig->isEnableBcdc(),

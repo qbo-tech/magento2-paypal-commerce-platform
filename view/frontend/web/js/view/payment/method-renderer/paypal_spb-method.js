@@ -52,6 +52,7 @@ define(
             isActiveReferenceTransaction: function () {
                 var self = this;
 
+
                 if (self.isEnableReferenceTransactions && self.customerId > 0) {
                     return true;
                 }
@@ -114,22 +115,47 @@ define(
                     return this.paypalConfigs.splitOptions.title_method_paypal
                 }
             },
-            fillInstallmentOptions: function (financialOption) {
+
+            parseInstallOptions: function(qualifyingFinancingOption) {
+                return {
+                    value: qualifyingFinancingOption.monthly_payment.value,
+                    currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
+                    interval: $t(qualifyingFinancingOption.credit_financing.interval),
+                    term: qualifyingFinancingOption.credit_financing.term,
+                    interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
+                    discount_percentage: qualifyingFinancingOption.discount_percentage
+                };
+            },
+
+            fillInstallmentOptions: function (financialOption, filterByMinimum = false) {
                 var self = this;
                 var options = [];
 
+                if (filterByMinimum) {
+                    var msiMinimum = window.checkoutConfig.payment.paypalcp.referenceTransaction.msiMinimum;
+                    var total = totals.getSegment('grand_total').value;
+                    console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:',  msiMinimum, );
+                }
+
                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
-                    var option = {
-                        value: qualifyingFinancingOption.monthly_payment.value,
-                        currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
-                        interval: $t(qualifyingFinancingOption.credit_financing.interval),
-                        term: qualifyingFinancingOption.credit_financing.term,
-                        interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
-                        discount_percentage: qualifyingFinancingOption.discount_percentage
-                    };
+                    if (filterByMinimum) {
 
-                    options.push(option);
+                        let intervalDuration = qualifyingFinancingOption.credit_financing.interval_duration;
+                        console.info('Interval Duration: ', intervalDuration);
+
+                        if (msiMinimum.hasOwnProperty(intervalDuration)) {
+                            if(msiMinimum[intervalDuration] <= total) {
+                                options.push(self.parseInstallOptions(qualifyingFinancingOption));
+                            }
+                        } else {
+                            options.push(self.parseInstallOptions(qualifyingFinancingOption));
+                        }
+
+                    } else {
+                        options.push(self.parseInstallOptions(qualifyingFinancingOption));
+                    }
+
                 });
 
                 return options;
@@ -843,7 +869,10 @@ define(
                             self.calculatedFinancingOptions({ 'agreementReference': agreement.reference }).done(function (response) {
                                 console.log('agreementReference#response', response);
                                 var financialOptions = response.result.financing_options[0];
-                                var options = self.fillInstallmentOptions(financialOptions);
+
+                                console.info('financialOptions ===> ', financialOptions);
+
+                                var options = self.fillInstallmentOptions(financialOptions, true);
                                 console.log('agreementReference#options', response);
 
                                 self.installmentOptions(options);

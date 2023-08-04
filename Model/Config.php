@@ -50,6 +50,12 @@ class Config
     const CONFIG_XML_ENABLE_STC_MERCHANT_ID        = 'stc_merchant_id';
     const CONFIG_XML_ENABLE_STC_HIGHSRISK_TXN_FLAG = 'stc_highrisk_txn_flag';
     const CONFIG_XML_ENABLE_STC_VERTICAL           = 'stc_vertical';
+    const CONFIG_XML_MSI_3 = 'msi3';
+    const CONFIG_XML_MSI_6 = 'msi6';
+    const CONFIG_XML_MSI_9 = 'msi9';
+    const CONFIG_XML_MSI_12 = 'msi12';
+    const CONFIG_XML_MSI_18 = 'msi18';
+    const CONFIG_XML_MSI_24 = 'msi24';
 
     /**
      * Button customization style options
@@ -128,6 +134,18 @@ class Config
             $this->_preparePathConfig($flag),
             \Magento\Store\Model\ScopeInterface::SCOPE_STORE
         );
+    }
+
+    public function getMSIMinimum()
+    {
+        return [
+            'P3M'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_3),
+            'P6M'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_6),
+            'P9M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_9),
+            'P12M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_12),
+            'P18M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_18),
+            'P24M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_24)
+        ];
     }
 
     protected function _preparePathConfig($config, $code = self::PAYMENT_COMMERCE_PLATFORM_CODE)
