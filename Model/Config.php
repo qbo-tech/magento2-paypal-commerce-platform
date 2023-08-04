@@ -139,12 +139,12 @@ class Config
     public function getMSIMinimum()
     {
         return [
-            'P3M'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_3),
-            'P6M'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_6),
-            'P9M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_9),
-            'P12M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_12),
-            'P18M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_18),
-            'P24M' =>  $this->getConfigValue(self::CONFIG_XML_MSI_24)
+            '3'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_3),
+            '6'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_6),
+            '9'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_9),
+            '12' =>  $this->getConfigValue(self::CONFIG_XML_MSI_12),
+            '18' =>  $this->getConfigValue(self::CONFIG_XML_MSI_18),
+            '24' =>  $this->getConfigValue(self::CONFIG_XML_MSI_24)
         ];
     }
 

@@ -141,11 +141,11 @@ define(
 
                     if (filterByMinimum) {
 
-                        let intervalDuration = qualifyingFinancingOption.credit_financing.interval_duration;
-                        console.info('Interval Duration: ', intervalDuration);
+                        let term = qualifyingFinancingOption.credit_financing.term;
+                        console.info('Current term: ', term);
 
-                        if (msiMinimum.hasOwnProperty(intervalDuration)) {
-                            if(msiMinimum[intervalDuration] <= total) {
+                        if (msiMinimum.hasOwnProperty(term)) {
+                            if(msiMinimum[term] <= total) {
                                 options.push(self.parseInstallOptions(qualifyingFinancingOption));
                             }
                         } else {
