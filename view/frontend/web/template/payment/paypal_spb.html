@@ -68,14 +68,13 @@
                     </li>
                 </ul>
                 <div id="agreement-token">
-                    <label for='installmentsCustomerCard' data-bind="visible: canShowInstallments">
+                    <label for='installmentsAgreement' data-bind="visible: canShowInstallments">
                         <!-- ko i18n: 'Pay to MSI' -->
                         <!-- /ko -->
                     </label>
-                    <select class="form-control" style="font-size: 14px;" name="installmentsCustomerCard"
-                            id="installmentsCustomerCard" data-bind=" visible: canShowInstallments,
-                                        disable: !installmentsAvailable(),
-                                        options: installmentOptions,
+                    <select class="form-control" style="font-size: 14px;" name="installmentsAgreement"
+                            id="installmentsAgreement" data-bind=" visible: canShowInstallments,
+                                        options: installmentAgreementOptions,
                                         optionsText: function(i) {
                                             return [
                                                 i.value,

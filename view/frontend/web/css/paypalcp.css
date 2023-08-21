@@ -159,7 +159,7 @@ select:disabled {
     background-image: url("../images/amex.svg");
 }
 
-.customer-card-list > ul > li > span.card-delete, .agreement-list div > ul > li > span.card-delete {
+.customer-card-list > ul > li > span.card-delete, .agreement-list div > ul > li > span.agreement-delete {
     height: 32px;
     width: 20px;
     background-size: 20px 32px;
@@ -168,6 +168,7 @@ select:disabled {
     margin-right: 5px;
     background-image: url("../images/delete.svg");
     float: right;
+    cursor: pointer;
 }
 
 .customer-card-list > ul > li:last-child, .agreement-list div > ul > li:last-child {

@@ -71,46 +71,60 @@
                         <label>Sort Order</label>
                         <config_path>payment/paypalcp/sort_order</config_path>
                     </field>
-                    <field id="enable_reference_transaction" type="select" sortOrder="98" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Enable Reference Transaction</label>
-                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                        <config_path>payment/paypalcp/enable_reference_transaction</config_path>
-                    </field>
-                    <group id="msi_minimum" translate="label" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Minimum Installments Amounts</label>
-                        <depends>
-                            <field id="enable_reference_transaction">1</field>
-                        </depends>
-                        <field id="msi3" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1" translate="label" type="text">
-                            <label>3 MSI</label>
-                            <config_path>payment/paypalcp/msi3</config_path>
-                        </field>
-                        <field id="msi6" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="2" translate="label" type="text">
-                            <label>6 MSI</label>
-                            <config_path>payment/paypalcp/msi6</config_path>
-                        </field>
-                        <field id="msi9" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="3" translate="label" type="text">
-                            <label>9 MSI</label>
-                            <config_path>payment/paypalcp/msi9</config_path>
-                        </field>
-                        <field id="msi12" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="4" translate="label" type="text">
-                            <label>12 MSI</label>
-                            <config_path>payment/paypalcp/msi12</config_path>
-                        </field>
-                        <field id="msi18" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="5" translate="label" type="text">
-                            <label>18 MSI</label>
-                            <config_path>payment/paypalcp/msi18</config_path>
-                        </field>
-                        <field id="msi24" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="6" translate="label" type="text">
-                            <label>24 MSI</label>
-                            <config_path>payment/paypalcp/msi24</config_path>
-                        </field>
-                    </group>
                     <field id="debug_mode" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Debug Mode</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>payment/paypalcp/debug_mode</config_path>
                     </field>
+                    <group id="reference_transaction" translate="label" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Reference Transaction</label>
+                        <field id="enable_reference_transaction" type="select" sortOrder="98" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Enable Reference Transaction</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/enable_reference_transaction</config_path>
+                        </field>
+                        <group id="msi_minimum" translate="label" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Minimum Installments Amounts</label>
+                            <depends>
+                                <field id="enable_reference_transaction">1</field>
+                            </depends>
+                            <field id="msi3" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1" translate="label" type="text">
+                                <label>3 MSI</label>
+                                <config_path>payment/paypalcp/msi3</config_path>
+                            </field>
+                            <field id="msi4" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1" translate="label" type="text">
+                                <label>4 MSI</label>
+                                <config_path>payment/paypalcp/msi4</config_path>
+                            </field>
+                            <field id="msi6" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="2" translate="label" type="text">
+                                <label>6 MSI</label>
+                                <config_path>payment/paypalcp/msi6</config_path>
+                            </field>
+                            <field id="msi9" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="3" translate="label" type="text">
+                                <label>9 MSI</label>
+                                <config_path>payment/paypalcp/msi9</config_path>
+                            </field>
+                            <field id="msi12" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="4" translate="label" type="text">
+                                <label>12 MSI</label>
+                                <config_path>payment/paypalcp/msi12</config_path>
+                            </field>
+                            <field id="msi18" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="5" translate="label" type="text">
+                                <label>18 MSI</label>
+                                <config_path>payment/paypalcp/msi18</config_path>
+                            </field>
+                            <field id="msi24" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="6" translate="label" type="text">
+                                <label>24 MSI</label>
+                                <config_path>payment/paypalcp/msi24</config_path>
+                            </field>
+                        </group>
+                    </group>
+                    <group id="fraudnet" translate="label" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="1">
+                        <label>Fraudnet (Source Web Identifier)</label>
+                        <field id="fraudnet_swi" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="133">
+                            <label>Source Web Identifier</label>
+                            <config_path>payment/paypalcp/source_web_identifier</config_path>
+                        </field>
+                    </group>
                     <group id="paypalcp_basic" translate="label" sortOrder="99" showInDefault="1" showInWebsite="1" showInStore="1">
                         <label>PayPal Basic Credit and Debit Card</label>
                         <field id="enable_bcdc" type="select" sortOrder="99" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
@@ -161,22 +175,6 @@
                                 <field id="enable_acdc">1</field>
                             </depends>
                         </field>
-                        <group id="fraudNet" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="130">
-                            <label>FraudNet</label>
-                            <depends>
-                                <field id="enable_remember_card">1</field>
-                            </depends>
-                            <field id="fraudner_swi" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="133">
-                                <label>Source Web Identifier</label>
-                                <config_path>payment/paypalcp/source_web_identifier</config_path>
-                            </field>
-                            <!--
-                        <field id="fraudner_fncls" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="142">
-                            <label>fncls value</label>
-                            <config_path>payment/paypalcp/fncls</config_path>
-                        </field>
- -->
-                        </group>
                     </group>
                     <group id="stc" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="126">
                         <label>STC</label>

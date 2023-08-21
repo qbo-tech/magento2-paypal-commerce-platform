@@ -46,6 +46,7 @@ define(
             canShowInstallments: ko.observable(false),
             installmentsAvailable: ko.observable(false),
             installmentOptions: ko.observableArray(),
+            installmentAgreementOptions: ko.observableArray(),
             selectedInstallments: ko.observable(),
             isFormValid: ko.observable(false),
 
@@ -641,6 +642,7 @@ define(
                         }
                         self.logger(submitOptions);
                     }
+
                 } else {
 
                     self.logger('validateInstallment#submitOPtion', submitOptions);
@@ -738,7 +740,10 @@ define(
                     });
                 }
 
-                if (self.isActiveBcdc() ) {
+                if (self.isActiveBcdc() || self.isActiveAcdc() ) {
+                    if (self.customerCards().length > 0) {
+                        $('#paypalcheckout').hide();
+                    }
                     self.loadSdk();
                 }
 
@@ -776,6 +781,32 @@ define(
                         console.error('FAIL DELETE | response :', response);
                         self._enableCheckout();
 
+                    });
+                });
+
+                $('.agreement-list').on('click', '.agreement-delete', function(el){
+                    body.loader('show');
+
+                    var objAgreement = $(this);
+                    var agreementId = objAgreement.data('id');
+
+                    const agreement = self.customerBillingAgreements().find(element => element.id == agreementId);
+                    let referenceId = agreement.reference;
+
+                    self.logger('ON CANCEL Agreement ', agreementId);
+
+                    return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({ id: agreementId, reference: referenceId })
+                    ).done(function (response) {
+                            $('li#agreement-' + agreementId).remove();
+                            self.installmentAgreementOptions(null);
+                            self.selectedInstallments(null);
+                            self.canShowInstallments(false);
+                            $('#token-ba-submit').prop('disabled', true);
+                            self._enableCheckout();
+                            return response;
+                    }).fail(function (response) {
+                        console.error('FAIL CANCEL Agreement | response :', response);
+                        self._enableCheckout();
                     });
                 });
 
@@ -846,7 +877,7 @@ define(
                     var body = $('body').loader();
                     body.loader('show');
 
-                    self.installmentOptions(null);
+                    self.installmentAgreementOptions(null);
                     self.selectedInstallments(null);
                     self.canShowInstallments(false);
 
@@ -875,7 +906,7 @@ define(
                                 var options = self.fillInstallmentOptions(financialOptions, true);
                                 console.log('agreementReference#options', response);
 
-                                self.installmentOptions(options);
+                                self.installmentAgreementOptions(options);
                                 self.installmentsAvailable(true);
                                 self.canShowInstallments(true);
                                 $('#token-ba-submit').prop('disabled', false);

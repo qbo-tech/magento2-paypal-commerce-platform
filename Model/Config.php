@@ -51,6 +51,7 @@ class Config
     const CONFIG_XML_ENABLE_STC_HIGHSRISK_TXN_FLAG = 'stc_highrisk_txn_flag';
     const CONFIG_XML_ENABLE_STC_VERTICAL           = 'stc_vertical';
     const CONFIG_XML_MSI_3 = 'msi3';
+    const CONFIG_XML_MSI_4 = 'msi4';
     const CONFIG_XML_MSI_6 = 'msi6';
     const CONFIG_XML_MSI_9 = 'msi9';
     const CONFIG_XML_MSI_12 = 'msi12';
@@ -140,6 +141,7 @@ class Config
     {
         return [
             '3'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_3),
+            '4'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_4),
             '6'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_6),
             '9'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_9),
             '12' =>  $this->getConfigValue(self::CONFIG_XML_MSI_12),
