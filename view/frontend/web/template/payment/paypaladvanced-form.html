@@ -41,12 +41,12 @@
                     </li>
                 </ul>
                 <div id="agreement-token">
-                    <label for='installmentsAgreement' data-bind="visible: canShowInstallments">
+                    <label for='installmentsAgreement' data-bind="visible: canShowInstallmentsBA">
                         <!-- ko i18n: 'Pay to MSI' -->
                         <!-- /ko -->
                     </label>
                     <select class="form-control" style="font-size: 14px;" name="installmentsAgreement"
-                            id="installmentsAgreement" data-bind=" visible: canShowInstallments,
+                            id="installmentsAgreement" data-bind=" visible: canShowInstallmentsBA,
                                         options: installmentAgreementOptions,
                                         optionsText: function(i) {
                                             return [
@@ -56,7 +56,7 @@
                                                 i.interval
                                             ].join('    ');
                                         },
-                                        value: selectedInstallments
+                                        value: selectedInstallmentsBA
                                     ">
                     </select>
                     <button value="submit" id="token-ba-submit" class="btn" disabled="disable">
