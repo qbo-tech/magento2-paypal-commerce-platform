@@ -44,10 +44,12 @@ define(
             customerBillingAgreements: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.agreements),
             customerId: window.checkoutConfig.payment.paypalcp.customer.id,
             canShowInstallments: ko.observable(false),
+            canShowInstallmentsBA: ko.observable(false),
             installmentsAvailable: ko.observable(false),
             installmentOptions: ko.observableArray(),
             installmentAgreementOptions: ko.observableArray(),
             selectedInstallments: ko.observable(),
+            selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
 
             isActiveReferenceTransaction: function () {
@@ -426,6 +428,7 @@ define(
                         });
 
                         $('#co-payment-form, #card-form').submit(function (event) {
+                            console.info('submitting...');
                             event.preventDefault();
 
                             $('#submit').prop('disabled', true);
@@ -575,6 +578,14 @@ define(
                 var self = this;
                 self.logger('loadSDK')
 
+                var currentBA = $('.agreement-list input[name=pp-input-agreement]:checked').val();
+
+                if ((typeof currentBA === 'undefined')) {
+                    self.canShowInstallmentsBA(false);
+                } else {
+                    self.canShowInstallmentsBA(true);
+                }
+
                 if ((typeof paypal === 'undefined')) {
                     var body = $('body').loader();
 
@@ -619,6 +630,7 @@ define(
                 var self = this;
 
                 const installment = self.selectedInstallments();
+                console.info('current installment card: ', installment);
 
                 if (installment && installment.term !== '' && installment.term > 1) {
                     submitOptions.installments = {
@@ -665,15 +677,16 @@ define(
             validateBillingAgreementInstallment: function (submitOptions) {
                 var self = this;
 
-                const installment = self.selectedInstallments();
+                const installment = self.selectedInstallmentsBA();
 
+                console.info('current installment ba: ', installment);
                 if (installment && installment.term !== '' && installment.term > 1) {
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
                         intervalDuration: installment.interval_duration
                     };
-                    self.logger('validateBillingAgreementInstallment#submitOPtion', submitOptions);
+                    self.logger('validateBillingAgreementInstallment#submitOption', submitOptions);
                     if ((self.customerBillingAgreements().length > 0) && $('.agreement-list input[name=pp-input-agreement]:checked').val() != 'new-agreement') {
                         submitOptions = {
                             payment_source: {
@@ -799,8 +812,8 @@ define(
                     ).done(function (response) {
                             $('li#agreement-' + agreementId).remove();
                             self.installmentAgreementOptions(null);
-                            self.selectedInstallments(null);
-                            self.canShowInstallments(false);
+                            self.selectedInstallmentsBA(null);
+                            self.canShowInstallmentsBA(false);
                             $('#token-ba-submit').prop('disabled', true);
                             self._enableCheckout();
                             return response;
@@ -878,8 +891,8 @@ define(
                     body.loader('show');
 
                     self.installmentAgreementOptions(null);
-                    self.selectedInstallments(null);
-                    self.canShowInstallments(false);
+                    self.selectedInstallmentsBA(null);
+                    self.canShowInstallmentsBA(false);
 
                     if (this.id == 'new-agreement') {
                         $('#agreement-token').hide();
@@ -908,7 +921,7 @@ define(
 
                                 self.installmentAgreementOptions(options);
                                 self.installmentsAvailable(true);
-                                self.canShowInstallments(true);
+                                self.canShowInstallmentsBA(true);
                                 $('#token-ba-submit').prop('disabled', false);
 
                             }).fail(function (response) {
