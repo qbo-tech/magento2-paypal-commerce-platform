@@ -88,7 +88,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ],
                     'referenceTransaction' => [
                         'enable' => $this->_paypalConfig->isEnableReferenceTransaction(),
-                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum()
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum('referenceTransaction')
                     ],
                     'bcdc' => [
                         'enable' => $this->_paypalConfig->isEnableBcdc(),
@@ -100,7 +100,8 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
                         'enable_installments' => $this->_paypalConfig->isEnableMsi(),
                         'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
-                        'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc()
+                        'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum()
                     ],
                     'splitOptions' => [
                         'title_method_paypal' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_PAYPAL),

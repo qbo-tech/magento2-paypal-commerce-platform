@@ -175,6 +175,40 @@
                                 <field id="enable_acdc">1</field>
                             </depends>
                         </field>
+                        <group id="msi_minimum_acdc" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                            <label>Minimum Installments Amounts</label>
+                            <depends>
+                                <field id="enable_acdc">1</field>
+                            </depends>
+                            <field id="msi3_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1" translate="label" type="text">
+                                <label>3 MSI</label>
+                                <config_path>payment/paypalcp/msi3_acdc</config_path>
+                            </field>
+                            <field id="msi4_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1" translate="label" type="text">
+                                <label>4 MSI</label>
+                                <config_path>payment/paypalcp/msi4_acdc</config_path>
+                            </field>
+                            <field id="msi6_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="2" translate="label" type="text">
+                                <label>6 MSI</label>
+                                <config_path>payment/paypalcp/msi6_acdc</config_path>
+                            </field>
+                            <field id="msi9_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="3" translate="label" type="text">
+                                <label>9 MSI</label>
+                                <config_path>payment/paypalcp/msi9_acdc</config_path>
+                            </field>
+                            <field id="msi12_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="4" translate="label" type="text">
+                                <label>12 MSI</label>
+                                <config_path>payment/paypalcp/msi12_acdc</config_path>
+                            </field>
+                            <field id="msi18_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="5" translate="label" type="text">
+                                <label>18 MSI</label>
+                                <config_path>payment/paypalcp/msi18_acdc</config_path>
+                            </field>
+                            <field id="msi24_acdc" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="6" translate="label" type="text">
+                                <label>24 MSI</label>
+                                <config_path>payment/paypalcp/msi24_acdc</config_path>
+                            </field>
+                        </group>
                     </group>
                     <group id="stc" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="126">
                         <label>STC</label>

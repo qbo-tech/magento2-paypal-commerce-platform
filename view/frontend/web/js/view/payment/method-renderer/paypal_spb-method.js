@@ -130,31 +130,28 @@ define(
                 };
             },
 
-            fillInstallmentOptions: function (financialOption, filterByMinimum = false) {
+            fillInstallmentOptions: function (financialOption, minimumType = 'acdc') {
                 var self = this;
                 var options = [];
 
-                if (filterByMinimum) {
+                if ('acdc' === minimumType) {
+                    var msiMinimum = window.checkoutConfig.payment.paypalcp.acdc.msiMinimum;
+                } else {
                     var msiMinimum = window.checkoutConfig.payment.paypalcp.referenceTransaction.msiMinimum;
-                    var total = totals.getSegment('grand_total').value;
-                    console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:',  msiMinimum, );
                 }
+
+                var total = totals.getSegment('grand_total').value;
+                console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:',  msiMinimum );
 
                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
-                    if (filterByMinimum) {
+                    let term = qualifyingFinancingOption.credit_financing.term;
+                    console.info('Current term: ', term);
 
-                        let term = qualifyingFinancingOption.credit_financing.term;
-                        console.info('Current term: ', term);
-
-                        if (msiMinimum.hasOwnProperty(term)) {
-                            if(msiMinimum[term] <= total) {
-                                options.push(self.parseInstallOptions(qualifyingFinancingOption));
-                            }
-                        } else {
+                    if (msiMinimum.hasOwnProperty(term)) {
+                        if(msiMinimum[term] <= total) {
                             options.push(self.parseInstallOptions(qualifyingFinancingOption));
                         }
-
                     } else {
                         options.push(self.parseInstallOptions(qualifyingFinancingOption));
                     }
@@ -547,6 +544,8 @@ define(
             },
             calculatedFinancingOptions: function (requestBody) {
                 var self = this;
+                var body = $('body').loader();
+                body.loader('show');
 
                 requestBody.fraudNetCMI = self.sessionIdentifier;
                 requestBody.billingAgreementId = self.guestEmail;
@@ -556,6 +555,7 @@ define(
                 return storage.post('/paypalcheckout/agreement/financing', JSON.stringify(requestBody)
                 ).done(function (response) {
                     console.log('calculatedFinancingOptions#response', response);
+                    self._enableCheckout();
                     return response;
                 }
                 ).fail(function (response) {
@@ -916,7 +916,7 @@ define(
 
                                 console.info('financialOptions ===> ', financialOptions);
 
-                                var options = self.fillInstallmentOptions(financialOptions, true);
+                                var options = self.fillInstallmentOptions(financialOptions, 'referenceTransaction');
                                 console.log('agreementReference#options', response);
 
                                 self.installmentAgreementOptions(options);
