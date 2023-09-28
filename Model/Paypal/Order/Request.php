@@ -197,7 +197,7 @@ class Request
      * @param string $paypalCMID
      * @return \PayPalHttp\HttpResponse
      */
-    public function createRequest($customerEmail, $paypalCMID)
+    public function createRequest($customerEmail, $paypalCMID, $billingAgreement = false)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
@@ -206,7 +206,7 @@ class Request
         if($customerEmail) {
             $this->_quote->setCustomerEmail($customerEmail);
         }
-        $requestBody = $this->buildRequestBody();
+        $requestBody = $this->buildRequestBody($billingAgreement);
 
         if ($paypalCMID) {
             $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
@@ -237,7 +237,7 @@ class Request
      * @param \Magento\Quote\Model\Quote $quote
      *
      */
-    private function buildRequestBody()
+    private function buildRequestBody($billingAgreement = false)
     {
         $currencyCode   = $this->_quote->getBaseCurrencyCode();
         $amount         = $this->_formatPrice($this->_quote->getGrandTotal());
@@ -255,9 +255,9 @@ class Request
             'application_context' => [
                 'shipping_preference' => $this->_quote->isVirtual() ? 'NO_SHIPPING' : 'SET_PROVIDED_ADDRESS'
             ],
-            'payer' => $this->_getPayer(),
+            'payer' => $this->_getPayer($billingAgreement),
             'purchase_units' => [[
-                'invoice_id' => $this->_quote->getReservedOrderId(),
+                'invoice_id' => sprintf('%s-%s', \date('Ymdhis'), $this->_quote->getReservedOrderId()),
                 'amount' => [
                     'currency_code' => $currencyCode,
                     'value' => $amount
@@ -294,20 +294,31 @@ class Request
         return $requestBody;
     }
 
-    protected function _getPayer()
+    protected function _getPayer($isBillingAgreement = false)
     {
-        $ret = [
-            'email_address' => $this->_customerAddress->getEmail(),
-            'name' => [
-                'given_name' => $this->_customerAddress->getFirstname(),
-                'surname'    => $this->_customerAddress->getLastname()
-            ],
-            'phone' => [
-                'phone_number' => [
-                    'national_number' => $this->_customerAddress->getTelephone()
+
+        if ($isBillingAgreement) {
+            $ret = [
+                'email_address' => $this->_customerAddress->getEmail(),
+                'name' => [
+                    'given_name' => $this->_customerAddress->getFirstname(),
+                    'surname'    => $this->_customerAddress->getLastname()
                 ]
-            ]
-        ];
+            ];
+        } else {
+            $ret = [
+                'email_address' => $this->_customerAddress->getEmail(),
+                'name' => [
+                    'given_name' => $this->_customerAddress->getFirstname(),
+                    'surname'    => $this->_customerAddress->getLastname()
+                ],
+                'phone' => [
+                    'phone_number' => [
+                        'national_number' => $this->_customerAddress->getTelephone()
+                    ]
+                ]
+            ];
+        }
 
         return $ret;
     }

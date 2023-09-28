@@ -29,6 +29,7 @@ class Event
      * Payment capture denied event type code
      */
     const PAYMENT_CAPTURE_DENIED  = 'PAYMENT.CAPTURE.DENIED';
+    const CHECKOUT_ORDER_APPROVED = 'CHECKOUT.ORDER.APPROVED';
 
 
     /** @var \Magento\Sales\Model\Order\Payment */
@@ -89,7 +90,7 @@ class Event
      * @throws \Exception
      */
     public function processWebhook($eventData)
-    {   
+    {
         $event_type = isset($eventData['event_type']) ? $eventData['event_type'] : '';
 
         if (in_array($event_type, $this->getAvailableEvents())) {
@@ -115,6 +116,7 @@ class Event
                 $this->_paymentPending($eventData);
                 break;
 
+            case self::CHECKOUT_ORDER_APPROVED:
             case self::PAYMENT_CAPTURE_COMPLETED:
 
                 $this->_paymentCompleted($eventData);
@@ -133,10 +135,6 @@ class Event
             case self::PAYMENT_CAPTURE_DENIED:
 
                 $this->_paymentDenied($eventData);
-                break;
-            case self::CHECKOUT_ORDER_APPROVED:
-
-                $this->_paymentCompleted($eventData);
                 break;
 
             default:
@@ -282,18 +280,20 @@ class Event
             $this->_payment->setPreparedMessage($summary);
             $this->_payment->setNotificationResult(true);
             $this->_payment->setIsTransactionClosed(true);
-            //$this->_payment->deny(false);
 
-            $this->_payment->getOrder()            
+            $order = $this->_orderRepository->get($this->_payment->getOrder()->getId());
+            $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
+            $order->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED);
+            $order->save();
+
+            $this->_payment->getOrder()
                 ->addCommentToStatusHistory(
-                    __('Your order #%1 has been canceled.', $summary)
+                    __('Your order %1 has been canceled.', $summary)
                 )->setIsCustomerNotified(true)
                 ->save();
 
-            $this->orderManagement->cancel($this->_payment->getOrder()->getId());
-
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            $this->_logger->debug($e->getMessage());
+            $this->_logger->debug(sprintf('[PAYPAL-Webhook] Error Canceled: %s', $e->getMessage()));
         }
     }
 }

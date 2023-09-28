@@ -1,20 +1,18 @@
 <?php
 
-namespace PayPal\CommercePlatform\Controller\Order;
+namespace PayPal\CommercePlatform\Controller\Agreement;
 
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Filesystem\Driver\File;
 use PayPal\CommercePlatform\Logger\Handler;
-use PayPal\CommercePlatform\Model\Payment\Oxxo\Payment as OxxoPayment;
-use PayPal\CommercePlatform\Model\Paypal\Order\Request;
+use PayPal\CommercePlatform\Model\Paypal\Agreement\Financing\Request;
 
-class Index extends \Magento\Framework\App\Action\Action
+class Financing extends \Magento\Framework\App\Action\Action
 {
 
     const FRAUDNET_CMI_PARAM = 'fraudNetCMI';
-	const CUSTOMER_ID_PARAM = 'customer_email';
-	const BA_PARAM = 'ba';
+    const AGREEMENT_REFERENCE = 'agreementReference';
 
     /** @var \Magento\Framework\Filesystem\DriverInterface */
     protected $_driver;
@@ -22,38 +20,31 @@ class Index extends \Magento\Framework\App\Action\Action
     /** @var \PayPal\CommercePlatform\Logger\Handler */
     protected $_loggerHandler;
 
-    /** @var \PayPal\CommercePlatform\Model\Paypal\Order\Request */
-    protected $_paypalOrderRequest;
+    /** @var \PayPal\CommercePlatform\Model\Paypal\Agreement\Financing\Request */
+    protected $paypalFinancingRequest;
 
     /** @var \Magento\Framework\Controller\Result\JsonFactory */
     protected $_resultJsonFactory;
-    /**
-     * @var \PayPal\CommercePlatform\Model\Payment\Oxxo\Payment
-     */
-    private $oxxoPayment;
 
     /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Framework\Filesystem\Driver\File $driver
-     * @param \PayPal\CommercePlatform\Model\Paypal\Order\Request $paypalOrderRequest
+     * @param \PayPal\CommercePlatform\Model\Paypal\Agreement\Financing\Request $paypalAgreementTokenRequest
      * @param \PayPal\CommercePlatform\Logger\Handler $logger
      * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
-     * @param \PayPal\CommercePlatform\Model\Payment\Oxxo\Payment $oxxoPayment
      */
     public function __construct(
         Context $context,
         File $driver,
-        Request $paypalOrderRequest,
+        Request $paypalFinancingRequest,
         Handler $logger,
-        JsonFactory $resultJsonFactory,
-        OxxoPayment $oxxoPayment
+        JsonFactory $resultJsonFactory
     ) {
         parent::__construct($context);
         $this->_driver        = $driver;
         $this->_loggerHandler = $logger;
-        $this->_paypalOrderRequest = $paypalOrderRequest;
+        $this->paypalFinancingRequest = $paypalFinancingRequest;
         $this->_resultJsonFactory  = $resultJsonFactory;
-        $this->oxxoPayment  = $oxxoPayment;
     }
 
     /**
@@ -64,20 +55,18 @@ class Index extends \Magento\Framework\App\Action\Action
         $resultJson = $this->_resultJsonFactory->create();
         $httpBadRequestCode = '400';
         $httpErrorCode = '500';
+
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
             $paypalCMID = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
-			$customerEmail = $paramsData[self::CUSTOMER_ID_PARAM] ?? null;
-			$billingAgreement = isset($paramsData[self::BA_PARAM]) && $paramsData[self::BA_PARAM] == 1;
+            $agreementReference = $paramsData[self::AGREEMENT_REFERENCE] ?? null;
 
-            $response = $this->_paypalOrderRequest->createRequest($customerEmail, $paypalCMID, $billingAgreement);
+            $response = $this->paypalFinancingRequest->createRequest($agreementReference, $paypalCMID);
 
-            if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
-                $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);
-            }
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
-            $resultJson->setData(array('reason' => __('An error has occurred on the server, please try again later')));
+//            $resultJson->setData(array('reason' => __('An error has occurred on the server, please try again later')));
+            $resultJson->setData(array('reason' => $e->getMessage()) );
 
             return $resultJson->setHttpResponseCode($httpErrorCode);
         }

@@ -28,6 +28,7 @@ define(
             paypalConfigs: window.checkoutConfig.payment.paypalcp,
             isBcdcEnable: window.checkoutConfig.payment.paypalcp.bcdc.enable,
             isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
+            isEnableReferenceTransactions: window.checkoutConfig.payment.paypalcp.referenceTransaction.enable,
             fraudNetSwi: window.checkoutConfig.payment.paypalcp.fraudNet.sourceWebIdentifier, //Source Website Identifier
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             selectedMethod: null,

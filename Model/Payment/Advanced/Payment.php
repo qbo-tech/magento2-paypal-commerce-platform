@@ -5,7 +5,6 @@ namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 use Magento\Checkout\Model\Session;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
-use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PayPal\CommercePlatform\Model\Config;
 
@@ -17,6 +16,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     const PENDING_PAYMENT_NOTIFICATION = 'This order is on hold due to a pending payment. The order will be processed after the payment is approved at the payment gateway.';
     const DECLINE_ERROR_MESSAGE        = 'Declining Pending Payment Transaction';
     const GATEWAY_ERROR_MESSAGE        = 'Payment has been declined by Payment Gateway';
+    const BA_ERROR_MESSAGE             = 'It is not possible to use this payment agreement, please try another';
     const GATEWAY_NOT_TXN_ID_PRESENT   = 'The transaction id is not present';
     const DENIED_ERROR_MESSAGE         = 'Gateway response error';
     const COMPLETED_SALE_CODE          = 'COMPLETED';
@@ -86,6 +86,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      * @var \PayPal\CommercePlatform\Model\Config
      */
     protected $paypalConfig;
+    /**
+     * @var \PayPal\CommercePlatform\Model\Billing\Agreement
+     */
+    protected $billingAgreement;
 
     /**
      * @param \Magento\Framework\Model\Context $context
@@ -121,6 +125,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
+        \Magento\Customer\Model\Session $customerSession,
+        \PayPal\CommercePlatform\Model\Billing\Agreement $billingAgreement,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []
@@ -147,6 +153,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->transportBuilder = $transportBuilder;
         $this->storeManager = $storeManager;
         $this->paymentSource = null;
+        $this->billingAgreement = $billingAgreement;
     }
 
     public function refund(InfoInterface $payment, $amount)
@@ -235,26 +242,48 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             }
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
-
             if ($paypalCMID) {
                 $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
 
             $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
-
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
-
             $this->_processTransaction($payment);
-
             $this->_eventManager->dispatch('paypalcp_order_capture_after', ['payment' => $payment]);
+
         } catch (\Exception $e) {
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
 
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
             $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
-            throw new \Magento\Framework\Exception\LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
+            $paymentSource = json_decode($payment->getAdditionalInformation('payment_source'));
+            $errorMessage = self::GATEWAY_ERROR_MESSAGE;
+
+            if (
+                isset($paymentSource->token->type)
+                && $paymentSource->token->type == 'BILLING_AGREEMENT'
+                && isset($this->_response->message)
+                && json_decode($this->_response->message)->name == 'AGREEMENT_ALREADY_CANCELLED'
+            ) {
+                $this->removeBillingAgreement();
+                $errorMessage = self::BA_ERROR_MESSAGE;
+            }
+
+            throw new \Magento\Framework\Exception\LocalizedException(__($errorMessage));
         }
         return $this;
+    }
+
+
+    private function removeBillingAgreement(){
+        $currentBAId = $this->checkoutSession->getData('current_ba_id');
+        $billingAgreementModel = $this->billingAgreement->load($currentBAId);
+
+        if (!$billingAgreementModel->getId()) {
+            return;
+        }
+
+        $billingAgreementModel->delete();
     }
 
     /**

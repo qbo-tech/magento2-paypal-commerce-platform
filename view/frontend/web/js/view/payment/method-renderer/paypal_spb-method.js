@@ -30,18 +30,38 @@ define(
 
             paypalMethod: 'paypalspb',
             orderId: null,
+            currentBA: null,
+            currentBAId: null,
+            currentBAReference: null,
+            currentMethod: null,
             paypalConfigs: window.checkoutConfig.payment.paypalcp,
             isBcdcEnable: window.checkoutConfig.payment.paypalcp.bcdc.enable,
             isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
+            isEnableReferenceTransactions: window.checkoutConfig.payment.paypalcp.referenceTransaction.enable,
             fraudNetSwi: window.checkoutConfig.payment.paypalcp.fraudNet.sourceWebIdentifier, //Source Website Identifier
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             customerCards: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.payments.cards),
+            customerBillingAgreements: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.agreements),
+            customerId: window.checkoutConfig.payment.paypalcp.customer.id,
             canShowInstallments: ko.observable(false),
+            canShowInstallmentsBA: ko.observable(false),
             installmentsAvailable: ko.observable(false),
             installmentOptions: ko.observableArray(),
+            installmentAgreementOptions: ko.observableArray(),
             selectedInstallments: ko.observable(),
+            selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
 
+            isActiveReferenceTransaction: function () {
+                var self = this;
+
+
+                if (self.isEnableReferenceTransactions && self.customerId > 0) {
+                    return true;
+                }
+
+                return false;
+            },
             isActiveBcdc: function () {
                 var self = this;
 
@@ -67,6 +87,7 @@ define(
             },
             selectedPayPalMethod: function (method) {
                 var self = this;
+                self.currentMethod = method;
                 var data = this.getData();
 
                 self.selectedMethod = method;
@@ -97,22 +118,47 @@ define(
                     return this.paypalConfigs.splitOptions.title_method_paypal
                 }
             },
-            fillInstallmentOptions: function (financialOption) {
+
+            parseInstallOptions: function(qualifyingFinancingOption) {
+                return {
+                    value: qualifyingFinancingOption.monthly_payment.value,
+                    currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
+                    interval: $t(qualifyingFinancingOption.credit_financing.interval),
+                    term: qualifyingFinancingOption.credit_financing.term,
+                    interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
+                    discount_percentage: qualifyingFinancingOption.discount_percentage
+                };
+            },
+
+            fillInstallmentOptions: function (financialOption, filterByMinimum = false) {
                 var self = this;
                 var options = [];
 
+                if (filterByMinimum) {
+                    var msiMinimum = window.checkoutConfig.payment.paypalcp.referenceTransaction.msiMinimum;
+                    var total = totals.getSegment('grand_total').value;
+                    console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:',  msiMinimum, );
+                }
+
                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
-                    var option = {
-                        value: qualifyingFinancingOption.monthly_payment.value,
-                        currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
-                        interval: $t(qualifyingFinancingOption.credit_financing.interval),
-                        term: qualifyingFinancingOption.credit_financing.term,
-                        interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
-                        discount_percentage: qualifyingFinancingOption.discount_percentage
-                    };
+                    if (filterByMinimum) {
 
-                    options.push(option);
+                        let term = qualifyingFinancingOption.credit_financing.term;
+                        console.info('Current term: ', term);
+
+                        if (msiMinimum.hasOwnProperty(term)) {
+                            if(msiMinimum[term] <= total) {
+                                options.push(self.parseInstallOptions(qualifyingFinancingOption));
+                            }
+                        } else {
+                            options.push(self.parseInstallOptions(qualifyingFinancingOption));
+                        }
+
+                    } else {
+                        options.push(self.parseInstallOptions(qualifyingFinancingOption));
+                    }
+
                 });
 
                 return options;
@@ -128,16 +174,23 @@ define(
             getData: function () {
                 var self = this;
 
+                if(self.currentMethod == 'paypalcp_spb' && self.isActiveReferenceTransaction()){
+                    var paymentType = 'BILLING_AGREEMENT';
+                    var submitOptions = self.validateBillingAgreementInstallment({});
+                } else {
+                    var paymentType = self.isActiveAcdc ? 'PayPal_Advanced' : 'PayPal_Basic';
+                    var submitOptions = self.validateInstallment({});
+                }
+
                 var data = {
                     method: self.paypalMethod,
                     additional_data: {
+                        id: self.orderId,
                         order_id: self.orderId,
                         fraudNetCMI: self.sessionIdentifier,
-                        payment_type: (self.isActiveAcdc) ? 'PayPal_Advanced' : 'PayPal_Basic'
+                        payment_type: paymentType
                     }
                 };
-
-                var submitOptions = self.validateInstallment({});
 
                 if ((submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
                     data.additional_data.payment_source = JSON.stringify(submitOptions.payment_source);
@@ -147,32 +200,62 @@ define(
             },
             renderButton: function (fundingSource, elementId) {
                 var self = this;
+                if (self.isActiveReferenceTransaction()) {
+                    elementId = elementId+'-ba';
+                    // Initialize the buttons
+                    var button = paypal.Buttons({
+                        style: {
+                            label:   'pay'
+                        },
+                        fundingSource: fundingSource,
+                        // Generate billing agreement token
+                        createBillingAgreement: function (data, actions) {
+                            return self.createBillingAgreementToken(data, actions).then(function (response) {
+                                return response.result.token_id;
+                            });
+                        },
 
-                // Initialize the buttons
-                var button = paypal.Buttons({
-                    fundingSource: fundingSource,
-                    // Set up the transaction
-                    createOrder: function (data, actions) {
+                        // Finalize billing agreement
+                        onApprove: function (data, actions) {
+                            return self.createBillingAgreement(data, actions).then(function (response) {
+                                self.orderId = data.orderID;
+                            });
+                        },
 
-                        var retOrder = self.createOrder(data, actions).then(function (response) {
-                            return response.result.id;
-                        }).then(function (res) {
-                            return res;
-                        });
+                        onError: function (err) {
+                            self._enableCheckout();
+                        }
+                    });
+                } else {
+                    // Initialize the buttons
+                    var button = paypal.Buttons({
+                        fundingSource: fundingSource,
+                        // Set up the transaction
+                        createOrder: function (data, actions) {
 
-                        return retOrder;
-                    },
+                            var retOrder = self.createOrder(data, actions).then(function (response) {
+                                return response.result.id;
+                            }).then(function (res) {
+                                return res;
+                            });
 
-                    // Finalize the transaction
-                    onApprove: function (data, actions) {
-                        self.orderId = data.orderID;
-                        self.placeOrder();
-                    }
-                });
+                            return retOrder;
+                        },
+
+                        // Finalize the transaction
+                        onApprove: function (data, actions) {
+                            self.orderId = data.orderID;
+                            self.placeOrder();
+                        },
+
+                        onError: function (err) {
+                            self._enableCheckout();
+                        }
+                    });
+                }
 
                 // Check if the button is eligible
                 if (button.isEligible()) {
-
                     // Render the standalone button for that funding source
                     button.render('#' + elementId);
                 }
@@ -286,7 +369,7 @@ define(
 
                             return fetch('/paypalcheckout/order', {
                                 method: 'post',
-				body: JSON.stringify(requestBody),
+				                body: JSON.stringify(requestBody),
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
@@ -345,6 +428,7 @@ define(
                         });
 
                         $('#co-payment-form, #card-form').submit(function (event) {
+                            console.info('submitting...');
                             event.preventDefault();
 
                             $('#submit').prop('disabled', true);
@@ -387,9 +471,11 @@ define(
             },
             createOrder: function (requestBody) {
                 var self = this;
+                console.info('createOrder');
 
                 requestBody.fraudNetCMI = self.sessionIdentifier;
                 requestBody.customer_email = quote.guestEmail;
+                requestBody.ba = Number(self.isActiveReferenceTransaction());
 
                 console.log('createOrder#requestBody', requestBody);
 
@@ -398,6 +484,78 @@ define(
                     console.log('createOrder#response', response);
                     console.log('createOrder#response.result.id', response.result.id);
 
+                    return response;
+                }
+                ).fail(function (response) {
+                    self._enableCheckout();
+                });
+            },
+            createBillingAgreementToken: function (requestBody) {
+                var self = this;
+
+                requestBody.fraudNetCMI = self.sessionIdentifier;
+                requestBody.customer_email = quote.guestEmail;
+
+                console.log('createBillingAgreementToken#requestBody', requestBody);
+
+                return storage.post('/paypalcheckout/agreement/token', JSON.stringify(requestBody)
+                ).done(function (response) {
+                    console.log('createBillingAgreementToken#response', response);
+                    console.log('createBillingAgreementToken#response.result.token_id', response.result.token_id);
+
+                    return response;
+                }
+                ).fail(function (response) {
+                    self._enableCheckout();
+                });
+            },
+            createBillingAgreement: function (requestBody) {
+                var self = this;
+
+                requestBody.fraudNetCMI = self.sessionIdentifier;
+                requestBody.customer_email = quote.guestEmail;
+
+                console.log('createBillingAgreementToken#requestBody', requestBody);
+
+                return storage.post('/paypalcheckout/agreement/create', JSON.stringify(requestBody)
+                ).done(function (response) {
+                    console.log('createBillingAgreementToken#response', response);
+                    console.log('createBillingAgreementToken#response.result.token_id', response.paypal.result.token_id);
+                    self.customerBillingAgreements.removeAll();
+                    response.billingAgreements.forEach(function (agreement) {
+                        self.customerBillingAgreements.push(agreement);
+                    });
+                    self.initializeAgreementsEvents();
+                    $('.agreement-list input[name=pp-input-agreement]').eq(-2).click();
+                    return response.paypal;
+                }
+                ).fail(function (response) {
+                    self._enableCheckout();
+                });
+            },
+            getBillingAgreement: function (requestBody) {
+                var self = this;
+                console.log('getBillingAgreement#requestBody', requestBody);
+                return storage.post('/paypalcheckout/agreement/reference', JSON.stringify(requestBody)
+                ).done(function (response) {
+                    console.log('getBillingAgreement#response', response);
+                    return response;
+                }
+                ).fail(function (response) {
+                    self._enableCheckout();
+                });
+            },
+            calculatedFinancingOptions: function (requestBody) {
+                var self = this;
+
+                requestBody.fraudNetCMI = self.sessionIdentifier;
+                requestBody.billingAgreementId = self.guestEmail;
+
+                console.log('calculatedFinancingOptions#requestBody', requestBody);
+
+                return storage.post('/paypalcheckout/agreement/financing', JSON.stringify(requestBody)
+                ).done(function (response) {
+                    console.log('calculatedFinancingOptions#response', response);
                     return response;
                 }
                 ).fail(function (response) {
@@ -420,6 +578,14 @@ define(
                 var self = this;
                 self.logger('loadSDK')
 
+                var currentBA = $('.agreement-list input[name=pp-input-agreement]:checked').val();
+
+                if ((typeof currentBA === 'undefined')) {
+                    self.canShowInstallmentsBA(false);
+                } else {
+                    self.canShowInstallmentsBA(true);
+                }
+
                 if ((typeof paypal === 'undefined')) {
                     var body = $('body').loader();
 
@@ -429,6 +595,7 @@ define(
 
                     return paypalSdkAdapter.loadSdk(function () {
                         self.renderButtons();
+                        console.info('paypalSdkAdapter', paypalSdkAdapter)
 
                         body.loader('hide');
 
@@ -458,21 +625,14 @@ define(
                     self.renderButton(fundingSource, FUNDING_SOURCES[fundingSource])
                 });
 
-                if (self.isAcdcEnable && window.checkoutConfig.payment.paypalcp.acdc.card_fisrt_acdc) {
-                    $('#acdc_card').each(function () {
-                        if (!$(this).text().match(/^\s*$/)) {
-                            $(this).insertBefore($(this).prev('#acdc_button'));
-                        }
-                    });
-                }
-
             },
             validateInstallment: function (submitOptions) {
                 var self = this;
 
                 const installment = self.selectedInstallments();
+                console.info('current installment card: ', installment);
 
-                if (installment && installment.term !== '') {
+                if (installment && installment.term !== '' && installment.term > 1) {
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
@@ -489,6 +649,66 @@ define(
                                     attributes: {
                                         installments: submitOptions.installments
                                     }
+                                }
+                            }
+                        }
+                        self.logger(submitOptions);
+                    }
+
+                } else {
+
+                    self.logger('validateInstallment#submitOPtion', submitOptions);
+
+                    if ((self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
+                        submitOptions = {
+                            payment_source: {
+                                token: {
+                                    id: $('.customer-card-list > ul > li > input[name=card]:checked').val(),
+                                    type: "PAYMENT_METHOD_TOKEN"
+                                }
+                            }
+                        }
+                        self.logger(submitOptions);
+                    }
+                }
+
+                return submitOptions;
+            },
+            validateBillingAgreementInstallment: function (submitOptions) {
+                var self = this;
+
+                const installment = self.selectedInstallmentsBA();
+
+                console.info('current installment ba: ', installment);
+                if (installment && installment.term !== '' && installment.term > 1) {
+                    submitOptions.installments = {
+                        term: installment.term,
+                        interval_duration: installment.interval_duration,
+                        intervalDuration: installment.interval_duration
+                    };
+                    self.logger('validateBillingAgreementInstallment#submitOption', submitOptions);
+                    if ((self.customerBillingAgreements().length > 0) && $('.agreement-list input[name=pp-input-agreement]:checked').val() != 'new-agreement') {
+                        submitOptions = {
+                            payment_source: {
+                                token: {
+                                    id: self.currentBA,
+                                    type: "BILLING_AGREEMENT",
+                                    attributes: {
+                                        installments: submitOptions.installments
+                                    }
+                                }
+                            }
+                        }
+                        self.logger(submitOptions);
+                    }
+
+                } else {
+                    if ((self.customerBillingAgreements().length > 0) && $('.agreement-list input[name=pp-input-agreement]:checked').val() != 'new-agreement') {
+                        submitOptions = {
+                            payment_source: {
+                                token: {
+                                    id: self.currentBA,
+                                    type: "BILLING_AGREEMENT"
                                 }
                             }
                         }
@@ -525,9 +745,18 @@ define(
                 self.isVisibleCard(true);
                 self.loadFraudnet();
 
-                if (self.customerCards().length > 0) {
-                    $('#paypalcheckout').hide();
-                } else {
+                if (self.isAcdcEnable && window.checkoutConfig.payment.paypalcp.acdc.card_fisrt_acdc) {
+                    $('#acdc_card').each(function () {
+                        if (!$(this).text().match(/^\s*$/)) {
+                            $(this).insertBefore($(this).prev('#acdc_button'));
+                        }
+                    });
+                }
+
+                if (self.isActiveBcdc() || self.isActiveAcdc() ) {
+                    if (self.customerCards().length > 0) {
+                        $('#paypalcheckout').hide();
+                    }
                     self.loadSdk();
                 }
 
@@ -568,6 +797,32 @@ define(
                     });
                 });
 
+                $('.agreement-list').on('click', '.agreement-delete', function(el){
+                    body.loader('show');
+
+                    var objAgreement = $(this);
+                    var agreementId = objAgreement.data('id');
+
+                    const agreement = self.customerBillingAgreements().find(element => element.id == agreementId);
+                    let referenceId = agreement.reference;
+
+                    self.logger('ON CANCEL Agreement ', agreementId);
+
+                    return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({ id: agreementId, reference: referenceId })
+                    ).done(function (response) {
+                            $('li#agreement-' + agreementId).remove();
+                            self.installmentAgreementOptions(null);
+                            self.selectedInstallmentsBA(null);
+                            self.canShowInstallmentsBA(false);
+                            $('#token-ba-submit').prop('disabled', true);
+                            self._enableCheckout();
+                            return response;
+                    }).fail(function (response) {
+                        console.error('FAIL CANCEL Agreement | response :', response);
+                        self._enableCheckout();
+                    });
+                });
+
                 $('.customer-card-list > ul > li > input[name=card]').change(function () {
                     var body = $('body').loader();
                     body.loader('show');
@@ -589,11 +844,13 @@ define(
 
                         const card = self.customerCards().find(element => element.id == cardId);
 
-                        var options = self.fillInstallmentOptions(card.financing_options[0]);
+                        if(self.isInstallmentsEnable()){
+                            var options = self.fillInstallmentOptions(card.financing_options[0]);
+                            self.installmentOptions(options);
+                            self.installmentsAvailable(true);
+                            self.canShowInstallments(true);
+                        }
 
-                        self.installmentOptions(options);
-                        self.installmentsAvailable(true);
-                        self.canShowInstallments(true);
                     }
                     body.loader('hide');
                 });
@@ -603,7 +860,7 @@ define(
                     event.preventDefault();
 
                     var submitOptions = {};
-                    submitOptions = self.validateInstallment(submitOptions);
+                    self.validateInstallment(submitOptions);
 
                     self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
                         console.log('token-submit#createOrder#done#response', response);
@@ -612,6 +869,100 @@ define(
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
                         $('#submit').prop('disabled', false);
+                    });
+
+                    $('#submit').prop('disabled', false);
+                });
+
+                if ( self.isActiveReferenceTransaction()) {
+                    self.initializeAgreementsEvents();
+                }
+            },
+            initializeAgreementsEvents: function () {
+                var self = this;
+
+                if(self.customerBillingAgreements().length > 0){
+                    $('#paypal-button-container-ba').hide();
+                }
+
+                // agreements events
+                $('.agreement-list input[name=pp-input-agreement]').change(function () {
+                    var body = $('body').loader();
+                    body.loader('show');
+
+                    self.installmentAgreementOptions(null);
+                    self.selectedInstallmentsBA(null);
+                    self.canShowInstallmentsBA(false);
+
+                    if (this.id == 'new-agreement') {
+                        $('#agreement-token').hide();
+                        $('#paypal-button-container-ba').show();
+                    } else {
+
+                        $('#agreement-token').show();
+                        $('#paypal-button-container-ba').hide();
+
+                        var agreementId = this.id;
+                        const agreement = self.customerBillingAgreements().find(element => element.id == agreementId);
+                        self.currentBAId = agreementId;
+                        self.currentBAReference = agreement.reference;
+
+                        if(self.isInstallmentsEnable()){
+                            $('#token-ba-submit').prop('disabled', true);
+
+                            self.calculatedFinancingOptions({ 'agreementReference': agreement.reference }).done(function (response) {
+                                console.log('agreementReference#response', response);
+                                var financialOptions = response.result.financing_options[0];
+
+                                console.info('financialOptions ===> ', financialOptions);
+
+                                var options = self.fillInstallmentOptions(financialOptions, true);
+                                console.log('agreementReference#options', response);
+
+                                self.installmentAgreementOptions(options);
+                                self.installmentsAvailable(true);
+                                self.canShowInstallmentsBA(true);
+                                $('#token-ba-submit').prop('disabled', false);
+
+                            }).fail(function (response) {
+                                console.error('FAILED paid whit token card', response);
+                            })
+                        }else{
+                            $('#token-ba-submit').prop('disabled', false);
+                        }
+
+                    }
+                    body.loader('hide');
+                });
+
+                $('.agreement-list button#token-ba-submit').click(function (event) {
+
+                    var body = $('body').loader();
+                    body.loader('show');
+
+                    $('#token-ba-submit').prop('disabled', true);
+                    event.preventDefault();
+
+                    self.getBillingAgreement({ 'id': self.currentBAId, 'reference': self.currentBAReference }).done(function (response) {
+                        self.currentBA = response.ba;
+                        var submitOptions = {};
+                        self.validateBillingAgreementInstallment(submitOptions);
+
+                        self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
+                            console.log('token-ba-submit#createOrder#done#response', response);
+                            self.orderId = response.result.id;
+                            $(this).prop('checked', false);
+                            $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
+                            self.placeOrder();
+                            self._enableCheckout();
+                        }).fail(function (response) {
+                            console.error('FAILED paid whit token card', response);
+                            self._enableCheckout();
+                        });
+                    }).fail(function (response) {
+                        console.error('FAILED paid whit token card', response);
+                        $('#submit').prop('disabled', false);
+                        self._enableCheckout();
                     });
 
                     $('#submit').prop('disabled', false);
@@ -628,7 +979,6 @@ define(
 
                 $('.ppcp.payment-method').removeClass('_active');
                 self.initializeEvents();
-
                 self._enableCheckout();
 
             },
