@@ -27,7 +27,7 @@
 </div>
 
 <div class="ppcp payment-method"
-    data-bind="css: {'_active': ( 'paypalspb_paypal' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveBcdc()">
+    data-bind="css: {'_active': ( 'paypalspb_paypal' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveReferenceTransaction()">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
             data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalspb_paypal', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_paypal')}" />

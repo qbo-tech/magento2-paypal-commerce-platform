@@ -65,7 +65,7 @@ define(
             isActiveBcdc: function () {
                 var self = this;
 
-                return ((self.isBcdcEnable) && (!self.isAcdcEnable));
+                return ((self.isBcdcEnable) && (!self.isAcdcEnable) && (!self.isEnableReferenceTransactions));
             },
             isActiveAcdc: function () {
                 var self = this;
@@ -600,7 +600,7 @@ define(
                         body.loader('hide');
 
                         return this;
-                    });
+                    }, self.isActiveReferenceTransaction());
                 }
             },
             renderButtons: function () {
@@ -612,8 +612,6 @@ define(
 
                 if (self.isAcdcEnable) {
                     self.renderHostedFields();
-                } else if (self.isBcdcEnable) {
-                    FUNDING_SOURCES[paypal.FUNDING.CARD] = 'card-button-container';
                 } else {
                     FUNDING_SOURCES[paypal.FUNDING.CARD] = 'card-button-container';
                 }
@@ -753,12 +751,10 @@ define(
                     });
                 }
 
-                if (self.isActiveBcdc() || self.isActiveAcdc() ) {
-                    if (self.customerCards().length > 0) {
-                        $('#paypalcheckout').hide();
-                    }
-                    self.loadSdk();
+                if (self.customerCards().length > 0) {
+                    $('#paypalcheckout').hide();
                 }
+                self.loadSdk();
 
                 $('#paypalcp_spb').change(function () {
                     if (this.checked) {

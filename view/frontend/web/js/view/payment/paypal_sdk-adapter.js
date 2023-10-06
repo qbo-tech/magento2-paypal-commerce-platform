@@ -14,13 +14,21 @@ define([
         isVaultingEnable: window.checkoutConfig.payment.paypalcp.acdc.enable_vaulting,
         isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
 
-        loadSdk: function (callbackOnLoaded) {
+        loadSdk: function (callbackOnLoaded, withVault = false) {
             var self = this;
-            self.logger('#loadSdk#', callbackOnLoaded);
+            self.logger('#loadSdk 1 #', callbackOnLoaded);
+            self.logger('#loadSdk 2 #', withVault);
 
             self.onLoadedCallback = callbackOnLoaded;
 
+            if(withVault) {
+                self.paypalSdk += '&vault=true';
+            }
+
             var componentUrl = self.paypalSdk;
+
+            console.info('self.paypalSdk ', self.paypalSdk);
+
 
             if ((typeof paypal === 'undefined')) {
 
