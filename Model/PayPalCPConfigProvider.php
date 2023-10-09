@@ -3,7 +3,7 @@
 namespace PayPal\CommercePlatform\Model;
 
 /**
- * Class ConfigProvider
+ * Class PaypalCPConfigProvider
  */
 class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
