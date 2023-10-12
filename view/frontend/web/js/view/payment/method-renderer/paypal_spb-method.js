@@ -23,6 +23,8 @@ define(
             window.checkoutConfig.payment.paypalcp.template = 'PayPal_CommercePlatform/payment/paypal-standard';
         }
 
+        console.info('window.checkoutConfig.payment.paypalcp.template ==> ', window.checkoutConfig.payment.paypalcp.template);
+
         return Component.extend({
             defaults: {
                 template: window.checkoutConfig.payment.paypalcp.template //'PayPal_CommercePlatform/payment/paypal_spb'
