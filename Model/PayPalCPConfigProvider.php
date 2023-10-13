@@ -135,11 +135,13 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             self::SDK_CONFIG_CLIENT_ID  => $this->_paypalConfig->getClientId(),
             self::SDK_CONFIG_CURRENCY   => $this->_paypalConfig->getCurrency(),
             self::SDK_CONFIG_DEBUG      => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE) ? 'true' : 'false',
-            self::SDK_CONFIG_COMPONENTS => 'hosted-fields,buttons',
             self::SDK_CONFIG_LOCALE     => $this->_paypalConfig->getLocale(),
             self::SDK_CONFIG_INTENT     => 'capture',
-            //self::SDK_CONFIG_DISABLE_FUNDING => $this->canRemember() ? 'card' : null,
         ];
+
+        if($this->_paypalConfig->isEnableAcdc()){
+            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'hosted-fields,buttons';
+        }
     }
 
     public function canRemember()

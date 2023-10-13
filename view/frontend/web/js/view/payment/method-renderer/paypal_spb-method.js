@@ -602,7 +602,7 @@ define(
                         body.loader('hide');
 
                         return this;
-                    }, self.isActiveReferenceTransaction());
+                    }, self.isActiveReferenceTransaction() || self.isActiveAcdc());
                 }
             },
             renderButtons: function () {
