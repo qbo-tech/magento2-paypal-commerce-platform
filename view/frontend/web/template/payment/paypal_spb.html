@@ -1,8 +1,9 @@
+<!-- ko ifnot: (isActiveReferenceTransaction()) -->
 <div class="ppcp payment-method"
-    data-bind="css: {'_active': ( 'paypalspb_card' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveBcdc()">
+     data-bind="css: {'_active': ( 'paypalspb_card' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveBcdc()">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode('paypalspb_card')}, value: 'paypalspb_card', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_card') }" />
+               data-bind="attr: {'id': getCode('paypalspb_card')}, value: 'paypalspb_card', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_card') }" />
         <label class="label" data-bind="attr: {'for': getCode('paypalspb_card')}">
             <span>Tarjeta de Crédito o Débito</span>
         </label>
@@ -13,7 +14,6 @@
         <!-- /ko -->
         <!--         /ko -->
 
-        <div id="paypal-button-container" style="min-height: 86px;"></div>
         <div id="card-button-container" style="min-height: 50px;"></div>
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
@@ -28,10 +28,10 @@
 </div>
 
 <div class="ppcp payment-method"
-    data-bind="css: {'_active': ( 'paypalspb_paypal' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveReferenceTransaction()">
+     data-bind="css: {'_active': ( 'paypalspb_paypal' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveBcdc()">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalspb_paypal', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_paypal')}" />
+               data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalspb_paypal', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_paypal')}" />
         <label class="label" data-bind="attr: {'for': getCode('paypalspb_paypal')}">
             <span>Pago con PayPal</span>
         </label>
@@ -42,7 +42,36 @@
         <!-- /ko -->
         <!--         /ko -->
 
-        <!-- ko if: (isActiveReferenceTransaction()) -->
+        <div id="paypal-button-container" style="min-height: 50px;"></div>
+        <div class="checkout-agreements-block">
+            <!--             ko foreach: $parent.getRegion('before-place-order') -->
+            <!--                 ko template: getTemplate() -->
+            <!-- /ko -->
+            <!--             /ko -->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary" data-bind="attr: {'id': getCode('paypalspb_paypal')}"></div>
+        </div>
+    </div>
+</div>
+<!-- /ko -->
+
+<!-- ko if: (isActiveReferenceTransaction()) -->
+<div class="ppcp payment-method"
+     data-bind="css: {'_active': ( 'paypalspb_paypal' == isSelected())}, attr: {isSel: isSelected()}, visible: isActiveReferenceTransaction()">
+    <div class="payment-method-title field choice">
+        <input type="radio" name="payment[method]" class="radio"
+               data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalspb_paypal', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_paypal')}"/>
+        <label class="label" data-bind="attr: {'for': getCode('paypalspb_paypal')}">
+            <span>Pago con PayPal</span>
+        </label>
+    </div>
+    <div class="payment-method-content">
+        <!--         ko foreach: getRegion('messages') -->
+        <!--         ko template: getTemplate() -->
+        <!-- /ko -->
+        <!--         /ko -->
+
         <div class="agreement-list">
             <div data-bind="if: isActiveReferenceTransaction(), visible: customerBillingAgreements().length > 0">
                 <ul>
@@ -54,7 +83,8 @@
                     <li data-bind="attr: {id: 'agreement-' + id}">
                         <input type="radio" name="pp-input-agreement" data-bind="attr: {'id': id, 'value': id}">
                         <label data-bind="attr: {for: id}">
-                            <img width="60px" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" class="paypal-logo" alt="paypal"/>
+                            <img width="60px" src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png"
+                                 class="paypal-logo" alt="paypal"/>
                             <span data-bind="text: email"> </span>
                         </label>
                         <span class="agreement-delete" data-bind="attr: {'data-id': id}">&nbsp;</span>
@@ -94,8 +124,8 @@
                 </div>
             </div>
             <div id="paypal-button-container-ba"></div>
+            <div id="card-button-container-ba" style="display: none;"></div>
         </div>
-        <!-- /ko -->
 
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
@@ -108,4 +138,6 @@
         </div>
     </div>
 </div>
+<!-- /ko -->
+
 <div data-bind="afterRender:completeRender() "></div>
