@@ -108,10 +108,10 @@ define(
                 return false;
             },
             isInstallmentsEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
             },
             isVaultingEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customer.id != null));
+                return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customer.id != null));
             },
             getTitleMethodPaypal: function () {
                 if ((this.isBcdcEnable == false) && (this.isAcdcEnable == false)) {
