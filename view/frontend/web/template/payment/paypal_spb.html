@@ -13,6 +13,7 @@
         <!-- /ko -->
         <!--         /ko -->
 
+        <div id="paypal-button-container" style="min-height: 86px;"></div>
         <div id="card-button-container" style="min-height: 50px;"></div>
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
@@ -94,10 +95,6 @@
             </div>
             <div id="paypal-button-container-ba"></div>
         </div>
-        <!-- /ko -->
-
-        <!-- ko ifnot: (isActiveReferenceTransaction()) -->
-        <div data-bind="if: !isActiveReferenceTransaction()" id="paypal-button-container" style="min-height: 50px;"></div>
         <!-- /ko -->
 
         <div class="checkout-agreements-block">
