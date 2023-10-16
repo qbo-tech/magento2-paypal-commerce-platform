@@ -202,6 +202,7 @@ define(
             },
             renderButton: function (fundingSource, elementId) {
                 var self = this;
+                console.info('elementId ==> ', elementId);
                 if (self.isActiveReferenceTransaction()) {
                     elementId = elementId+'-ba';
                     // Initialize the buttons
@@ -234,13 +235,12 @@ define(
                         fundingSource: fundingSource,
                         // Set up the transaction
                         createOrder: function (data, actions) {
-
                             var retOrder = self.createOrder(data, actions).then(function (response) {
                                 return response.result.id;
                             }).then(function (res) {
+                                self._enableCheckout();
                                 return res;
                             });
-
                             return retOrder;
                         },
 
@@ -440,7 +440,7 @@ define(
 
                             var submitOptions = {
                                 cardholderName: document.getElementById('card-holder-name').value,
-                                vault: $('#vault').is(':checked')
+                                vault: $('#vault').is(':checked'),
                             };
 
                             submitOptions = self.validateInstallment(submitOptions);
@@ -475,13 +475,16 @@ define(
                 var self = this;
                 console.info('createOrder');
 
+                var body = $('body').loader();
+                body.loader('show');
+
                 requestBody.fraudNetCMI = self.sessionIdentifier;
                 requestBody.customer_email = quote.guestEmail;
                 requestBody.ba = Number(self.isActiveReferenceTransaction());
 
                 console.log('createOrder#requestBody', requestBody);
 
-                return storage.post('/paypalcheckout/order', JSON.stringify(requestBody)
+                return storage.post('paypalcheckout/order', JSON.stringify(requestBody)
                 ).done(function (response) {
                     console.log('createOrder#response', response);
                     console.log('createOrder#response.result.id', response.result.id);
@@ -638,7 +641,7 @@ define(
                         interval_duration: installment.interval_duration,
                         intervalDuration: installment.interval_duration
                     };
-                    self.logger('validateInstallment#submitOPtion', submitOptions);
+                    self.logger('validateInstallment#submitOption', submitOptions);
 
                     if ((self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
                         submitOptions = {
@@ -671,6 +674,9 @@ define(
                         self.logger(submitOptions);
                     }
                 }
+
+                self.logger('submitOptions#final', submitOptions);
+
 
                 return submitOptions;
             },
