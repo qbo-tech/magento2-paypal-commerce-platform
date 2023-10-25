@@ -47,18 +47,17 @@ class Cancel extends \Magento\Framework\App\Action\Action
             return false;
         }
 
-        $resultJson = $this->_resultJsonFactory->create();
+        $this->removeBillingAgreement($id);
 
         try {
 
+            $resultJson = $this->_resultJsonFactory->create();
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Agreement\Cancel($billingAgreement));
             $resultJson->setHttpResponseCode($response->statusCode);
-            $this->removeBillingAgreement($id);
 
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
-            throw $e;
         }
 
         return $resultJson->setData($response);

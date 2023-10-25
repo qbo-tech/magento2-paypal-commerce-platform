@@ -176,7 +176,7 @@ define(
             getData: function () {
                 var self = this;
 
-                if(self.currentMethod == 'paypalcp_spb' && self.isActiveReferenceTransaction()){
+                if((self.currentMethod == 'paypalcp_spb' || self.currentMethod == 'paypalspb_paypal' ) && self.isActiveReferenceTransaction()){
                     var paymentType = 'BILLING_AGREEMENT';
                     var submitOptions = self.validateBillingAgreementInstallment({});
                 } else {
@@ -371,24 +371,25 @@ define(
 
                             return fetch('/paypalcheckout/order', {
                                 method: 'post',
-				                body: JSON.stringify(requestBody),
+                                body: JSON.stringify(requestBody),
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
                                 }
                             }).then(function (res) {
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
+                                self._enableCheckout();
+
                                 if (res.ok) {
                                     return res.json();
                                 } else {
                                     self.messageContainer.addErrorMessage({
                                         message: $t('An error has occurred on the server, please try again later')
                                     });
-                                    self._enableCheckout();
-
                                     return false;
                                 }
                             }).then(function (data) {
+                                self._enableCheckout();
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
                                 return data.result.id;
                             }).catch(function (error) {
@@ -404,10 +405,12 @@ define(
                             self.placeOrder();
                         },
                         onError: function (err) {
+
                             self.logger('paypal_advanced-method#hostedfieldsRender#onError', err);
                             self.messageContainer.addErrorMessage({
                                 message: $t('Transaction cannot be processed, please verify your card information or try another.')
                             });
+                            self._enableCheckout();
                         }
 
                     }).then(function (hf) {
@@ -486,12 +489,15 @@ define(
 
                 return storage.post('paypalcheckout/order', JSON.stringify(requestBody)
                 ).done(function (response) {
-                    console.log('createOrder#response', response);
-                    console.log('createOrder#response.result.id', response.result.id);
+                        console.log('createOrder#response', response);
+                        console.log('createOrder#response.result.id', response.result.id);
 
-                    return response;
-                }
+                        return response;
+                    }
                 ).fail(function (response) {
+                    if(self.isActiveReferenceTransaction()){
+                        self.cancelAgreement(self.currentBA, self.currentBAReference);
+                    }
                     self._enableCheckout();
                 });
             },
@@ -505,11 +511,11 @@ define(
 
                 return storage.post('/paypalcheckout/agreement/token', JSON.stringify(requestBody)
                 ).done(function (response) {
-                    console.log('createBillingAgreementToken#response', response);
-                    console.log('createBillingAgreementToken#response.result.token_id', response.result.token_id);
+                        console.log('createBillingAgreementToken#response', response);
+                        console.log('createBillingAgreementToken#response.result.token_id', response.result.token_id);
 
-                    return response;
-                }
+                        return response;
+                    }
                 ).fail(function (response) {
                     self._enableCheckout();
                 });
@@ -524,16 +530,16 @@ define(
 
                 return storage.post('/paypalcheckout/agreement/create', JSON.stringify(requestBody)
                 ).done(function (response) {
-                    console.log('createBillingAgreementToken#response', response);
-                    console.log('createBillingAgreementToken#response.result.token_id', response.paypal.result.token_id);
-                    self.customerBillingAgreements.removeAll();
-                    response.billingAgreements.forEach(function (agreement) {
-                        self.customerBillingAgreements.push(agreement);
-                    });
-                    self.initializeAgreementsEvents();
-                    $('.agreement-list input[name=pp-input-agreement]').eq(-2).click();
-                    return response.paypal;
-                }
+                        console.log('createBillingAgreementToken#response', response);
+                        console.log('createBillingAgreementToken#response.result.token_id', response.paypal.result.token_id);
+                        self.customerBillingAgreements.removeAll();
+                        response.billingAgreements.forEach(function (agreement) {
+                            self.customerBillingAgreements.push(agreement);
+                        });
+                        self.initializeAgreementsEvents();
+                        $('.agreement-list input[name=pp-input-agreement]').eq(-2).click();
+                        return response.paypal;
+                    }
                 ).fail(function (response) {
                     self._enableCheckout();
                 });
@@ -543,9 +549,9 @@ define(
                 console.log('getBillingAgreement#requestBody', requestBody);
                 return storage.post('/paypalcheckout/agreement/reference', JSON.stringify(requestBody)
                 ).done(function (response) {
-                    console.log('getBillingAgreement#response', response);
-                    return response;
-                }
+                        console.log('getBillingAgreement#response', response);
+                        return response;
+                    }
                 ).fail(function (response) {
                     self._enableCheckout();
                 });
@@ -560,9 +566,9 @@ define(
 
                 return storage.post('/paypalcheckout/agreement/financing', JSON.stringify(requestBody)
                 ).done(function (response) {
-                    console.log('calculatedFinancingOptions#response', response);
-                    return response;
-                }
+                        console.log('calculatedFinancingOptions#response', response);
+                        return response;
+                    }
                 ).fail(function (response) {
                     self._enableCheckout();
                 });
@@ -789,11 +795,11 @@ define(
                     return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({ id: tokenId })
                     ).done(function (response) {
 
-                        $('li#card-' + tokenId).remove();
-                        self._enableCheckout();
+                            $('li#card-' + tokenId).remove();
+                            self._enableCheckout();
 
-                        return response;
-                    }
+                            return response;
+                        }
                     ).fail(function (response) {
                         console.error('FAIL DELETE | response :', response);
                         self._enableCheckout();
@@ -812,19 +818,8 @@ define(
 
                     self.logger('ON CANCEL Agreement ', agreementId);
 
-                    return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({ id: agreementId, reference: referenceId })
-                    ).done(function (response) {
-                            $('li#agreement-' + agreementId).remove();
-                            self.installmentAgreementOptions(null);
-                            self.selectedInstallmentsBA(null);
-                            self.canShowInstallmentsBA(false);
-                            $('#token-ba-submit').prop('disabled', true);
-                            self._enableCheckout();
-                            return response;
-                    }).fail(function (response) {
-                        console.error('FAIL CANCEL Agreement | response :', response);
-                        self._enableCheckout();
-                    });
+                    // cancel ba
+                    self.cancelAgreement(agreementId, referenceId);
                 });
 
                 $('.customer-card-list > ul > li > input[name=card]').change(function () {
@@ -869,7 +864,9 @@ define(
                     self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
                         console.log('token-submit#createOrder#done#response', response);
                         self.orderId = response.result.id//.orderID;
-                        self.placeOrder();
+                        let res = self.placeOrder();
+                        console.log('token-submit#createOrder#done#response#placeOrder', res);
+
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
                         $('#submit').prop('disabled', false);
@@ -881,6 +878,23 @@ define(
                 if ( self.isActiveReferenceTransaction()) {
                     self.initializeAgreementsEvents();
                 }
+            },
+            cancelAgreement: function (agreementId, referenceId) {
+                var self = this;
+                $('li#agreement-' + agreementId).remove();
+
+                return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({ id: agreementId, reference: referenceId })
+                ).done(function (response) {
+                    self.installmentAgreementOptions(null);
+                    self.selectedInstallmentsBA(null);
+                    self.canShowInstallmentsBA(false);
+                    $('#token-ba-submit').prop('disabled', true);
+                    self._enableCheckout();
+                    return response;
+                }).fail(function (response) {
+                    console.error('FAIL CANCEL Agreement | response :', response);
+                    self._enableCheckout();
+                });
             },
             initializeAgreementsEvents: function () {
                 var self = this;
@@ -916,17 +930,27 @@ define(
 
                             self.calculatedFinancingOptions({ 'agreementReference': agreement.reference }).done(function (response) {
                                 console.log('agreementReference#response', response);
-                                var financialOptions = response.result.financing_options[0];
 
-                                console.info('financialOptions ===> ', financialOptions);
+                                if(response.statusCode === 200) {
+                                    var financialOptions = response.result.financing_options[0];
 
-                                var options = self.fillInstallmentOptions(financialOptions, true);
-                                console.log('agreementReference#options', response);
+                                    console.info('financialOptions ===> ', financialOptions);
 
-                                self.installmentAgreementOptions(options);
-                                self.installmentsAvailable(true);
-                                self.canShowInstallmentsBA(true);
-                                $('#token-ba-submit').prop('disabled', false);
+                                    var options = self.fillInstallmentOptions(financialOptions, true);
+                                    console.log('agreementReference#options', response);
+
+                                    self.installmentAgreementOptions(options);
+                                    self.installmentsAvailable(true);
+                                    self.canShowInstallmentsBA(true);
+                                    $('#token-ba-submit').prop('disabled', false);
+                                } else {
+                                    self.messageContainer.addErrorMessage({
+                                        message: $t('An error has occurred on the server, please try again later')
+                                    });
+                                    self.cancelAgreement(self.currentBAId, self.currentBAReference);
+                                }
+
+
 
                             }).fail(function (response) {
                                 console.error('FAILED paid whit token card', response);
@@ -957,7 +981,9 @@ define(
                             self.orderId = response.result.id;
                             $(this).prop('checked', false);
                             $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
-                            self.placeOrder();
+                            let res = self.placeOrder();
+                            console.log('token-ba-submit#createOrder#done#response#placeOrder', res);
+
                             self._enableCheckout();
                         }).fail(function (response) {
                             console.error('FAILED paid whit token card', response);
