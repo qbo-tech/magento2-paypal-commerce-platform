@@ -86,7 +86,6 @@ select#installments {
     border: 1px solid #26282c !important;
     border-radius: 0.25rem;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    max-width: 94%;
 }
 
 #card-form .form-control input[type="text"] {
