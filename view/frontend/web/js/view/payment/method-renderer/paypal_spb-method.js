@@ -495,9 +495,6 @@ define(
                         return response;
                     }
                 ).fail(function (response) {
-                    if(self.isActiveReferenceTransaction()){
-                        self.cancelAgreement(self.currentBA, self.currentBAReference);
-                    }
                     self._enableCheckout();
                 });
             },
@@ -864,9 +861,7 @@ define(
                     self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
                         console.log('token-submit#createOrder#done#response', response);
                         self.orderId = response.result.id//.orderID;
-                        let res = self.placeOrder();
-                        console.log('token-submit#createOrder#done#response#placeOrder', res);
-
+                        self.placeOrder();
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
                         $('#submit').prop('disabled', false);
@@ -945,11 +940,10 @@ define(
                                     $('#token-ba-submit').prop('disabled', false);
                                 } else {
                                     self.messageContainer.addErrorMessage({
-                                        message: $t('An error has occurred on the server, please try again later')
+                                        message: $t('It is not possible to use this payment agreement, please try another')
                                     });
                                     self.cancelAgreement(self.currentBAId, self.currentBAReference);
                                 }
-
 
 
                             }).fail(function (response) {
@@ -983,6 +977,14 @@ define(
                             $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
                             let res = self.placeOrder();
                             console.log('token-ba-submit#createOrder#done#response#placeOrder', res);
+
+                            self.getPlaceOrderDeferredObject()
+                               .always(
+                                function () {
+                                   console.info('enable checkout....');
+                                    self._enableCheckout();
+                                }
+                            );
 
                             self._enableCheckout();
                         }).fail(function (response) {
