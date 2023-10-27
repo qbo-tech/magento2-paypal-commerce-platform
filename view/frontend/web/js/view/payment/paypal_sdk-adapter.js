@@ -13,6 +13,7 @@ define([
         customerId: window.checkoutConfig.payment.paypalcp.customer.id,
         isVaultingEnable: window.checkoutConfig.payment.paypalcp.acdc.enable_vaulting,
         isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
+        isEnableReferenceTransactions: window.checkoutConfig.payment.paypalcp.referenceTransaction.enable,
 
         loadSdk: function (callbackOnLoaded, withVault = false) {
             var self = this;
@@ -69,8 +70,8 @@ define([
                 htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
                 htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
 
-                if(self.isAcdcEnable) {
-                    console.info('ACDC enable, Generating ClientToken');
+                if(self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0) ) {
+                    console.info('Generating ClientToken...');
                     var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
                     if (clientToken) {
                         htmlElement.setAttribute('data-client-token', clientToken);
