@@ -32,47 +32,51 @@ define([
 
             if ((typeof paypal === 'undefined')) {
 
-                var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
+                var objCallback = {
+                    completeCallback: function (resultIndicator, successIndicator) {
+                        self.logger('completeCallback complete');
+                    },
+                    errorCallback: function () {
+                        self.error('Payment errorCallback');
+                    },
+                    cancelCallback: function () {
+                        self.logger('Payment cancelled');
+                    },
+                    onLoadedCallback: function () {
+                        self.logger('PayPal SDK loaded', paypal);
+                        $(document).ready(function () {
+                            return callbackOnLoaded.call();
+                        });
+                        self.logger('Load paypal Component');
+                    }
+                };
 
-                if (clientToken) {
-                    var objCallback = {
-                        completeCallback: function (resultIndicator, successIndicator) {
-                            self.logger('completeCallback complete');
-                        },
-                        errorCallback: function () {
-                            self.error('Payment errorCallback');
-                        },
-                        cancelCallback: function () {
-                            self.logger('Payment cancelled');
-                        },
-                        onLoadedCallback: function () {
-                            self.logger('PayPal SDK loaded', paypal);
-                            $(document).ready(function () {
-                                return callbackOnLoaded.call();
-                            });
-                            self.logger('Load paypal Component');
-                        }
-                    };
+                window.ErrorCallback = $.proxy(objCallback, "errorCallback");
+                window.CancelCallback = $.proxy(objCallback, "cancelCallback");
+                window.CompletedCallback = $.proxy(objCallback, "completeCallback");
 
-                    window.ErrorCallback = $.proxy(objCallback, "errorCallback");
-                    window.CancelCallback = $.proxy(objCallback, "cancelCallback");
-                    window.CompletedCallback = $.proxy(objCallback, "completeCallback");
+                requirejs.load({
+                    contextName: '_',
+                    onScriptLoad: $.proxy(objCallback, "onLoadedCallback"),
+                    config: {
+                        baseUrl: componentUrl
+                    }
+                }, self.componentName, componentUrl);
 
-                    requirejs.load({
-                        contextName: '_',
-                        onScriptLoad: $.proxy(objCallback, "onLoadedCallback"),
-                        config: {
-                            baseUrl: componentUrl
-                        }
-                    }, self.componentName, componentUrl);
+                var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
 
-                    var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
+                htmlElement.setAttribute('data-error', 'window.ErrorCallback');
+                htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
+                htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
 
-                    htmlElement.setAttribute('data-error', 'window.ErrorCallback');
-                    htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
-                    htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
-                    htmlElement.setAttribute('data-client-token', clientToken);
+                if(self.isAcdcEnable) {
+                    console.info('ACDC enable, Generating ClientToken');
+                    var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
+                    if (clientToken) {
+                        htmlElement.setAttribute('data-client-token', clientToken);
+                    }
                 }
+
             }
         },
 

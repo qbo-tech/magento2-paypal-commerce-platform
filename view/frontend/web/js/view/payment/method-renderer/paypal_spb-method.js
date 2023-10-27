@@ -235,13 +235,12 @@ define(
                         fundingSource: fundingSource,
                         // Set up the transaction
                         createOrder: function (data, actions) {
-                            var retOrder = self.createOrder(data, actions).then(function (response) {
+                            return self.createOrder(data, actions).then(function (response) {
                                 return response.result.id;
                             }).then(function (res) {
                                 self._enableCheckout();
                                 return res;
                             });
-                            return retOrder;
                         },
 
                         // Finalize the transaction
