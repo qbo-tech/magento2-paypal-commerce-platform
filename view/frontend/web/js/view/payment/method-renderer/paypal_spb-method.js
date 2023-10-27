@@ -214,6 +214,7 @@ define(
                         // Generate billing agreement token
                         createBillingAgreement: function (data, actions) {
                             return self.createBillingAgreementToken(data, actions).then(function (response) {
+                                self._enableCheckout();
                                 return response.result.token_id;
                             });
                         },
@@ -968,26 +969,23 @@ define(
                         self.currentBA = response.ba;
                         var submitOptions = {};
                         self.validateBillingAgreementInstallment(submitOptions);
+                        self._enableCheckout();
 
                         self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
                             console.log('token-ba-submit#createOrder#done#response', response);
                             self.orderId = response.result.id;
                             $(this).prop('checked', false);
                             $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
-                            let res = self.placeOrder();
-                            console.log('token-ba-submit#createOrder#done#response#placeOrder', res);
-
-                            self.getPlaceOrderDeferredObject()
-                               .always(
-                                function () {
-                                   console.info('enable checkout....');
-                                    self._enableCheckout();
-                                }
-                            );
-
+                            self.placeOrder();
                             self._enableCheckout();
                         }).fail(function (response) {
                             console.error('FAILED paid whit token card', response);
+                            self._enableCheckout();
+                        }).catch(function (err) {
+                            self.logger('catch => ', err);
+                            self.messageContainer.addErrorMessage({
+                                message: $t('Transaction cannot be processed, please verify your card information or try another.')
+                            });
                             self._enableCheckout();
                         });
                     }).fail(function (response) {
