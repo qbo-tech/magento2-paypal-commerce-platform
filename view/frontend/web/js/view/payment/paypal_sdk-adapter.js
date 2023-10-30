@@ -27,11 +27,16 @@ define([
             }
 
             var componentUrl = self.paypalSdk;
-
+            var clientToken = null;
             console.info('self.paypalSdk ', self.paypalSdk);
 
 
             if ((typeof paypal === 'undefined')) {
+
+                if(self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0) ) {
+                    console.info('Generating ClientToken...');
+                    clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
+                }
 
                 var objCallback = {
                     completeCallback: function (resultIndicator, successIndicator) {
@@ -70,13 +75,10 @@ define([
                 htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
                 htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
 
-                if(self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0) ) {
-                    console.info('Generating ClientToken...');
-                    var clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
-                    if (clientToken) {
-                        htmlElement.setAttribute('data-client-token', clientToken);
-                    }
+                if(clientToken && (self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0)) ) {
+                    htmlElement.setAttribute('data-client-token', clientToken);
                 }
+
 
             }
         },
