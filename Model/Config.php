@@ -137,16 +137,16 @@ class Config
         );
     }
 
-    public function getMSIMinimum()
+    public function getMSIMinimum($type = 'acdc')
     {
         return [
-            '3'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_3),
-            '4'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_4),
-            '6'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_6),
-            '9'  =>  $this->getConfigValue(self::CONFIG_XML_MSI_9),
-            '12' =>  $this->getConfigValue(self::CONFIG_XML_MSI_12),
-            '18' =>  $this->getConfigValue(self::CONFIG_XML_MSI_18),
-            '24' =>  $this->getConfigValue(self::CONFIG_XML_MSI_24)
+            '3'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_3.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_3),
+            '4'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_4.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_4),
+            '6'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_6.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_6),
+            '9'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_9.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_9),
+            '12' => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_12.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_12),
+            '18' => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_18.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_18),
+            '24' => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_24.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_24)
         ];
     }
 
