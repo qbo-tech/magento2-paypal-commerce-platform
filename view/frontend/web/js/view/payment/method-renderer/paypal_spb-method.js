@@ -488,8 +488,6 @@ define(
                 return storage.post('paypalcheckout/order', JSON.stringify(requestBody)
                 ).done(function (response) {
                         console.log('createOrder#response', response);
-                        console.log('createOrder#response.result.id', response.result.id);
-
                         return response;
                     }
                 ).fail(function (response) {
