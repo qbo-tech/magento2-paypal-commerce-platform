@@ -505,8 +505,6 @@ define(
                 return storage.post('/paypalcheckout/agreement/token', JSON.stringify(requestBody)
                 ).done(function (response) {
                         console.log('createBillingAgreementToken#response', response);
-                        console.log('createBillingAgreementToken#response.result.token_id', response.result.token_id);
-
                         return response;
                     }
                 ).fail(function (response) {
