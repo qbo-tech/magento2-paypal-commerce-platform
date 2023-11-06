@@ -966,12 +966,23 @@ define(
                         self._enableCheckout();
 
                         self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
+
+
                             console.log('token-ba-submit#createOrder#done#response', response);
-                            self.orderId = response.result.id;
-                            $(this).prop('checked', false);
-                            $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
-                            self.placeOrder();
+
+                            if(response.statusCode === 200) {
+                                self.orderId = response.result.id;
+                                $(this).prop('checked', false);
+                                $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
+                                self.placeOrder();
+                            } else {
+                                self.messageContainer.addErrorMessage({
+                                    message: $t('It is not possible to use this payment agreement, please try another')
+                                });
+                            }
+
                             self._enableCheckout();
+
                         }).fail(function (response) {
                             console.error('FAILED paid whit token card', response);
                             self._enableCheckout();
