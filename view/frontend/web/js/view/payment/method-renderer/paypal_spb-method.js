@@ -920,7 +920,7 @@ define(
                             self.calculatedFinancingOptions({ 'agreementReference': agreement.reference }).done(function (response) {
                                 console.log('agreementReference#response', response);
 
-                                if(response.statusCode === 200) {
+                                if(typeof response.statusCode !== 'undefined' && ( response.statusCode === 200 || response.statusCode === 201 ) && typeof response.result !== 'undefined') {
                                     var financialOptions = response.result.financing_options[0];
 
                                     console.info('financialOptions ===> ', financialOptions);
@@ -966,11 +966,8 @@ define(
                         self._enableCheckout();
 
                         self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
-
-
                             console.log('token-ba-submit#createOrder#done#response', response);
-
-                            if(response.statusCode === 200) {
+                            if(typeof response.statusCode !== 'undefined' && ( response.statusCode === 200 || response.statusCode === 201 ) && typeof response.result.id !== 'undefined') {
                                 self.orderId = response.result.id;
                                 $(this).prop('checked', false);
                                 $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
@@ -982,7 +979,6 @@ define(
                             }
 
                             self._enableCheckout();
-
                         }).fail(function (response) {
                             console.error('FAILED paid whit token card', response);
                             self._enableCheckout();
