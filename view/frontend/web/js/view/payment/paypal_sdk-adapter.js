@@ -33,7 +33,7 @@ define([
 
             if ((typeof paypal === 'undefined')) {
 
-                if(self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0) ) {
+                if(self.isAcdcEnable || self.isEnableReferenceTransactions) {
                     console.info('Generating ClientToken...');
                     clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
                 }
@@ -75,10 +75,9 @@ define([
                 htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
                 htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
 
-                if(clientToken && (self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0)) ) {
+                if(clientToken && (self.isAcdcEnable || self.isEnableReferenceTransactions) ) {
                     htmlElement.setAttribute('data-client-token', clientToken);
                 }
-
 
             }
         },
