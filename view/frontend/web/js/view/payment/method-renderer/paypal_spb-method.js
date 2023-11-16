@@ -67,7 +67,7 @@ define(
             isActiveBcdc: function () {
                 var self = this;
 
-                return ((self.isBcdcEnable) && (!self.isAcdcEnable) && (!self.isEnableReferenceTransactions));
+                return self.isBcdcEnable && !self.isAcdcEnable;
             },
             isActiveAcdc: function () {
                 var self = this;
@@ -174,7 +174,7 @@ define(
             getData: function () {
                 var self = this;
 
-                if((self.currentMethod == 'paypalcp_spb' || self.currentMethod == 'paypalspb_paypal' ) && self.isActiveReferenceTransaction()){
+                if(self.currentMethod == 'paypalba_paypal' && self.isActiveReferenceTransaction()){
                     var paymentType = 'BILLING_AGREEMENT';
                     var submitOptions = self.validateBillingAgreementInstallment({});
                 } else {
@@ -201,10 +201,42 @@ define(
             renderButton: function (fundingSource, elementId) {
                 var self = this;
                 console.info('elementId ==> ', elementId);
+                console.info('fundingSource ==> ', fundingSource);
+
+                // Initialize the buttons
+                var button = paypal.Buttons({
+                    fundingSource: fundingSource,
+                    // Set up the transaction
+                    createOrder: function (data, actions) {
+                        return self.createOrder(data, actions).then(function (response) {
+                            return response.result.id;
+                        }).then(function (res) {
+                            self._enableCheckout();
+                            return res;
+                        });
+                    },
+
+                    // Finalize the transaction
+                    onApprove: function (data, actions) {
+                        self.orderId = data.orderID;
+                        self.placeOrder();
+                    },
+
+                    onError: function (err) {
+                        self._enableCheckout();
+                    }
+                });
+
+                // Check if the button is eligible
+                if (button.isEligible()) {
+                    // Render the standalone button for that funding source
+                    button.render('#' + elementId);
+                }
+
                 if (self.isActiveReferenceTransaction()) {
                     elementId = elementId+'-ba';
                     // Initialize the buttons
-                    var button = paypal.Buttons({
+                    var buttonBA = paypal.Buttons({
                         style: {
                             label:   'pay'
                         },
@@ -228,37 +260,15 @@ define(
                             self._enableCheckout();
                         }
                     });
-                } else {
-                    // Initialize the buttons
-                    var button = paypal.Buttons({
-                        fundingSource: fundingSource,
-                        // Set up the transaction
-                        createOrder: function (data, actions) {
-                            return self.createOrder(data, actions).then(function (response) {
-                                return response.result.id;
-                            }).then(function (res) {
-                                self._enableCheckout();
-                                return res;
-                            });
-                        },
 
-                        // Finalize the transaction
-                        onApprove: function (data, actions) {
-                            self.orderId = data.orderID;
-                            self.placeOrder();
-                        },
+                    // Check if the button is eligible
+                    if (buttonBA.isEligible()) {
+                        // Render the standalone button for that funding source
+                        buttonBA.render('#' + elementId);
+                    }
 
-                        onError: function (err) {
-                            self._enableCheckout();
-                        }
-                    });
                 }
 
-                // Check if the button is eligible
-                if (button.isEligible()) {
-                    // Render the standalone button for that funding source
-                    button.render('#' + elementId);
-                }
 
             },
             /**
@@ -765,6 +775,10 @@ define(
                     if (this.checked) {
                         self.loadSdk();
                     }
+                });
+
+                $("input[name='payment[method]']").change(function(){
+                    console.info('select payment method ', this.value);
                 });
 
                 $('#new-card').change(function () {

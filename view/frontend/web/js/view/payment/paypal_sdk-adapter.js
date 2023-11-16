@@ -30,10 +30,9 @@ define([
             var clientToken = null;
             console.info('self.paypalSdk ', self.paypalSdk);
 
-
             if ((typeof paypal === 'undefined')) {
 
-                if(self.isAcdcEnable || self.isEnableReferenceTransactions) {
+                if(self.isAcdcEnable) {
                     console.info('Generating ClientToken...');
                     clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
                 }
@@ -75,7 +74,7 @@ define([
                 htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
                 htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
 
-                if(clientToken && (self.isAcdcEnable || self.isEnableReferenceTransactions) ) {
+                if(clientToken && self.isAcdcEnable) {
                     htmlElement.setAttribute('data-client-token', clientToken);
                 }
 
