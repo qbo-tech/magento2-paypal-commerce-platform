@@ -19,7 +19,6 @@ class Cancel extends \Magento\Framework\App\Action\Action
     /** @var \PayPal\CommercePlatform\Model\Billing\Agreement $billingAgreement */
     protected $billingAgreement;
 
-
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
