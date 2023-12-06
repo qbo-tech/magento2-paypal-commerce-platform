@@ -29,8 +29,7 @@ define([
             var componentUrl = self.paypalSdk;
             var clientToken = null;
             console.info('self.paypalSdk ', self.paypalSdk);
-
-
+            
             if ((typeof paypal === 'undefined')) {
 
                 if(self.isAcdcEnable || (self.isEnableReferenceTransactions && self.customerId > 0) ) {
