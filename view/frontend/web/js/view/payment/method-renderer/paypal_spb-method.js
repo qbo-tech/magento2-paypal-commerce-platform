@@ -58,7 +58,7 @@ define(
                 var self = this;
 
 
-                if (self.isEnableReferenceTransactions && self.customerId > 0) {
+                if (self.isEnableReferenceTransactions) {
                     return true;
                 }
 

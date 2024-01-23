@@ -14,7 +14,7 @@ class Create extends \Magento\Framework\App\Action\Action
 {
 
     const FRAUDNET_CMI_PARAM = 'fraudNetCMI';
-	const BILLING_TOKEN = 'billingToken';
+    const BILLING_TOKEN = 'billingToken';
 
     /** @var \Magento\Framework\Filesystem\DriverInterface */
     protected $_driver;
@@ -51,11 +51,11 @@ class Create extends \Magento\Framework\App\Action\Action
         \PayPal\CommercePlatform\Model\Billing\Agreement $billingAgreement
     ) {
         parent::__construct($context);
-        $this->_driver        = $driver;
+        $this->_driver = $driver;
         $this->_loggerHandler = $logger;
         $this->paypalAgreementRequest = $paypalAgreementRequest;
-        $this->_resultJsonFactory  = $resultJsonFactory;
-        $this->customerSession  = $customerSession;
+        $this->_resultJsonFactory = $resultJsonFactory;
+        $this->customerSession = $customerSession;
         $this->_billingAgreement = $billingAgreement;
     }
 
@@ -71,18 +71,28 @@ class Create extends \Magento\Framework\App\Action\Action
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
             $paypalCMID = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
-			$billingToken = $paramsData[self::BILLING_TOKEN] ?? null;
+            $billingToken = $paramsData[self::BILLING_TOKEN] ?? null;
             $response = $this->paypalAgreementRequest->createRequest($billingToken, $paypalCMID);
 
-            if(isset($response->result->id) && isset($response->result->payer)){
+            if (isset($response->result->id) && isset($response->result->payer)) {
                 $customerId = $this->customerSession->getCustomerId();
                 $payerEmail = $response->result->payer->payer_info->email;
 
-                if (!$this->validateExistBAByPayer($customerId, $payerEmail)) {
-                    $this->saveAgreement($response->result->id, $payerEmail);
+                if($customerId > 0) {
+                    if (!$this->validateExistBAByPayer($customerId, $payerEmail)) {
+                        $this->saveAgreement($response->result->id, $payerEmail);
+                    }
+
+                    $billingAgreementsData = $this->getCustomerAgreements($customerId);
+                } else {
+                    $billingAgreementsData[] = [
+                        'id' => 'guest-'.date('dmYHis'),
+                        'reference' => $this->_billingAgreement->encryptReference($response->result->id),
+                        'email' => $payerEmail,
+                        'status' => 'active'
+                    ];
                 }
 
-                $billingAgreementsData = $this->getCustomerAgreements($customerId);
             }
 
         } catch (\Exception $e) {
@@ -92,7 +102,7 @@ class Create extends \Magento\Framework\App\Action\Action
             return $resultJson->setHttpResponseCode($httpErrorCode);
         }
 
-        return $resultJson->setData(['paypal' => $response, 'billingAgreements' => $billingAgreementsData ]);
+        return $resultJson->setData(['paypal' => $response, 'billingAgreements' => $billingAgreementsData]);
     }
 
     private function validateExistBAByPayer($customerId, $payerEmail)
@@ -101,10 +111,11 @@ class Create extends \Magento\Framework\App\Action\Action
         return count($agreements) > 0;
     }
 
-    private function getCustomerAgreements($customerId){
+    private function getCustomerAgreements($customerId)
+    {
         $agreements = $this->_billingAgreement->getAvailableCustomerBillingAgreements($customerId);
         $agreementsIds = [];
-        foreach ($agreements as $agreement){
+        foreach ($agreements as $agreement) {
             $agreementsIds[] = [
                 'id' => $agreement->getAgreementId(),
                 'reference' => $agreement->getReferenceId(),
@@ -116,7 +127,8 @@ class Create extends \Magento\Framework\App\Action\Action
         return $agreementsIds;
     }
 
-    private function saveAgreement($id, $email){
+    private function saveAgreement($id, $email)
+    {
         $billingAgreement = $this->_objectManager->create(\PayPal\CommercePlatform\Model\Billing\Agreement::class);
         $billingAgreement->setReferenceId($id);
         $billingAgreement->setPayerEmail($email);

@@ -5,7 +5,7 @@
         <input type="radio" name="payment[method]" class="radio"
                data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalspb_paypal', checked: isChecked, click: selectedPayPalMethod('paypalspb_paypal'), visible: isRadioButtonVisible()" />
         <label class="label" data-bind="attr: {'for': getCode('paypalspb_paypal')}">
-            <span>Pago con PayPal</span>
+            <span data-bind="text: getTitleMethodPaypal()"></span>
         </label>
     </div>
     <div class="payment-method-content">

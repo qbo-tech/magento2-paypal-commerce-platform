@@ -5,7 +5,7 @@
         <input type="radio" name="payment[method]" class="radio"
                data-bind="attr: {'id': getCode('paypalspb_card')}, value: 'paypalspb_card', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_card') }" />
         <label class="label" data-bind="attr: {'for': getCode('paypalspb_card')}">
-            <span>Tarjeta de Crédito o Débito</span>
+            <span data-bind="text: getTitleMethodCard()"></span>
         </label>
     </div>
     <div class="payment-method-content">
@@ -33,7 +33,7 @@
         <input type="radio" name="payment[method]" class="radio"
                data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalspb_paypal', visible: isRadioButtonVisible(), event: { change: selectedPayPalMethod('paypalspb_paypal')}" />
         <label class="label" data-bind="attr: {'for': getCode('paypalspb_paypal')}">
-            <span>Pago con PayPal</span>
+            <span data-bind="text: getTitleMethodPaypal()"></span>
         </label>
     </div>
     <div class="payment-method-content">
