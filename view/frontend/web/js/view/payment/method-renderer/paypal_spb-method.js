@@ -192,7 +192,7 @@ define(
                     }
                 };
 
-                if ((submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
+                if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
                     data.additional_data.payment_source = JSON.stringify(submitOptions.payment_source);
                 }
 
