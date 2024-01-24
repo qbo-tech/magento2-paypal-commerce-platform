@@ -640,7 +640,7 @@ define(
                     };
                     self.logger('validateInstallment#submitOption', submitOptions);
 
-                    if ((self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
+                    if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
                         submitOptions = {
                             payment_source: {
                                 token: {
@@ -659,7 +659,7 @@ define(
 
                     self.logger('validateInstallment#submitOPtion', submitOptions);
 
-                    if ((self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
+                    if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
                         submitOptions = {
                             payment_source: {
                                 token: {
