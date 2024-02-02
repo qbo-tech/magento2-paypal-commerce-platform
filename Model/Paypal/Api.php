@@ -9,12 +9,13 @@ namespace PayPal\CommercePlatform\Model\Paypal;
 use PayPal\CommercePlatform\Model\Paypal\Agreement\AgreementCreateRequest;
 use PayPal\CommercePlatform\Model\Paypal\Agreement\Financing\FinancingOptionsCreateRequest;
 use PayPal\CommercePlatform\Model\Paypal\Agreement\Token\AgreementTokenCreateRequest;
+use PayPal\CommercePlatform\Model\Paypal\Core\AccessTokenRequest;
+use PayPal\CommercePlatform\Model\Paypal\Core\GenerateTokenRequest;
 use PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest;
 use PayPal\CommercePlatform\Model\Paypal\Oxxo\GetVoucher;
 
 class Api
 {
-
     const PAYPAL_PARTNER_ATTRIBUTION_ID_HEADER = 'PayPal-Partner-Attribution-Id';
     const PAYPAL_PARTNER_ATTRIBUTION_ID_VALUE  = 'MagentoMexico_Cart_PPCP';
 
@@ -23,6 +24,12 @@ class Api
 
     /** @var \PayPalCheckoutSdk\Core\PayPalHttpClient */
     protected $_paypalClient;
+
+    /** @var AccessTokenRequest */
+    protected $_accessTokenRequest;
+
+    /** @var GenerateTokenRequest */
+    protected $_generateTokenRequest;
 
     /** @var AgreementTokenCreateRequest */
     protected $_agreementTokenCreateRequest;
@@ -123,6 +130,34 @@ class Api
     }
 
     /**
+     * Retrieve instance AccessTokenRequest
+     *
+     * @return AccessTokenRequest
+     */
+    public function getAccessTokenRequest($authorizationString, $refreshToken = null)
+    {
+        if (!($this->_accessTokenRequest instanceof AccessTokenRequest)) {
+            $this->_accessTokenRequest = new AccessTokenRequest($authorizationString, $refreshToken);
+        }
+
+        return $this->_accessTokenRequest;
+    }
+
+    /**
+     * Retrieve instance GenerateTokenRequest
+     *
+     * @return GenerateTokenRequest
+     */
+    public function getGenerateTokenRequest($accessToken, $customerId)
+    {
+        if (!($this->_generateTokenRequest instanceof GenerateTokenRequest)) {
+            $this->_generateTokenRequest = new GenerateTokenRequest($accessToken, $customerId);
+        }
+
+        return $this->_generateTokenRequest;
+    }
+
+    /**
      * Retrieve instance OrderCreateRequest
      *
      * @return AgreementCreateRequest
@@ -193,6 +228,5 @@ class Api
     {
         return new GetVoucher($orderId);
     }
-
 
 }

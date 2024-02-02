@@ -44,7 +44,6 @@ define(
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             customerCards: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.payments.cards),
             customerBillingAgreements: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.agreements),
-            customerId: window.checkoutConfig.payment.paypalcp.customer.id,
             canShowInstallments: ko.observable(false),
             canShowInstallmentsBA: ko.observable(false),
             installmentsAvailable: ko.observable(false),

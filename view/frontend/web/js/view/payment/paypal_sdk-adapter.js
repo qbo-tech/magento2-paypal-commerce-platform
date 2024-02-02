@@ -10,7 +10,6 @@ define([
         componentName: "paypalSdkComponent",
         paypalSdk: window.checkoutConfig.payment.paypalcp.urlSdk,
         onLoadedCallback: '',
-        customerId: window.checkoutConfig.payment.paypalcp.customer.id,
         isVaultingEnable: window.checkoutConfig.payment.paypalcp.acdc.enable_vaulting,
         isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
         isEnableReferenceTransactions: window.checkoutConfig.payment.paypalcp.referenceTransaction.enable,
@@ -29,12 +28,12 @@ define([
             var componentUrl = self.paypalSdk;
             var clientToken = null;
             console.info('self.paypalSdk ', self.paypalSdk);
-            
+
             if ((typeof paypal === 'undefined')) {
 
                 if(self.isAcdcEnable || self.isEnableReferenceTransactions) {
                     console.info('Generating ClientToken...');
-                    clientToken = paypalTokenAdapter.generateClientToken(self.customerId);
+                    clientToken = paypalTokenAdapter.generateClientToken();
                 }
 
                 var objCallback = {

@@ -8,8 +8,6 @@ namespace PayPal\CommercePlatform\Model;
 class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
-    const ENDPOINT_ACCESS_TOKEN = '/v1/oauth2/token';
-    const ENDPOINT_GENERATE_CLIENT_TOKEN = '/v1/identity/generate-token';
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
     const SDK_CONFIG_CURRENCY   = 'currency';
     const SDK_CONFIG_DEBUG      = 'debug';
@@ -78,8 +76,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'shape'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
                         'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
                     ],
-                    'urlAccessToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_ACCESS_TOKEN,
-                    'urlGenerateClientToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_GENERATE_CLIENT_TOKEN,
                     'authorizationBasic' => 'Basic ' . $this->_paypalApi->getAuthorizationString(),
                     'customer' => [
                         'id' => $this->validateCustomerId(),

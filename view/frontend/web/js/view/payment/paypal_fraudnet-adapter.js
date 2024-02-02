@@ -12,7 +12,6 @@ define([
         fraudNetSi: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
         fncls: window.checkoutConfig.payment.paypalcp.fraudNet.fncls,
         onLoadedCallback: '',
-        customerId: window.checkoutConfig.payment.paypalcp.customer.id,
         isVaultingEnable: window.checkoutConfig.payment.paypalcp.acdc.enable_vaulting,
         isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
 
@@ -58,7 +57,7 @@ define([
 
                 var htmlElement = $('[data-requiremodule="' + self.componentName + '"]')[0];
 
-                if(typeof htmlElement !== "undefined") 
+                if(typeof htmlElement !== "undefined")
                 {
                     htmlElement.setAttribute('data-error', 'window.ErrorCallback');
                     htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');

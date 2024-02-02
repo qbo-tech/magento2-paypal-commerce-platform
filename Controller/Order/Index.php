@@ -62,7 +62,6 @@ class Index extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $resultJson = $this->_resultJsonFactory->create();
-        $httpBadRequestCode = '400';
         $httpErrorCode = '500';
         try {
             $paramsData = json_decode($this->_driver->fileGetContents('php://input'), true);
