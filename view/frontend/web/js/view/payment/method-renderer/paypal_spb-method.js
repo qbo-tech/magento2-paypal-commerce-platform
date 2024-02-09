@@ -377,7 +377,6 @@ define(
                                 }
                             }).then(function (res) {
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-                                self._enableCheckout();
 
                                 if (res.ok) {
                                     return res.json();
@@ -388,7 +387,6 @@ define(
                                     return false;
                                 }
                             }).then(function (data) {
-                                self._enableCheckout();
                                 self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
                                 return data.result.id;
                             }).catch(function (error) {
@@ -454,8 +452,6 @@ define(
                                     self.logger('hf.submit#payload', payload);
                                     self.orderId = payload.orderId;
                                     self.logger('placeorder', self.placeOrder());
-
-                                    self._enableCheckout();
                                 })
                                 .catch(function (err) {
                                     self.logger('catch => ', err);
