@@ -1,9 +1,41 @@
+<!-- ko ifnot: (isActiveReferenceTransaction()) -->
 <div id="acdc_button" class="ppcp payment-method"
     data-bind="css: {'_active': ( 'paypalcp_spb' == isSelected())}, attr: {isSel: isSelected()}, visible: isVisibleCard()">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
             data-bind="attr: {'id': getCode('paypalcp_spb')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_spb'), visible: isRadioButtonVisible()" />
         <label class="label" data-bind="attr: {'for': getCode('paypalcp_spb')}">
+            <span data-bind="text: getTitleMethodPaypal()"></span>
+        </label>
+    </div>
+    <div class="payment-method-content">
+        <!--         ko foreach: getRegion('messages') -->
+        <!--         ko template: getTemplate() -->
+        <!-- /ko -->
+        <!--         /ko -->
+
+        <div id="paypal-button-container" style="min-height: 50px;"></div>
+
+        <div class="checkout-agreements-block">
+            <!--             ko foreach: $parent.getRegion('before-place-order') -->
+            <!--                 ko template: getTemplate() -->
+            <!-- /ko -->
+            <!--             /ko -->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary" data-bind="attr: {'id': getCode('paypalcp')}"></div>
+        </div>
+    </div>
+</div>
+<!-- /ko -->
+
+<!-- ko if: (isActiveReferenceTransaction()) -->
+<div id="acdc_rt" class="ppcp payment-method"
+     data-bind="css: {'_active': ( 'paypalspb_paypal' == isSelected())}, attr: {isSel: isSelected()}, visible: isVisibleCard()">
+    <div class="payment-method-title field choice">
+        <input type="radio" name="payment[method]" class="radio"
+               data-bind="attr: {'id': getCode('paypalspb_paypal')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalspb_paypal'), visible: isRadioButtonVisible()" />
+        <label class="label" data-bind="attr: {'for': getCode('paypalspb_paypal')}">
             <span data-bind="text: getTitleMethodPaypal()"></span>
         </label>
     </div>
@@ -70,10 +102,6 @@
         </div>
         <!-- /ko -->
 
-        <!-- ko ifnot: (isActiveReferenceTransaction()) -->
-        <div data-bind="if: !isActiveReferenceTransaction()" id="paypal-button-container" style="min-height: 50px;"></div>
-        <!-- /ko -->
-
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
             <!--                 ko template: getTemplate() -->
@@ -85,6 +113,7 @@
         </div>
     </div>
 </div>
+<!-- /ko -->
 
 <div id="acdc_card" class="ppcp payment-method" data-bind="css: {'_active': ( 'paypalcp_hf' == isSelected())}, visible: isVisibleCard()">
     <div class="payment-method-title field choice">

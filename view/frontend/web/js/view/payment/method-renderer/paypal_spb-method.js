@@ -175,12 +175,12 @@ define(
 
                 console.info("self.currentMethod ==> ", self.currentMethod);
 
-                if((self.currentMethod == 'paypalcp_spb' || self.currentMethod == 'paypalspb_paypal' ) && self.isActiveReferenceTransaction()){
+                if(self.currentMethod == 'paypalspb_paypal' && self.isActiveReferenceTransaction()){
                     var paymentType = 'BILLING_AGREEMENT';
                     var submitOptions = self.validateBillingAgreementInstallment({});
                 } else {
                     var paymentType = self.isActiveAcdc() ? 'PayPal_Advanced' : 'PayPal_Basic';
-                    var submitOptions = self.validateInstallment({});
+                    var submitOptions = self.currentMethod == 'paypalcp_spb' ? {} : self.validateInstallment({});
                 }
 
                 var data = {
