@@ -3,13 +3,11 @@
 namespace PayPal\CommercePlatform\Model;
 
 /**
- * Class ConfigProvider
+ * Class PaypalCPConfigProvider
  */
 class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
-    const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?vault=true&';
-    const ENDPOINT_ACCESS_TOKEN = '/v1/oauth2/token';
-    const ENDPOINT_GENERATE_CLIENT_TOKEN = '/v1/identity/generate-token';
+    const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
     const SDK_CONFIG_CURRENCY   = 'currency';
     const SDK_CONFIG_DEBUG      = 'debug';
@@ -78,8 +76,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'shape'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
                         'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
                     ],
-                    'urlAccessToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_ACCESS_TOKEN,
-                    'urlGenerateClientToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_GENERATE_CLIENT_TOKEN,
                     'authorizationBasic' => 'Basic ' . $this->_paypalApi->getAuthorizationString(),
                     'customer' => [
                         'id' => $this->validateCustomerId(),
@@ -88,7 +84,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ],
                     'referenceTransaction' => [
                         'enable' => $this->_paypalConfig->isEnableReferenceTransaction(),
-                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum()
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum('referenceTransaction'),
                     ],
                     'bcdc' => [
                         'enable' => $this->_paypalConfig->isEnableBcdc(),
@@ -100,7 +96,8 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
                         'enable_installments' => $this->_paypalConfig->isEnableMsi(),
                         'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
-                        'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc()
+                        'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum(),
                     ],
                     'splitOptions' => [
                         'title_method_paypal' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_PAYPAL),
@@ -135,11 +132,13 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             self::SDK_CONFIG_CLIENT_ID  => $this->_paypalConfig->getClientId(),
             self::SDK_CONFIG_CURRENCY   => $this->_paypalConfig->getCurrency(),
             self::SDK_CONFIG_DEBUG      => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE) ? 'true' : 'false',
-            self::SDK_CONFIG_COMPONENTS => 'hosted-fields,buttons',
             self::SDK_CONFIG_LOCALE     => $this->_paypalConfig->getLocale(),
             self::SDK_CONFIG_INTENT     => 'capture',
-            //self::SDK_CONFIG_DISABLE_FUNDING => $this->canRemember() ? 'card' : null,
         ];
+
+        if($this->_paypalConfig->isEnableAcdc()){
+            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'hosted-fields,buttons';
+        }
     }
 
     public function canRemember()
