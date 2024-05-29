@@ -6,13 +6,16 @@
 
 namespace PayPal\CommercePlatform\Model\Paypal;
 
+use PayPal\CommercePlatform\Model\Paypal\Agreement\AgreementCreateRequest;
+use PayPal\CommercePlatform\Model\Paypal\Agreement\Financing\FinancingOptionsCreateRequest;
+use PayPal\CommercePlatform\Model\Paypal\Agreement\Token\AgreementTokenCreateRequest;
+use PayPal\CommercePlatform\Model\Paypal\Core\AccessTokenRequest;
+use PayPal\CommercePlatform\Model\Paypal\Core\GenerateTokenRequest;
 use PayPal\CommercePlatform\Model\Paypal\Oxxo\ConfirmRequest;
 use PayPal\CommercePlatform\Model\Paypal\Oxxo\GetVoucher;
-use stdClass;
 
 class Api
 {
-
     const PAYPAL_PARTNER_ATTRIBUTION_ID_HEADER = 'PayPal-Partner-Attribution-Id';
     const PAYPAL_PARTNER_ATTRIBUTION_ID_VALUE  = 'MagentoMexico_Cart_PPCP';
 
@@ -21,6 +24,21 @@ class Api
 
     /** @var \PayPalCheckoutSdk\Core\PayPalHttpClient */
     protected $_paypalClient;
+
+    /** @var AccessTokenRequest */
+    protected $_accessTokenRequest;
+
+    /** @var GenerateTokenRequest */
+    protected $_generateTokenRequest;
+
+    /** @var AgreementTokenCreateRequest */
+    protected $_agreementTokenCreateRequest;
+
+    /** @var FinancingOptionsCreateRequest */
+    protected $_financingOptionsCreateRequest;
+
+    /** @var AgreementCreateRequest */
+    protected $_AgreementCreateRequest;
 
     /** @var \PayPalCheckoutSdk\Orders\OrdersCreateRequest */
     protected $_orderCreateRequest;
@@ -86,6 +104,76 @@ class Api
     /**
      * Retrieve instance OrderCreateRequest
      *
+     * @return FinancingOptionsCreateRequest
+     */
+    public function getFinancingOptionsCreateRequest()
+    {
+        if (!($this->_financingOptionsCreateRequest instanceof FinancingOptionsCreateRequest)) {
+            $this->_financingOptionsCreateRequest = new FinancingOptionsCreateRequest();
+        }
+
+        return $this->_financingOptionsCreateRequest;
+    }
+
+    /**
+     * Retrieve instance OrderCreateRequest
+     *
+     * @return AgreementTokenCreateRequest
+     */
+    public function getAgreementTokenCreateRequest()
+    {
+        if (!($this->_agreementTokenCreateRequest instanceof AgreementTokenCreateRequest)) {
+            $this->_agreementTokenCreateRequest = new AgreementTokenCreateRequest();
+        }
+
+        return $this->_agreementTokenCreateRequest;
+    }
+
+    /**
+     * Retrieve instance AccessTokenRequest
+     *
+     * @return AccessTokenRequest
+     */
+    public function getAccessTokenRequest($authorizationString, $refreshToken = null)
+    {
+        if (!($this->_accessTokenRequest instanceof AccessTokenRequest)) {
+            $this->_accessTokenRequest = new AccessTokenRequest($authorizationString, $refreshToken);
+        }
+
+        return $this->_accessTokenRequest;
+    }
+
+    /**
+     * Retrieve instance GenerateTokenRequest
+     *
+     * @return GenerateTokenRequest
+     */
+    public function getGenerateTokenRequest($accessToken, $customerId)
+    {
+        if (!($this->_generateTokenRequest instanceof GenerateTokenRequest)) {
+            $this->_generateTokenRequest = new GenerateTokenRequest($accessToken, $customerId);
+        }
+
+        return $this->_generateTokenRequest;
+    }
+
+    /**
+     * Retrieve instance OrderCreateRequest
+     *
+     * @return AgreementCreateRequest
+     */
+    public function getAgreementCreateRequest($billingToken)
+    {
+        if (!($this->_AgreementCreateRequest instanceof AgreementCreateRequest)) {
+            $this->_AgreementCreateRequest = new AgreementCreateRequest($billingToken);
+        }
+
+        return $this->_AgreementCreateRequest;
+    }
+
+    /**
+     * Retrieve instance OrderCreateRequest
+     *
      * @return \PayPalCheckoutSdk\Orders\OrdersCreateRequest
      */
     public function getOrderCreateRequest()
@@ -140,6 +228,5 @@ class Api
     {
         return new GetVoucher($orderId);
     }
-
 
 }

@@ -1,0 +1,20 @@
+{
+    "paypal_commerce_billing_agreement": {
+        "column": {
+            "agreement_id": true,
+            "customer_id": true,
+            "payer_email": true,
+            "status": true,
+            "reference_id": true,
+            "created_at": true,
+            "updated_at": true
+        },
+        "index": {
+            "PAYPAL_BILLING_AGREEMENT_CUSTOMER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "PAYPAL_BILLING_AGREEMENT_CUSTOMER_ID_CUSTOMER_ENTITY_ENTITY_ID": true
+        }
+    }
+}

@@ -3,14 +3,11 @@
 namespace PayPal\CommercePlatform\Model;
 
 /**
- * Class ConfigProvider
+ * Class PaypalCPConfigProvider
  */
 class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
-    const ENDPOINT_ACCESS_TOKEN = '/v1/oauth2/token';
-    const ENDPOINT_GENERATE_CLIENT_TOKEN = '/v1/identity/generate-token';
-
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
     const SDK_CONFIG_CURRENCY   = 'currency';
     const SDK_CONFIG_DEBUG      = 'debug';
@@ -18,7 +15,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     const SDK_CONFIG_LOCALE     = 'locale';
     const SDK_CONFIG_INTENT     = 'intent';
     const SDK_CONFIG_DISABLE_FUNDING = 'disable-funding';
-
     const LENGTH_IDENTIFIER = 15;
 
     protected $_payment_code = \PayPal\CommercePlatform\Model\Config::PAYMENT_COMMERCE_PLATFORM_CODE;
@@ -34,6 +30,9 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     /** @var \PayPal\CommercePlatform\Model\Paypal\Credit\CalculatedFinancingOptionsRequest */
     protected $_calculatedFinancialOptionsRequest;
 
+    /** @var \PayPal\CommercePlatform\Model\Billing\Agreement */
+    protected $_billingAgreement;
+
     /** @var \Magento\Customer\Model\Session */
     protected $_customerSession;
 
@@ -47,15 +46,15 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         \PayPal\CommercePlatform\Model\Config $paypalConfig,
         \PayPal\CommercePlatform\Model\Paypal\Api $paypalApi,
         \PayPal\CommercePlatform\Model\Paypal\Credit\CalculatedFinancingOptionsRequest $calculatedFinancingOptionsRequest,
+        \PayPal\CommercePlatform\Model\Billing\Agreement $billingAgreement,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Checkout\Model\Session $checkoutSession,
         \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
         $this->_paypalConfig    = $paypalConfig;
         $this->_paypalApi       = $paypalApi;
-
         $this->_calculatedFinancialOptionsRequest = $calculatedFinancingOptionsRequest;
-
+        $this->_billingAgreement = $billingAgreement;
         $this->_customerSession = $customerSession;
         $this->_checkoutSession = $checkoutSession;
         $this->_logger          = $logger;
@@ -76,14 +75,16 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'color'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_COLOR),
                         'shape'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
                         'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
-                        //'tagline' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_TAGLINE),
                     ],
-                    'urlAccessToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_ACCESS_TOKEN,
-                    'urlGenerateClientToken' => $this->_paypalApi->getBaseUrl() . self::ENDPOINT_GENERATE_CLIENT_TOKEN,
                     'authorizationBasic' => 'Basic ' . $this->_paypalApi->getAuthorizationString(),
                     'customer' => [
                         'id' => $this->validateCustomerId(),
                         'payments' => $this->getCustomerPaymentTokens($this->validateCustomerId()),
+                        'agreements' => $this->getCustomerAgreements($this->validateCustomerId())
+                    ],
+                    'referenceTransaction' => [
+                        'enable' => $this->_paypalConfig->isEnableReferenceTransaction(),
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum('referenceTransaction'),
                     ],
                     'bcdc' => [
                         'enable' => $this->_paypalConfig->isEnableBcdc(),
@@ -95,7 +96,8 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
                         'enable_installments' => $this->_paypalConfig->isEnableMsi(),
                         'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
-                        'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc()
+                        'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
+                        'msiMinimum' => $this->_paypalConfig->getMSIMinimum(),
                     ],
                     'splitOptions' => [
                         'title_method_paypal' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_PAYPAL),
@@ -130,11 +132,13 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             self::SDK_CONFIG_CLIENT_ID  => $this->_paypalConfig->getClientId(),
             self::SDK_CONFIG_CURRENCY   => $this->_paypalConfig->getCurrency(),
             self::SDK_CONFIG_DEBUG      => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE) ? 'true' : 'false',
-            self::SDK_CONFIG_COMPONENTS => 'hosted-fields,buttons',
             self::SDK_CONFIG_LOCALE     => $this->_paypalConfig->getLocale(),
             self::SDK_CONFIG_INTENT     => 'capture',
-            //self::SDK_CONFIG_DISABLE_FUNDING => $this->canRemember() ? 'card' : null,
         ];
+
+        if($this->_paypalConfig->isEnableAcdc()){
+            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'hosted-fields,buttons';
+        }
     }
 
     public function canRemember()
@@ -144,11 +148,26 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
     private function validateCustomerId()
     {
-        if ($this->canRemember() && $this->_customerSession->isLoggedIn()) {
+        if ($this->_customerSession->isLoggedIn()) {
             return $this->_customerSession->getCustomerId();
         }
 
-        return;
+        return null;
+    }
+
+    private function getCustomerAgreements($customerId){
+        $agreements = $this->_billingAgreement->getAvailableCustomerBillingAgreements($customerId);
+        $agreementsIds = [];
+        foreach ($agreements as $agreement){
+            $agreementsIds[] = [
+                'id' => $agreement->getAgreementId(),
+                'reference' => $agreement->getReferenceId(),
+                'email' => $agreement->getPayerEmail(),
+                'status' => $agreement->getStatus()
+            ];
+        }
+
+        return $agreementsIds;
     }
 
     private function getCustomerPaymentTokens($customerId)

@@ -50,7 +50,7 @@ class Request
      *
      * @var \Magento\Customer\Helper\Address
      */
-    protected $_addressHelper   = null;
+    protected $_addressHelper = null;
     /**
      *
      * @var \Magento\Quote\Model\Quote\Address
@@ -153,15 +153,15 @@ class Request
         \Magento\Framework\Event\ManagerInterface $eventManager,
         \Magento\Quote\Model\QuoteRepository $quoteRepository
     ) {
-        $this->_loggerHandler  = $logger;
+        $this->_loggerHandler = $logger;
 
-        $this->_paypalApi    = $paypalApi;
+        $this->_paypalApi = $paypalApi;
         $this->_paypalConfig = $paypalConfig;
         $this->_eventManager = $eventManager;
 
         $this->_orderCreateRequest = $this->_paypalApi->getOrderCreateRequest();
-        $this->_resultJsonFactory  = $resultJsonFactory;
-        $this->_checkoutSession    = $checkoutSession;
+        $this->_resultJsonFactory = $resultJsonFactory;
+        $this->_checkoutSession = $checkoutSession;
 
         $this->_data = $data;
         $this->_adressData = $address;
@@ -197,16 +197,16 @@ class Request
      * @param string $paypalCMID
      * @return \PayPalHttp\HttpResponse
      */
-    public function createRequest($customerEmail, $paypalCMID)
+    public function createRequest($customerEmail, $paypalCMID, $billingAgreement = false)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
         $this->_orderCreateRequest->prefer('return=representation');
 
-        if($customerEmail) {
+        if ($customerEmail) {
             $this->_quote->setCustomerEmail($customerEmail);
         }
-        $requestBody = $this->buildRequestBody();
+        $requestBody = $this->buildRequestBody($billingAgreement);
 
         if ($paypalCMID) {
             $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
@@ -215,12 +215,14 @@ class Request
         $this->_orderCreateRequest->body = $requestBody;
 
         try {
-            $this->_eventManager->dispatch('paypalcp_create_order_before', ['paypalCMID' => $paypalCMID, 'quote' => $this->_quote, 'customer' => $this->_customer]);
+            $this->_eventManager->dispatch('paypalcp_create_order_before',
+                ['paypalCMID' => $paypalCMID, 'quote' => $this->_quote, 'customer' => $this->_customer]);
 
             /** @var \PayPalHttp\HttpResponse $response */
             $response = $this->_paypalApi->execute($this->_orderCreateRequest);
 
-            $this->_eventManager->dispatch('paypalcp_create_order_after', ['quote' => $this->_quote, 'paypalResponse' => $response]);
+            $this->_eventManager->dispatch('paypalcp_create_order_after',
+                ['quote' => $this->_quote, 'paypalResponse' => $response]);
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
 
@@ -237,15 +239,15 @@ class Request
      * @param \Magento\Quote\Model\Quote $quote
      *
      */
-    private function buildRequestBody()
+    private function buildRequestBody($billingAgreement = false)
     {
-        $currencyCode   = $this->_quote->getBaseCurrencyCode();
-        $amount         = $this->_formatPrice($this->_quote->getGrandTotal());
-        $subtotal       = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
+        $currencyCode = $this->_quote->getBaseCurrencyCode();
+        $amount = $this->_formatPrice($this->_quote->getGrandTotal());
+        $subtotal = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
         $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
-        $taxAmount      = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
+        $taxAmount = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
 
-        if(!$this->_quote->getReserveOrderId()) {
+        if (!$this->_quote->getReserveOrderId()) {
             $this->_quote->reserveOrderId();
             $this->quoteRepository->save($this->_quote);
         }
@@ -255,14 +257,16 @@ class Request
             'application_context' => [
                 'shipping_preference' => $this->_quote->isVirtual() ? 'NO_SHIPPING' : 'SET_PROVIDED_ADDRESS'
             ],
-            'payer' => $this->_getPayer(),
-            'purchase_units' => [[
-                'invoice_id' => $this->_quote->getReservedOrderId(),
-                'amount' => [
-                    'currency_code' => $currencyCode,
-                    'value' => $amount
+            'payer' => $this->_getPayer($billingAgreement),
+            'purchase_units' => [
+                [
+                    'invoice_id' => sprintf('%s-%s', \date('Ymdhis'), $this->_quote->getReservedOrderId()),
+                    'amount' => [
+                        'currency_code' => $currencyCode,
+                        'value' => $amount
+                    ]
                 ]
-            ]]
+            ]
         ];
 
         if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS)) {
@@ -294,20 +298,35 @@ class Request
         return $requestBody;
     }
 
-    protected function _getPayer()
+    protected function _getPayer($isBillingAgreement = false)
     {
-        $ret = [
-            'email_address' => $this->_customerAddress->getEmail(),
-            'name' => [
-                'given_name' => $this->_customerAddress->getFirstname(),
-                'surname'    => $this->_customerAddress->getLastname()
-            ],
-            'phone' => [
-                'phone_number' => [
-                    'national_number' => $this->_customerAddress->getTelephone()
+
+        if ($isBillingAgreement) {
+            $ret = [
+                'email_address' => $this->_customerAddress->getEmail(),
+                'name' => [
+                    'given_name' => $this->_customerAddress->getFirstname(),
+                    'surname' => $this->_customerAddress->getLastname()
                 ]
-            ]
-        ];
+            ];
+        } else {
+            $ret = [
+                'email_address' => $this->_customerAddress->getEmail(),
+                'name' => [
+                    'given_name' => $this->_customerAddress->getFirstname(),
+                    'surname' => $this->_customerAddress->getLastname()
+                ],
+
+            ];
+
+            if ($this->_customerAddress->getTelephone() && strlen($this->_customerAddress->getTelephone()) > 1) {
+                $ret['phone'] = [
+                    'phone_number' => [
+                        'national_number' => $this->_customerAddress->getTelephone()
+                    ]
+                ];
+            }
+        }
 
         return $ret;
     }
@@ -321,13 +340,13 @@ class Request
     {
         $paypalItems = [];
 
-        $currencyCode   = $this->_quote->getBaseCurrencyCode();
+        $currencyCode = $this->_quote->getBaseCurrencyCode();
 
         /** @var \Magento\Quote\Model\Quote\Item $item */
         foreach ($this->_quote->getAllVisibleItems() as $item) {
             $paypalItems[] = [
-                'name'        => $item->getName(),
-                'sku'         => $item->getSku(),
+                'name' => $item->getName(),
+                'sku' => $item->getSku(),
                 'description' => $item->getDescription(),
                 'unit_amount' => [
                     'currency_code' => $currencyCode,
@@ -337,7 +356,7 @@ class Request
                     'currency_code' => $currencyCode,
                     'value' => $this->_formatPrice($item->getTaxAmount())
                 ],
-                'quantity'    => $item->getQty()
+                'quantity' => $item->getQty()
             ];
         }
 
@@ -401,7 +420,7 @@ class Request
      */
     protected function _prepareAddress($address)
     {
-        $region = $address->getRegionCode() ?  $address->getRegionCode() :  $address->getRegion();
+        $region = $address->getRegionCode() ? $address->getRegionCode() : $address->getRegion();
         $addressLines = $this->_prepareAddressLines($address);
 
         $requestAddress = array(
@@ -429,6 +448,7 @@ class Request
 
         return $_address;
     }
+
     /**
      * Format price string
      *

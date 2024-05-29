@@ -42,12 +42,21 @@ class Config
     const CONFIG_XML_FRAUDNET_SWI         = 'source_web_identifier';
     const CONFIG_XML_FRAUDNET_FNCLS       = 'fncls';
 
+    const CONFIG_XML_ENABLE_REFERENCE_TRANSACTION  = 'enable_reference_transaction';
+
     /** STC CONFIGS */
 
     const CONFIG_XML_ENABLE_STC                    = 'enable_stc';
     const CONFIG_XML_ENABLE_STC_MERCHANT_ID        = 'stc_merchant_id';
     const CONFIG_XML_ENABLE_STC_HIGHSRISK_TXN_FLAG = 'stc_highrisk_txn_flag';
     const CONFIG_XML_ENABLE_STC_VERTICAL           = 'stc_vertical';
+    const CONFIG_XML_MSI_3 = 'msi3';
+    const CONFIG_XML_MSI_4 = 'msi4';
+    const CONFIG_XML_MSI_6 = 'msi6';
+    const CONFIG_XML_MSI_9 = 'msi9';
+    const CONFIG_XML_MSI_12 = 'msi12';
+    const CONFIG_XML_MSI_18 = 'msi18';
+    const CONFIG_XML_MSI_24 = 'msi24';
 
     /**
      * Button customization style options
@@ -128,6 +137,19 @@ class Config
         );
     }
 
+    public function getMSIMinimum($type = 'acdc')
+    {
+        return [
+            '3'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_3.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_3),
+            '4'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_4.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_4),
+            '6'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_6.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_6),
+            '9'  => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_9.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_9),
+            '12' => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_12.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_12),
+            '18' => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_18.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_18),
+            '24' => $type == 'acdc' ? $this->getConfigValue(self::CONFIG_XML_MSI_24.'_acdc') : $this->getConfigValue(self::CONFIG_XML_MSI_24)
+        ];
+    }
+
     protected function _preparePathConfig($config, $code = self::PAYMENT_COMMERCE_PLATFORM_CODE)
     {
         return sprintf("payment/%s/%s", $code, $config);
@@ -170,6 +192,11 @@ class Config
     public function getCountryCode()
     {
         return $this->getConfigValue(self::CONFIG_XML_COUNTRY_CODE);
+    }
+
+    public function isEnableReferenceTransaction()
+    {
+        return $this->isSetFLag(self::CONFIG_XML_ENABLE_REFERENCE_TRANSACTION);
     }
 
     public function isEnableBcdc()
