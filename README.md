@@ -3,35 +3,18 @@ Magento 2 PayPal Commerce Platform (México)
 
 # Installation via composer (recommend)
 
-From the root folder of your project:
+1. Setup your composer/github credentials locally.
+2. From the root folder of your project run:
 ```
-composer require qbo/module-paypal-commerce-platform
+composer require qbo/module-paypal-commerce-platform --ignore-platform-reqs
 php bin/magento setup:upgrade
-```
-If something goes wrong with dependencies, and youre OK to ignore it,  add the following line to your composer.json under "require" section:
-```
-"qbo/module-paypal-commerce-platform": "1.0"
-```
-Then update your dependencies
-```
-composer update [--ignore-platform-reqs]
-```
-
-# Installation manual
-
-If you don't want to install via composer, you can use this way. 
-
-- Download [the latest version here](https://github.com/qbo-tech/magento2-paypal-commerce-platform/archive/master.zip) 
-- Extract `master.zip` file to `app/code/PayPal/CommercePlatform` ; You should create a folder path `app/code/PayPal/CommercePlatform` if not exist.
-- Go to Magento root folder and run upgrade command line to install `PayPal_CommercePlatform`:
-
-```
-php bin/magento setup:upgrade
+php bin/magento setup:di:compile
 php bin/magento setup:static-content:deploy
 ```
 
 # Configuration
 
+- Module configurations us found at: Stores -> Configuration -> Sales -> Payment methods -> PayPal Commcerce Platform
 - Select "Mexico" for Merchant Location under Payment Methods Configuration
 - Get your REST APP Credentiasl from https://developer.paypal.com
 - Enter your PayPal API credentials under PayPal Checkout Mexico Module configuration.
@@ -42,8 +25,9 @@ php bin/magento setup:static-content:deploy
 
 From the root folder of your project:
 ```
-composer update [--ignore-platform-reqs]
+composer require qbo/module-paypal-commerce-platform:$version --ignore-platform-reqs
 php bin/magento setup:upgrade
+php bin/magento setup:di:compile
 rm -rf var/generation var/di var/view_preprocessed pub/static
 php bin/magento setup:static-content:deploy
 ```
