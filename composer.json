@@ -10,7 +10,7 @@
         }
     ],
     "require": {
-        "qbo-tech/paypal-checkout-sdk": "1.0.3"
+        "qbo-tech/paypal-checkout-sdk": "1.0.2"
     },
     "autoload": {
         "files": [
