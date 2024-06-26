@@ -27,6 +27,9 @@
                 <fncls>fnparams-dede7cc5-15fd-4c75-a9f4-36c430ee3a99</fncls>
                 <enable_stc>0</enable_stc>
                 <stc_vertical>retail</stc_vertical>
+                <title_paypal>Pago con Paypal</title_paypal>
+                <title_card>Pago con tarjeta de Crédito / Débito</title_card>
+                <title_oxxo>Pago en Oxxo</title_oxxo>
             </paypalcp>
             <paypalspb>
                 <active>1</active>
