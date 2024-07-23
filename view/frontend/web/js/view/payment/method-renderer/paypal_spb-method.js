@@ -831,7 +831,7 @@ define(
 
                         const card = self.customerCards().find(element => element.id == cardId);
 
-                        if(self.isInstallmentsEnable()){
+                        if(card.financing_options?.[0] !== undefined && self.isInstallmentsEnable()) {
                             var options = self.fillInstallmentOptions(card.financing_options[0]);
                             self.installmentOptions(options);
                             self.installmentsAvailable(true);
