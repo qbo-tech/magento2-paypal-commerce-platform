@@ -27,6 +27,8 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
     /** @var \PayPal\CommercePlatform\Model\Paypal\Webhooks\Event */
     protected $_webhookEvent;
 
+    protected $_logger;
+
     /**
      * Class constructor
      *
