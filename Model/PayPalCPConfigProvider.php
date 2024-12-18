@@ -137,7 +137,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         ];
 
         if($this->_paypalConfig->isEnableAcdc()){
-            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'hosted-fields,buttons';
+            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'card-fields,buttons';
         }
     }
 

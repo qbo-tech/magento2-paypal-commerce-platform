@@ -17,25 +17,26 @@ define([
         loadSdk: function (callbackOnLoaded, withVault = false) {
             var self = this;
             self.logger('#loadSdk 1 #', callbackOnLoaded);
-            self.logger('#loadSdk 2 #', withVault);
+            // self.logger('#loadSdk 2 #', withVault);
 
             self.onLoadedCallback = callbackOnLoaded;
 
-            if(withVault) {
-                self.paypalSdk += '&vault=true';
-            }
+            // if(withVault) {
+            //     self.paypalSdk += '&vault=true';
+            // }
 
             var componentUrl = self.paypalSdk;
-            var clientToken = null;
+            var idToken = null;
             console.info('self.paypalSdk ', self.paypalSdk);
 
             if ((typeof paypal === 'undefined')) {
 
-                if(self.isAcdcEnable || self.isEnableReferenceTransactions) {
-                    console.info('Generating ClientToken...');
-                    clientToken = paypalTokenAdapter.generateClientToken();
-                }
+              /*  if(self.isAcdcEnable || self.isEnableReferenceTransactions) {
+                    console.info('Generating idToken...');
+                    idToken = paypalTokenAdapter.generateIdToken();
+                } */
 
+                idToken = paypalTokenAdapter.generateIdToken();
                 var objCallback = {
                     completeCallback: function (resultIndicator, successIndicator) {
                         self.logger('completeCallback complete');
@@ -73,8 +74,8 @@ define([
                 htmlElement.setAttribute('data-cancel', 'window.ErrorCallback');
                 htmlElement.setAttribute('data-complete', 'window.CompletedCallback');
 
-                if(clientToken && (self.isAcdcEnable || self.isEnableReferenceTransactions) ) {
-                    htmlElement.setAttribute('data-client-token', clientToken);
+                if(idToken && (self.isAcdcEnable || self.isEnableReferenceTransactions) ) {
+                    htmlElement.setAttribute('data-sdk-client-token', idToken);
                 }
 
             }

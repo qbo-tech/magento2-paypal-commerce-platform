@@ -106,14 +106,16 @@ class Token
      * Setting up the JSON request body for creating the order with minimum request body. The intent in the
      * request body should be "AUTHORIZE" for authorize intent flow.
      *
+     * @param null $customerId
      * @return array
      */
-    private function buildRequestBody($customerId = null)
+    private function buildRequestBody($customerId = null): array
     {
         if (null === $customerId) {
             return [
                 'grant_type' => 'client_credentials',
-                'response_type' => 'token'
+                'response_type' => 'id_token',
+                'ignoreCache' => 'true'
             ];
         } else {
             return [

@@ -469,6 +469,231 @@ define(
                     });
                 }
             },
+            renderCardFields: function () {
+                var self = this;
+
+                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+
+                if ((typeof paypal === 'undefined')) {
+                    self.loadSdk();
+
+                    if ((typeof paypal === 'undefined')) return;
+                }
+
+
+                const styleObject = {
+                    input: {
+                        "font-size": "14px",
+                        'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif",
+                        "font-weight": "lighter",
+                        color: "#3A3A3A",
+                    },
+                    '.number': {
+                        'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+                    },
+                    '.valid': {
+                        'color': 'black'
+                    },
+                    '.invalid': {
+                        'color': 'red'
+                    }
+                };
+
+                const cardField = paypal.CardFields({
+                    styles: styleObject,
+                    installments: {
+                        onInstallmentsRequested: function () {
+                            return {
+                                amount: String(totals.getSegment('grand_total').value),
+                                currencyCode: 'MXN',
+                                financingCountryCode: 'MX', // Agregar el countrycode
+                                billingCountryCode: 'MX', // Agregar Billing country code
+                                includeBuyerInstallments: true, // Incluir installments cost to buyer
+                            };
+                        },
+                        onInstallmentsAvailable: function (installments) {
+                            var qualifyingOptions = installments && installments.financing_options && installments.financing_options.filter(function (financialOption) {
+                                return financialOption.product === 'CARD_ISSUER_INSTALLMENTS';
+                            });
+
+                            var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
+                            if (!hasCardIssuerInstallment) {
+                                self.logger("MSI not available");
+                                self.installmentsAvailable(false);
+                                self.canShowInstallments(true);
+
+                                var option = {
+                                    value: "Tu tarjeta no es elegible para Meses sin Intereses",
+                                    currency_code: '',
+                                    interval: '',
+                                    term: '',
+                                    interval_duration: '',
+                                    discount_percentage: ''
+                                };
+                                var options = [];
+                                options.push(option);
+                                self.installmentOptions(options);
+
+                                return;
+                            }
+
+                            qualifyingOptions.forEach(function (financialOption) {
+
+                                var options = self.fillInstallmentOptions(financialOption);
+                                self.installmentOptions(options);
+                                self.installmentsAvailable(true);
+                                self.canShowInstallments(true);
+
+                                self.logger('financialOption.qualifying_financing_options#option', option);
+                            });
+                        },
+                        onInstallmentsError: function () {
+                            self.installmentsAvailable(false);
+                            console.error('Error while fetching installments');
+                        }
+                    },
+                    createOrder: function (data) {
+                        let requestBody = {};
+                        requestBody.customer_email = quote.guestEmail;
+                        requestBody.fraudNetCMI = self.sessionIdentifier;
+
+                        return fetch('/paypalcheckout/order', {
+                            method: 'post',
+                            body: JSON.stringify(requestBody),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(function (res) {
+                            self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
+
+                            if (res.ok) {
+                                return res.json();
+                            } else {
+                                self.messageContainer.addErrorMessage({
+                                    message: $t('An error has occurred on the server, please try again later')
+                                });
+                                return false;
+                            }
+                        }).then(function (data) {
+                            self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
+                            return data.result.id;
+                        }).catch(function (error) {
+                            console.log('Hubo un problema con la petición :' + error);
+                            self._enableCheckout();
+                        });
+
+                    },
+                    onApprove: function (data, actions) {
+                        self.logger('###paypal_advanced-method#hostedfieldsRender#onApprove#data', data, actions);
+                        self.orderId = data.id;
+
+                        self.placeOrder();
+                    },
+                    onError: function (err) {
+
+                        self.logger('paypal_advanced-method#hostedfieldsRender#onError', err);
+                        self.messageContainer.addErrorMessage({
+                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
+                        });
+                        self._enableCheckout();
+                    }
+
+                });
+
+                if (cardField.isEligible()) {
+
+                    console.log("rendering fields");
+
+                    const nameField = cardField.NameField({
+                        placeholder: "Nombre del titular"
+                    });
+                    nameField.render("#card-holder-name");
+
+                    const numberField = cardField.NumberField({
+                        placeholder: "Número de tarjeta"
+                    });
+                    numberField.render("#card-number");
+
+                    const cvvField = cardField.CVVField({
+                        placeholder: "Código de Seguridad"
+                    });
+                    cvvField.render("#cvv");
+
+                    const expiryField = cardField.ExpiryField({
+                        placeholder: "MM / AA"
+                    });
+                    expiryField.render("#expiration-date");
+
+                }
+
+                // document.getElementById("token-submit").addEventListener("click", () => {
+                //     cardField.submit(installment && installment !== '' ? {
+                //         installments: installmentOptions
+                //     } : {}).catch((error) => {
+                //         console.error("Error al procesar el pago", error);
+                //         alert(`Lo sentimos, tu transacción no se pudo procesar...\n${error}`);
+                //     });
+                // });
+
+
+
+                $('#card-form button#submit').attr('disabled', true);
+
+                // $('#card-holder-name').bind('input', function () {
+                //     self.isValidFields(hf);
+                // });
+                //
+                // hf.on('empty', function (event) {
+                //     self.isValidFields(hf);
+                // });
+                //
+                // hf.on('notEmpty', function (event) {
+                //     self.isValidFields(hf);
+                // });
+                //
+                // hf.on('validityChange', function (event) {
+                //     self.isValidFields(hf);
+                // });
+
+                $('#co-payment-form, #card-form').submit(function (event) {
+                    console.info('submitting...');
+                    event.preventDefault();
+
+                    $('#submit').prop('disabled', true);
+
+                    var body = $('body').loader();
+                    body.loader('show');
+
+                    var submitOptions = {
+                        cardholderName: document.getElementById('card-holder-name').value,
+                        vault: $('#vault').is(':checked'),
+                    };
+
+                    submitOptions = self.validateInstallment(submitOptions);
+
+                    self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
+
+                    // cardField.submit(submitOptions)
+                    //     .then(function (payload) {
+                    //         self.logger('hf.submit#payload', payload);
+                    //         self.orderId = payload.orderId;
+                    //         self.logger('placeorder', self.placeOrder());
+                    //     })
+                    //     .catch(function (err) {
+                    //         self.logger('catch => ', err);
+                    //
+                    //         if (err.hasOwnProperty('details')) {
+                    //             self.messageContainer.addErrorMessage({
+                    //                 message: $t('Transaction cannot be processed, please verify your card information or try another.')
+                    //             });
+                    //         }
+                    //
+                    //         self._enableCheckout();
+                    //     });
+                });
+
+            },
             createOrder: function (requestBody) {
                 var self = this;
                 console.info('createOrder');
@@ -610,7 +835,7 @@ define(
                 };
 
                 if (self.isAcdcEnable) {
-                    self.renderHostedFields();
+                    self.renderCardFields();
                 } else {
                     FUNDING_SOURCES[paypal.FUNDING.CARD] = 'card-button-container';
                 }
