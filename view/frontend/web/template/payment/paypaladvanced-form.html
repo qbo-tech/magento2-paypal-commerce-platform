@@ -115,11 +115,11 @@
 </div>
 <!-- /ko -->
 
-<div id="acdc_card" class="ppcp payment-method" data-bind="css: {'_active': ( 'paypalcp_hf' == isSelected())}, visible: isVisibleCard()">
+<div id="acdc_card" class="ppcp payment-method" data-bind="css: {'_active': ( 'paypalcp_cf' == isSelected())}, visible: isVisibleCard()">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode('paypalcp_hf')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_hf'), visible: isRadioButtonVisible()" />
-        <label class="label" data-bind="attr: {'for': getCode('paypalcp_hf')}">
+            data-bind="attr: {'id': getCode('paypalcp_cf')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_cf'), visible: isRadioButtonVisible()" />
+        <label class="label" data-bind="attr: {'for': getCode('paypalcp_cf')}">
             <span data-bind="text: getTitleMethodCard()"></span>
         </label>
 
@@ -192,14 +192,14 @@
                             </label>
                             <div class='form-control' id='card-number'></div>
                         </div>
-                        <div class="form-group" style="width:48%; display: inline-block;">
+                        <div class="form-group" style="width:49%; display: inline-block;">
                             <label for='expiration-date'>
                                 <!-- ko i18n: 'Expiration date' -->
                                 <!-- /ko -->
                             </label>
                             <div class='form-control' id='expiration-date'></div>
                         </div>
-                        <div class="form-group" style="width:48%; display: inline-block;">
+                        <div class="form-group" style="width:50%; display: inline-block;">
                             <label for='cvv'>
                                 <!-- ko i18n: 'CVV' -->
                                 <!-- /ko -->
@@ -244,10 +244,14 @@
                                 <!-- /ko -->
                             </label>
                         </div>
-                        <button value="submit" id="submit" class="btn">
-                            <!-- ko i18n: 'Pay' -->
-                            <!-- /ko -->
-                        </button>
+                        <div class="form-group">
+                            <div class="form-control">
+                                <button value="submit" id="submit" class="btn">
+                                    <!-- ko i18n: 'Pay' -->
+                                    <!-- /ko -->
+                                </button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

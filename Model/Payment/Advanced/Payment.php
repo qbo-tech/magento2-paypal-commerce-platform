@@ -256,11 +256,12 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
             $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
-            $paymentSource = json_decode($payment->getAdditionalInformation('payment_source'));
+            $paymentSource = $payment->getAdditionalInformation('payment_source') != null ? json_decode($payment->getAdditionalInformation('payment_source')) : null;
             $errorMessage = self::GATEWAY_ERROR_MESSAGE;
 
             if (
-                isset($paymentSource->token->type)
+                $paymentSource && isset($paymentSource->token)
+                && isset($paymentSource->token->type)
                 && $paymentSource->token->type == 'BILLING_AGREEMENT'
                 && isset($this->_response->message)
                 && json_decode($this->_response->message)->name == 'AGREEMENT_ALREADY_CANCELLED'

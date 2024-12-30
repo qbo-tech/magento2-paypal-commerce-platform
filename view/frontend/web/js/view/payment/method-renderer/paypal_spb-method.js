@@ -193,8 +193,27 @@ define(
                     }
                 };
 
+
                 if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
                     data.additional_data.payment_source = JSON.stringify(submitOptions.payment_source);
+                }
+
+                if(self.currentMethod === 'paypalcp_cf' && self.isActiveAcdc() && self.isVaultingEnable){
+                    // data.additional_data.payment_source = {
+                    //     card: {
+                    //         attributes: {
+                    //             customer: {
+                    //                 id: "Customer#"+this.paypalConfigs.customer.id
+                    //             },
+                    //             vault: {
+                    //                 store_in_vault: "ON_SUCCESS",
+                    //                 usage_type: "MERCHANT",
+                    //                 customer_type: "CONSUMER",
+                    //                 permit_multiple_payment_tokens: true
+                    //             }
+                    //         }
+                    //     }
+                    // };
                 }
 
                 return data;
@@ -262,213 +281,7 @@ define(
                 }
 
             },
-            /**
-             * Renders the PayPal card fields
-             *
-             */
-            renderHostedFields: function () {
-                var self = this;
 
-                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
-
-                if ((typeof paypal === 'undefined')) {
-                    self.loadSdk();
-
-                    if ((typeof paypal === 'undefined')) return;
-                }
-
-                if (!paypal.HostedFields.isEligible()) {
-                    self.logger('HostedFields HOSTEDFIELDS_NOT_ELIGIBLE');
-                    self.isVisibleCard(false);
-                    self.installmentsAvailable(false);
-                    return;
-                } else {
-
-                    paypal.HostedFields.render({
-                        styles: {
-                            'input': {
-                                'font-size': '14px',
-                                'color': '#3A3A3A',
-                                'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
-                            },
-                            '.number': {
-                                'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
-                            },
-                            '.valid': {
-                                'color': 'black'
-                            },
-                            '.invalid': {
-                                'color': 'red'
-                            }
-                        },
-                        fields: {
-                            number: {
-                                selector: '#card-number',
-                                placeholder: 'Número de tarjeta'
-                            },
-                            cvv: {
-                                selector: '#cvv',
-                                placeholder: 'Código de seguridad '
-                            },
-                            expirationDate: {
-                                selector: '#expiration-date',
-                                placeholder: 'mm / aa'
-                            }
-                        },
-                        installments: {
-                            onInstallmentsRequested: function () {
-                                return {
-                                    amount: String(totals.getSegment('grand_total').value),
-                                    currencyCode: 'MXN'
-                                };
-                            },
-                            onInstallmentsAvailable: function (installments) {
-                                var qualifyingOptions = installments && installments.financing_options && installments.financing_options.filter(function (financialOption) {
-                                    return financialOption.product === 'CARD_ISSUER_INSTALLMENTS';
-                                });
-
-                                var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
-                                if (!hasCardIssuerInstallment) {
-                                    self.logger("MSI not available");
-                                    self.installmentsAvailable(false);
-                                    self.canShowInstallments(true);
-
-                                    var option = {
-                                        value: "Tu tarjeta no es elegible para Meses sin Intereses",
-                                        currency_code: '',
-                                        interval: '',
-                                        term: '',
-                                        interval_duration: '',
-                                        discount_percentage: ''
-                                    };
-                                    var options = [];
-                                    options.push(option);
-                                    self.installmentOptions(options);
-
-                                    return;
-                                }
-
-                                qualifyingOptions.forEach(function (financialOption) {
-
-                                    var options = self.fillInstallmentOptions(financialOption);
-                                    self.installmentOptions(options);
-                                    self.installmentsAvailable(true);
-                                    self.canShowInstallments(true);
-
-                                    self.logger('financialOption.qualifying_financing_options#option', option);
-                                });
-                            },
-                            onInstallmentsError: function () {
-                                self.installmentsAvailable(false);
-                                console.error('Error while fetching installments');
-                            }
-                        },
-                        createOrder: function (data) {
-                            let requestBody = {};
-                            requestBody.customer_email = quote.guestEmail;
-                            requestBody.fraudNetCMI = self.sessionIdentifier;
-
-                            return fetch('/paypalcheckout/order', {
-                                method: 'post',
-                                body: JSON.stringify(requestBody),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            }).then(function (res) {
-                                self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-
-                                if (res.ok) {
-                                    return res.json();
-                                } else {
-                                    self.messageContainer.addErrorMessage({
-                                        message: $t('An error has occurred on the server, please try again later')
-                                    });
-                                    return false;
-                                }
-                            }).then(function (data) {
-                                self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
-                                return data.result.id;
-                            }).catch(function (error) {
-                                console.log('Hubo un problema con la petición :' + error);
-                                self._enableCheckout();
-                            });
-
-                        },
-                        onApprove: function (data, actions) {
-                            self.logger('###paypal_advanced-method#hostedfieldsRender#onApprove#data', data, actions);
-                            self.orderId = data.id;
-
-                            self.placeOrder();
-                        },
-                        onError: function (err) {
-
-                            self.logger('paypal_advanced-method#hostedfieldsRender#onError', err);
-                            self.messageContainer.addErrorMessage({
-                                message: $t('Transaction cannot be processed, please verify your card information or try another.')
-                            });
-                            self._enableCheckout();
-                        }
-
-                    }).then(function (hf) {
-                        $('#card-form button#submit').attr('disabled', true);
-
-                        $('#card-holder-name').bind('input', function () {
-                            self.isValidFields(hf);
-                        });
-
-                        hf.on('empty', function (event) {
-                            self.isValidFields(hf);
-                        });
-
-                        hf.on('notEmpty', function (event) {
-                            self.isValidFields(hf);
-                        });
-
-                        hf.on('validityChange', function (event) {
-                            self.isValidFields(hf);
-                        });
-
-                        $('#co-payment-form, #card-form').submit(function (event) {
-                            console.info('submitting...');
-                            event.preventDefault();
-
-                            $('#submit').prop('disabled', true);
-
-                            var body = $('body').loader();
-                            body.loader('show');
-
-                            var submitOptions = {
-                                cardholderName: document.getElementById('card-holder-name').value,
-                                vault: $('#vault').is(':checked'),
-                            };
-
-                            submitOptions = self.validateInstallment(submitOptions);
-
-                            self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
-
-                            hf.submit(submitOptions)
-                                .then(function (payload) {
-                                    self.logger('hf.submit#payload', payload);
-                                    self.orderId = payload.orderId;
-                                    self.logger('placeorder', self.placeOrder());
-                                })
-                                .catch(function (err) {
-                                    self.logger('catch => ', err);
-
-                                    if (err.hasOwnProperty('details')) {
-                                        self.messageContainer.addErrorMessage({
-                                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
-                                        });
-                                    }
-
-                                    self._enableCheckout();
-                                });
-                            return false;
-                        });
-                    });
-                }
-            },
             renderCardFields: function () {
                 var self = this;
 
@@ -565,7 +378,7 @@ define(
                                 'X-Requested-With': 'XMLHttpRequest'
                             }
                         }).then(function (res) {
-                            self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
+                            self.logger('###paypal_advanced-method#cardfieldsRender#createOrder# res =', res);
 
                             if (res.ok) {
                                 return res.json();
@@ -576,7 +389,7 @@ define(
                                 return false;
                             }
                         }).then(function (data) {
-                            self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
+                            self.logger('###paypal_advanced-method#cardfieldsRender#createOrder# data.result =', data.result);
                             return data.result.id;
                         }).catch(function (error) {
                             console.log('Hubo un problema con la petición :' + error);
@@ -585,14 +398,29 @@ define(
 
                     },
                     onApprove: function (data, actions) {
-                        self.logger('###paypal_advanced-method#hostedfieldsRender#onApprove#data', data, actions);
-                        self.orderId = data.id;
+                        self.logger('###paypal_advanced-method#cardfieldsRender#onApprove#data', data, actions);
+                        self.orderId = data.orderID;
 
-                        self.placeOrder();
+                        try {
+                            self.placeOrder().always(function () {
+                                self.logger('paypal_advanced-method#cardfieldsRender#onApprove', 'always');
+                            }).done(function () {
+                                self.logger('paypal_advanced-method#cardfieldsRender#onApprove', 'done');
+                            }).then(function () {
+                                self.logger('paypal_advanced-method#cardfieldsRender#onApprove', 'then');
+                            })
+                        } catch (err) {
+                            self.logger('paypal_advanced-method#cardfieldsRender#onApprove', err);
+                            self.messageContainer.addErrorMessage({
+                                message: $t('Transaction cannot be processed, please verify your card information or try another.')
+                            });
+                            self._enableCheckout();
+                        }
+
                     },
                     onError: function (err) {
 
-                        self.logger('paypal_advanced-method#hostedfieldsRender#onError', err);
+                        self.logger('paypal_advanced-method#cardfieldsRender#onError', err);
                         self.messageContainer.addErrorMessage({
                             message: $t('Transaction cannot be processed, please verify your card information or try another.')
                         });
@@ -627,34 +455,9 @@ define(
 
                 }
 
-                // document.getElementById("token-submit").addEventListener("click", () => {
-                //     cardField.submit(installment && installment !== '' ? {
-                //         installments: installmentOptions
-                //     } : {}).catch((error) => {
-                //         console.error("Error al procesar el pago", error);
-                //         alert(`Lo sentimos, tu transacción no se pudo procesar...\n${error}`);
-                //     });
-                // });
 
+                $('#card-form button#submit').attr('disabled', false);
 
-
-                $('#card-form button#submit').attr('disabled', true);
-
-                // $('#card-holder-name').bind('input', function () {
-                //     self.isValidFields(hf);
-                // });
-                //
-                // hf.on('empty', function (event) {
-                //     self.isValidFields(hf);
-                // });
-                //
-                // hf.on('notEmpty', function (event) {
-                //     self.isValidFields(hf);
-                // });
-                //
-                // hf.on('validityChange', function (event) {
-                //     self.isValidFields(hf);
-                // });
 
                 $('#co-payment-form, #card-form').submit(function (event) {
                     console.info('submitting...');
@@ -673,6 +476,15 @@ define(
                     submitOptions = self.validateInstallment(submitOptions);
 
                     self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
+
+                    let installmentOptions = {};
+
+                    cardField.submit({
+                        installments: installmentOptions
+                    }).catch((error) => {
+                        console.error("Error al procesar el pago", error);
+                        alert(`Lo sentimos, tu transacción no se pudo procesar...\n${error}`);
+                    });
 
                     // cardField.submit(submitOptions)
                     //     .then(function (payload) {
@@ -943,9 +755,9 @@ define(
 
                 return submitOptions;
             },
-            isValidFields: function (hostedFieldsInstance) {
+            isValidFields: function (fieldsInstance) {
                 var self = this;
-                var state = hostedFieldsInstance.getState();
+                var state = fieldsInstance.getState();
                 self.logger('state', state);
                 var formValid = Object.keys(state.fields).every(function (key) {
                     return !state.fields[key].isEmpty;
