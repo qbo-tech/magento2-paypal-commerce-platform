@@ -453,6 +453,9 @@ define(
                     });
                     expiryField.render("#expiration-date");
 
+                } else {
+                    let messageNotAvailable = $t('Sorry, the payment method is not available, please try again later.')
+                    $("#paypalcheckout").html('<div class="payment-not-available">'+messageNotAvailable+'</div>').css({ 'color': 'red', 'font-weight': 'bold', 'margin': '20px 10px' });
                 }
 
 
