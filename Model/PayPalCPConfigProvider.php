@@ -177,21 +177,23 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         }
 
         $paymentTokens = [];
-
+        $customerId = sprintf("mage_%s", $customerId);
         $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
-        if ($response->statusCode == 200) {
+
+        if ( $response->statusCode == 200 && isset($response->result->payment_tokens) ) {
 
             foreach ($response->result->payment_tokens as $token) {
 
-                if (property_exists($token->source, 'card')) {
+                if (property_exists($token->payment_source, 'card')) {
                     $paymentTokens['cards'][] = [
                         'id' => $token->id,
-                        'brand' => $token->source->card->brand,
-                        'last_digits' => $token->source->card->last_digits
+                        'brand' => $token->payment_source->card->brand,
+                        'last_digits' => $token->payment_source->card->last_digits
                     ];
                 }
             }
+
             if(isset($paymentTokens['cards'])) {
                 $this->getCalculatedFinancialOptions($paymentTokens);
             }

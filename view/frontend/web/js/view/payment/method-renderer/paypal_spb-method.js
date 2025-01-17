@@ -198,24 +198,6 @@ define(
                     data.additional_data.payment_source = JSON.stringify(submitOptions.payment_source);
                 }
 
-                if(self.currentMethod === 'paypalcp_cf' && self.isActiveAcdc() && self.isVaultingEnable){
-                    // data.additional_data.payment_source = {
-                    //     card: {
-                    //         attributes: {
-                    //             customer: {
-                    //                 id: "Customer#"+this.paypalConfigs.customer.id
-                    //             },
-                    //             vault: {
-                    //                 store_in_vault: "ON_SUCCESS",
-                    //                 usage_type: "MERCHANT",
-                    //                 customer_type: "CONSUMER",
-                    //                 permit_multiple_payment_tokens: true
-                    //             }
-                    //         }
-                    //     }
-                    // };
-                }
-
                 return data;
             },
             renderButton: function (fundingSource, elementId) {
@@ -369,6 +351,7 @@ define(
                         let requestBody = {};
                         requestBody.customer_email = quote.guestEmail;
                         requestBody.fraudNetCMI = self.sessionIdentifier;
+                        requestBody.vault = $('#vault').is(':checked')
 
                         return fetch('/paypalcheckout/order', {
                             method: 'post',
@@ -402,13 +385,10 @@ define(
                         self.orderId = data.orderID;
 
                         try {
-                            self.placeOrder().always(function () {
-                                self.logger('paypal_advanced-method#cardfieldsRender#onApprove', 'always');
-                            }).done(function () {
-                                self.logger('paypal_advanced-method#cardfieldsRender#onApprove', 'done');
-                            }).then(function () {
-                                self.logger('paypal_advanced-method#cardfieldsRender#onApprove', 'then');
-                            })
+                            self.placeOrder();
+                            setTimeout(function() {
+                                self._enableCheckout();
+                            }, 3000);
                         } catch (err) {
                             self.logger('paypal_advanced-method#cardfieldsRender#onApprove', err);
                             self.messageContainer.addErrorMessage({
@@ -471,10 +451,32 @@ define(
                     var body = $('body').loader();
                     body.loader('show');
 
-                    var submitOptions = {
-                        cardholderName: document.getElementById('card-holder-name').value,
-                        vault: $('#vault').is(':checked'),
-                    };
+                    // var submitOptions = {
+                    //     cardholderName: document.getElementById('card-holder-name').value,
+                    //     vault: $('#vault').is(':checked'),
+                    // };
+
+                    var submitOptions = {};
+                    let vaulting = $('#vault').is(':checked');
+                    if(vaulting) {
+                        submitOptions = {
+                            payment_source: {
+                                card: {
+                                    attributes: {
+                                        customer: {
+                                            id: self.paypalConfigs.customer.id
+                                        },
+                                        vault: {
+                                            store_in_vault: "ON_SUCCESS",
+                                            usage_type: "MERCHANT",
+                                            customer_type: "CONSUMER",
+                                            permit_multiple_payment_tokens: true
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    }
 
                     submitOptions = self.validateInstallment(submitOptions);
 
@@ -690,7 +692,31 @@ define(
                             }
                         }
                         self.logger(submitOptions);
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' ) {
+
+                        submitOptions = {
+                            payment_source: {
+                                card: {
+                                    attributes: {
+                                        customer: {
+                                            id: this.paypalConfigs.customer.id
+                                        },
+                                        vault: {
+                                            store_in_vault: "ON_SUCCESS",
+                                            usage_type: "MERCHANT",
+                                            customer_type: "CONSUMER",
+                                            permit_multiple_payment_tokens: true
+                                        },
+                                        installments: submitOptions.installments
+                                    }
+                                }
+                            }
+
+                        };
+
+                        self.logger("with vaulting", submitOptions);
                     }
+
 
                 } else {
 
@@ -706,6 +732,28 @@ define(
                             }
                         }
                         self.logger(submitOptions);
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' ) {
+
+                        submitOptions = {
+                            payment_source: {
+                                card: {
+                                    attributes: {
+                                        customer: {
+                                            id: this.paypalConfigs.customer.id
+                                        },
+                                        vault: {
+                                            store_in_vault: "ON_SUCCESS",
+                                            usage_type: "MERCHANT",
+                                            customer_type: "CONSUMER",
+                                            permit_multiple_payment_tokens: true
+                                        }
+                                    }
+                                }
+                            }
+
+                        };
+
+                        self.logger("with vaulting2", submitOptions);
                     }
                 }
 
