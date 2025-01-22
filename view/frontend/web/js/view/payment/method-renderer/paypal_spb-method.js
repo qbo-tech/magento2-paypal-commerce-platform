@@ -488,26 +488,12 @@ define(
                         installments: installmentOptions
                     }).catch((error) => {
                         console.error("Error al procesar el pago", error);
-                        alert(`Lo sentimos, tu transacción no se pudo procesar...\n${error}`);
+                        self.messageContainer.addErrorMessage({
+                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
+                        });
+                        self._enableCheckout();
                     });
 
-                    // cardField.submit(submitOptions)
-                    //     .then(function (payload) {
-                    //         self.logger('hf.submit#payload', payload);
-                    //         self.orderId = payload.orderId;
-                    //         self.logger('placeorder', self.placeOrder());
-                    //     })
-                    //     .catch(function (err) {
-                    //         self.logger('catch => ', err);
-                    //
-                    //         if (err.hasOwnProperty('details')) {
-                    //             self.messageContainer.addErrorMessage({
-                    //                 message: $t('Transaction cannot be processed, please verify your card information or try another.')
-                    //             });
-                    //         }
-                    //
-                    //         self._enableCheckout();
-                    //     });
                 });
 
             },

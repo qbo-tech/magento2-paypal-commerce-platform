@@ -12,7 +12,12 @@
 }
 
 select#installments {
-    width: 96%;
+    width: 100%;
+    border: 0.1rem solid #909697;
+    border-radius: 0.30rem;
+    height: 60px;
+    margin: 8px 0;
+    position: relative;
 }
 
 #loader {
@@ -119,18 +124,20 @@ select:disabled {
 }
 
 .customer-card-list, .agreement-list {
-    margin: 20px;
-    padding: 0 0 20px 10px;
+    margin: 20px 0;
+    padding: 0 8px;
 }
 
 .customer-card-list > ul, .agreement-list div > ul {
     list-style: none;
-    border: 1px solid #ddd;
+    border: 1px solid #909697;
+    padding: 0 20px;
+    margin: 0 0 10px 0;
 }
 
 .customer-card-list > ul > li, .agreement-list div > ul > li {
     padding: 8px 16px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #909697;
     margin-bottom: 0;
 }
 
