@@ -2,6 +2,7 @@
 
 namespace PayPal\CommercePlatform\Model\Paypal\Core;
 
+use Magento\Checkout\Exception;
 use PayPal\CommercePlatform\Model\Paypal\Order\DataObject;
 use PayPal\CommercePlatform\Model\Paypal\Order\type;
 use PayPalHttp\HttpResponse;
@@ -51,10 +52,10 @@ class Token
     /**
      * Create and execute request paypal API
      *
-     * @return HttpResponse
+     * @return HttpResponse|Exception
      * @throws \Exception
      */
-    public function createRequest(): HttpResponse
+    public function createRequest()
     {
         $this->_accessTokenRequest = $this->_paypalApi->getAccessTokenRequest($this->_paypalApi->getAuthorizationString());
         $requestBody = $this->buildRequestBody();
