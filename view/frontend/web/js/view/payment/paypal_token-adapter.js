@@ -1,6 +1,8 @@
 define([
-    'jquery'
-], function ($) {
+    'jquery',
+    'mage/translate',
+    'Magento_Ui/js/model/messageList'
+], function ($, $t, globalMessageList) {
     'use strict';
 
     return {
@@ -14,7 +16,14 @@ define([
                 method: 'POST',
                 timeout: 0,
                 async: false
-            }).responseJSON
+            }).fail(function() {
+                console.log("error creating client token");
+                globalMessageList.addErrorMessage({
+                    message: $t('It is not possible to use paypal, please try another')
+                });
+                $('.payment-method').hide();
+                $('body').loader();
+            });
 
             return response.token;
         },
