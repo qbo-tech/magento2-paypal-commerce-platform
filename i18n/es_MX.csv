@@ -76,3 +76,4 @@ Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "Declining Pending Payment Transaction","Rechazar transacción de pago pendiente"
 "The transaction id is not present","El ID de la transacción no está presente."
 "Gateway response error","Error de respuesta de la puerta de enlace"
+"It is not possible to use paypal, please try another","No es posible usar este método de pago en este momento. Por favor, inténtalo más tarde."
