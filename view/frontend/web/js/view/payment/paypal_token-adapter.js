@@ -1,23 +1,12 @@
 define([
-    'jquery'
-], function ($) {
+    'jquery',
+    'mage/translate',
+    'Magento_Ui/js/model/messageList'
+], function ($, $t, globalMessageList) {
     'use strict';
 
     return {
         urlAccessToken: '/paypalcheckout/token/index',
-
-        generateClientToken: function () {
-            console.info('new generate client token');
-            var self = this;
-            var response = $.ajax({
-                url: self.urlAccessToken,
-                method: 'POST',
-                timeout: 0,
-                async: false
-            }).responseJSON
-
-            return response.token;
-        },
 
         generateIdToken: function () {
             console.info('generate new Id token');
@@ -27,10 +16,18 @@ define([
                 method: 'POST',
                 timeout: 0,
                 async: false
-            }).responseJSON
+            }).fail(function() {
+                console.log("error creating id token");
+                globalMessageList.addErrorMessage({
+                    message: $t('It is not possible to use paypal, please try another')
+                });
+                $('.payment-method').hide();
+                $('body').loader();
+            });
 
-            console.log('response id token ===> ', response);
-            return response.id_token;
+            var responseJson = response.responseJSON
+            console.log('response id token ===> ', responseJson);
+            return responseJson.id_token;
         },
 
     };

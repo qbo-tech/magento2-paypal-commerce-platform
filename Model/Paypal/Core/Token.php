@@ -51,10 +51,9 @@ class Token
     /**
      * Create and execute request paypal API
      *
-     * @return HttpResponse
      * @throws \Exception
      */
-    public function createRequest(): HttpResponse
+    public function createRequest()
     {
         $this->_accessTokenRequest = $this->_paypalApi->getAccessTokenRequest($this->_paypalApi->getAuthorizationString());
         $requestBody = $this->buildRequestBody();
@@ -81,7 +80,7 @@ class Token
      * @return HttpResponse
      * @throws \Exception
      */
-    public function createGenerateTokenRequest($accessToken): HttpResponse
+    public function createGenerateTokenRequest($accessToken)
     {
         $this->_accessTokenRequest = $this->_paypalApi->getGenerateTokenRequest($accessToken, $this->_customer->getId());
         $requestBody = $this->buildRequestBody($this->_customer->getId());

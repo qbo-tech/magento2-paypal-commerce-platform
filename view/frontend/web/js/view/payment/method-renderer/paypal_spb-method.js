@@ -107,7 +107,7 @@ define(
                 return false;
             },
             isInstallmentsEnable: function () {
-                return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type != 'no'));
             },
             isVaultingEnable: function () {
                 return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customer.id != null));
@@ -267,7 +267,7 @@ define(
             renderCardFields: function () {
                 var self = this;
 
-                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type != 'no'));
 
                 if ((typeof paypal === 'undefined')) {
                     self.loadSdk();
@@ -298,6 +298,7 @@ define(
                     styles: styleObject,
                     installments: {
                         onInstallmentsRequested: function () {
+                            console.log("installments_type ===> ", self.paypalConfigs.acdc.installments_type);
                             return {
                                 amount: String(totals.getSegment('grand_total').value),
                                 currencyCode: 'MXN',

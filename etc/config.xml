@@ -30,6 +30,7 @@
                 <title_paypal>Pago con Paypal</title_paypal>
                 <title_card>Pago con tarjeta de Crédito / Débito</title_card>
                 <title_oxxo>Pago en Oxxo</title_oxxo>
+                <installments_type>installments_cost_to_buyer</installments_type>
             </paypalcp>
             <paypalspb>
                 <active>1</active>
