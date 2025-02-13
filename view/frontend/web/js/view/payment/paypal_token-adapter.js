@@ -24,8 +24,8 @@ define([
                 $('.payment-method').hide();
                 $('body').loader();
             });
-
-            return response.token;
+            var responseJson = response.responseJSON
+            return responseJson.token;
         },
 
     };
