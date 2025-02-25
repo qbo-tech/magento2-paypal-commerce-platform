@@ -29,7 +29,7 @@ class Config
     const CONFIG_XML_ENABLE_ACDC          = 'enable_acdc';
     const CONFIG_XML_CARD_FIRST_ACDC      = 'card_fisrt_acdc';
     const CONFIG_XML_ENABLE_OXXO          = 'enable_oxxo';
-    const CONFIG_XML_ENABLE_INSTALLMENTS  = 'enable_installments';
+    const CONFIG_XML_INSTALLMENTS_TYPE    = 'installments_type';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
     const CONFIG_XML_LOCALE_CODE          = 'locale';
     const CONFIG_XML_COUNTRY_CODE         = 'country_code';
@@ -214,9 +214,9 @@ class Config
         return $this->isSetFLag(self::CONFIG_XML_ENABLE_ACDC);
     }
 
-    public function isEnableMsi()
+    public function getInstallmentsType()
     {
-        return $this->isSetFLag(self::CONFIG_XML_ENABLE_INSTALLMENTS);
+        return $this->getConfigValue(self::CONFIG_XML_INSTALLMENTS_TYPE);
     }
 
     public function isEnableVaulting()

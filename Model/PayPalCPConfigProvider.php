@@ -94,7 +94,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ],
                     'acdc' => [
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
-                        'enable_installments' => $this->_paypalConfig->isEnableMsi(),
+                        'installments_type' => $this->_paypalConfig->getInstallmentsType(),
                         'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
                         'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
                         'msiMinimum' => $this->_paypalConfig->getMSIMinimum(),

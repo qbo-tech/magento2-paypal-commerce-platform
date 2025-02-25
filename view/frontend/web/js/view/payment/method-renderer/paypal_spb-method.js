@@ -120,20 +120,34 @@ define(
                 }
             },
 
-            parseInstallOptions: function(qualifyingFinancingOption) {
-                return {
-                    value: qualifyingFinancingOption.monthly_payment.value,
-                    currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
-                    interval: $t(qualifyingFinancingOption.credit_financing.interval),
-                    term: qualifyingFinancingOption.credit_financing.term,
-                    interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
-                    discount_percentage: qualifyingFinancingOption.discount_percentage
+            parseInstallOptions: function (qualifyingFinancingOption) {
+                const { monthly_payment, credit_financing, discount_percentage, total_consumer_fee, fee_reference_id } = qualifyingFinancingOption;
+
+                let parsedOptions = {
+                    value: monthly_payment.value,
+                    currency_code: monthly_payment.currency_code,
+                    interval: $t(credit_financing.interval),
+                    term: credit_financing.term,
+                    interval_duration: credit_financing.interval_duration,
+                    discount_percentage
                 };
+
+                if (this.paypalConfigs.acdc.installments_type === 'installments_cost_to_buyer') {
+                    parsedOptions = {
+                        ...parsedOptions,
+                        total_consumer_fee: total_consumer_fee ? parseFloat(total_consumer_fee.value) : 0,
+                        fee_reference_id
+                    };
+                }
+
+                return parsedOptions;
             },
 
             fillInstallmentOptions: function (financialOption, minimumType = 'acdc') {
                 var self = this;
                 var options = [];
+
+                console.log("financialOption ==> ", financialOption);
 
                 if ('acdc' === minimumType) {
                     var msiMinimum = window.checkoutConfig.payment.paypalcp.acdc.msiMinimum;
@@ -294,18 +308,25 @@ define(
                     }
                 };
 
+                console.log("installments_type ===> ", self.paypalConfigs.acdc.installments_type);
+
+
                 const cardField = paypal.CardFields({
                     styles: styleObject,
                     installments: {
                         onInstallmentsRequested: function () {
-                            console.log("installments_type ===> ", self.paypalConfigs.acdc.installments_type);
-                            return {
+
+                            const baseConfig = {
                                 amount: String(totals.getSegment('grand_total').value),
                                 currencyCode: 'MXN',
-                                financingCountryCode: 'MX', // Agregar el countrycode
-                                billingCountryCode: 'MX', // Agregar Billing country code
-                                includeBuyerInstallments: true, // Incluir installments cost to buyer
+                                financingCountryCode: 'MX',
+                                billingCountryCode: 'MX'
                             };
+
+                            return self.paypalConfigs.acdc.installments_type === "installments_cost_to_buyer"
+                                ? { ...baseConfig, includeBuyerInstallments: true }
+                                : baseConfig;
+
                         },
                         onInstallmentsAvailable: function (installments) {
                             var qualifyingOptions = installments && installments.financing_options && installments.financing_options.filter(function (financialOption) {
@@ -319,7 +340,7 @@ define(
                                 self.canShowInstallments(true);
 
                                 var option = {
-                                    value: "Tu tarjeta no es elegible para Meses sin Intereses",
+                                    value: "Tu tarjeta no es elegible para pago a Meses",
                                     currency_code: '',
                                     interval: '',
                                     term: '',
@@ -333,14 +354,17 @@ define(
                                 return;
                             }
 
-                            qualifyingOptions.forEach(function (financialOption) {
 
+
+                            qualifyingOptions.forEach(function (financialOption) {
+                                // const totalConsumerFee = financialOption.total_consumer_fee ? parseFloat(financialOption.total_consumer_fee.value) : 0;
+                                console.log("financialOption ===> ", financialOption);
                                 var options = self.fillInstallmentOptions(financialOption);
                                 self.installmentOptions(options);
                                 self.installmentsAvailable(true);
                                 self.canShowInstallments(true);
 
-                                self.logger('financialOption.qualifying_financing_options#option', option);
+                                self.logger('financialOption.qualifying_financing_options#option', options);
                             });
                         },
                         onInstallmentsError: function () {
@@ -452,11 +476,6 @@ define(
                     var body = $('body').loader();
                     body.loader('show');
 
-                    // var submitOptions = {
-                    //     cardholderName: document.getElementById('card-holder-name').value,
-                    //     vault: $('#vault').is(':checked'),
-                    // };
-
                     var submitOptions = {};
                     let vaulting = $('#vault').is(':checked');
                     if(vaulting) {
@@ -465,7 +484,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: self.paypalConfigs.customer.id
+                                            id: "mage_"+self.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -662,7 +681,7 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        intervalDuration: installment.interval_duration
+                        ...(installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id })
                     };
                     self.logger('validateInstallment#submitOption', submitOptions);
 

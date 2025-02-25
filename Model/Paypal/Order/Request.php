@@ -208,7 +208,6 @@ class Request
         }
         $requestBody = $this->buildRequestBody($billingAgreement, $vault);
 
-
         if ($paypalCMID) {
             $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
         }

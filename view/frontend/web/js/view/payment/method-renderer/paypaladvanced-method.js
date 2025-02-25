@@ -70,7 +70,7 @@ define(
             },
 
             isInstallmentsEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type !== 'no'));
             },
 
             isVaultingEnable: function () {
@@ -107,7 +107,7 @@ define(
             renderHostedFields: function () {
                 var self = this;
 
-                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type !== 'no'));
 
                 if ((typeof paypal === 'undefined')) {
                     return;
@@ -170,7 +170,7 @@ define(
                                     self.canShowInstallments(true);
 
                                     var option = {
-                                        value: "Tu tarjeta no es elegible para Meses sin Intereses",
+                                        value: "Tu tarjeta no es elegible para pago a Meses",
                                         currency_code: '',
                                         interval: '',
                                         term: '',
@@ -410,7 +410,7 @@ define(
                         disallowed: [paypal.FUNDING.CARD, paypal.FUNDING.CREDIT]
                     },
                     commit: true,
-                    enableVaultInstallments: (this.paypalConfigs.acdc.enable_installments) ? true : false,
+                    enableVaultInstallments: this.paypalConfigs.acdc.installments_type !== 'no',
                     //enableStandardCardFields: true,
                     createOrder: function () {
 
@@ -465,9 +465,8 @@ define(
             },
             rendersPayments: function () {
                 var self = this;
-
+                $t('MONTH');
                 $t('MONTHS');
-
                 self.renderHostedFields();
                 self.renderSmartButton();
             },

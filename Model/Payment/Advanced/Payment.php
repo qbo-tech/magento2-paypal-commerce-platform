@@ -256,6 +256,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
             $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
+            $this->_logger->error(__METHOD__ . ' | Exception _paypalOrderCaptureRequest : ' . print_r($this->_paypalOrderCaptureRequest, true));
             $paymentSource = $payment->getAdditionalInformation('payment_source') != null ? json_decode($payment->getAdditionalInformation('payment_source')) : null;
             $errorMessage = self::GATEWAY_ERROR_MESSAGE;
 
