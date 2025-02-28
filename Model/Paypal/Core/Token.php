@@ -2,6 +2,7 @@
 
 namespace PayPal\CommercePlatform\Model\Paypal\Core;
 
+use Magento\Checkout\Exception;
 use PayPal\CommercePlatform\Model\Paypal\Order\DataObject;
 use PayPal\CommercePlatform\Model\Paypal\Order\type;
 use PayPalHttp\HttpResponse;
