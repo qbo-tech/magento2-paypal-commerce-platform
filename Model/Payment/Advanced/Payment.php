@@ -246,6 +246,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
 
+            $this->_logger->error('Request Payment Advanced : ' . print_r($this->_paypalOrderCaptureRequest, true));
+
             $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
             $this->_processTransaction($payment);

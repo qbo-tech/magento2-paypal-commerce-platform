@@ -377,6 +377,7 @@ define(
                         requestBody.customer_email = quote.guestEmail;
                         requestBody.fraudNetCMI = self.sessionIdentifier;
                         requestBody.vault = $('#vault').is(':checked')
+                        self.logger('###paypal_advanced-method#cardfieldsRender#createOrder#data', data, actions);
 
                         return fetch('/paypalcheckout/order', {
                             method: 'post',
@@ -502,11 +503,7 @@ define(
 
                     self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
 
-                    let installmentOptions = {};
-
-                    cardField.submit({
-                        installments: installmentOptions
-                    }).catch((error) => {
+                    cardField.submit(submitOptions).catch((error) => {
                         console.error("Error al procesar el pago", error);
                         self.messageContainer.addErrorMessage({
                             message: $t('Transaction cannot be processed, please verify your card information or try another.')
@@ -705,7 +702,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: this.paypalConfigs.customer.id
+                                            id: "mage_"+this.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -745,7 +742,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: this.paypalConfigs.customer.id
+                                            id: "mage_"+this.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
