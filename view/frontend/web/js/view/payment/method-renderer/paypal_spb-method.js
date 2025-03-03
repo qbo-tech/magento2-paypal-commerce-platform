@@ -377,7 +377,7 @@ define(
                         requestBody.customer_email = quote.guestEmail;
                         requestBody.fraudNetCMI = self.sessionIdentifier;
                         requestBody.vault = $('#vault').is(':checked')
-                        self.logger('###paypal_advanced-method#cardfieldsRender#createOrder#data', data, actions);
+                        self.logger('###paypal_advanced-method#cardfieldsRender#createOrder#data', data);
 
                         return fetch('/paypalcheckout/order', {
                             method: 'post',
