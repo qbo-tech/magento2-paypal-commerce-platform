@@ -177,7 +177,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         }
 
         $paymentTokens = [];
-        $customerId = sprintf("mage_%s", $customerId);
+        $customerId = sprintf("Mage%s", $customerId);
         $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
 

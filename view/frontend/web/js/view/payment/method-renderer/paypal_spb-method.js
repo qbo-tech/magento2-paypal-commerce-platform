@@ -482,7 +482,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: "mage_"+self.paypalConfigs.customer.id
+                                            id: "Mage"+self.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -699,7 +699,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: "mage_"+this.paypalConfigs.customer.id
+                                            id: "Mage"+this.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -739,7 +739,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: "mage_"+this.paypalConfigs.customer.id
+                                            id: "Mage"+this.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
