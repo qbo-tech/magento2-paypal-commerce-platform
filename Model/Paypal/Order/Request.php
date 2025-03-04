@@ -275,7 +275,7 @@ class Request
                 "card" => [
                     "attributes" => [
                         "customer" => [
-                            "id" => sprintf("mage_%s", $this->_customer->getId()),
+                            "id" => sprintf("Mage%s", $this->_customer->getId()),
                         ],
                         "vault" => [
                             "customer_type" => "CONSUMER",
