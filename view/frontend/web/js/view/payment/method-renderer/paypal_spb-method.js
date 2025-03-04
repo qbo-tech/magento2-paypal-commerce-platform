@@ -310,7 +310,6 @@ define(
 
                 console.log("installments_type ===> ", self.paypalConfigs.acdc.installments_type);
 
-
                 const cardField = paypal.CardFields({
                     styles: styleObject,
                     installments: {
@@ -353,8 +352,6 @@ define(
 
                                 return;
                             }
-
-
 
                             qualifyingOptions.forEach(function (financialOption) {
                                 // const totalConsumerFee = financialOption.total_consumer_fee ? parseFloat(financialOption.total_consumer_fee.value) : 0;
@@ -546,10 +543,9 @@ define(
 
                 return storage.post('/paypalcheckout/agreement/token', JSON.stringify(requestBody)
                 ).done(function (response) {
-                        console.log('createBillingAgreementToken#response', response);
-                        return response;
-                    }
-                ).fail(function (response) {
+                    console.log('createBillingAgreementToken#response', response);
+                    return response;
+                }).fail(function (response) {
                     self._enableCheckout();
                 });
             },
@@ -678,8 +674,9 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        ...(installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id })
+                        ...(installment.total_consumer_fee > 0 && installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id })
                     };
+
                     self.logger('validateInstallment#submitOption', submitOptions);
 
                     if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
@@ -695,7 +692,7 @@ define(
                             }
                         }
                         self.logger(submitOptions);
-                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' ) {
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' && $('#vault').is(':checked')) {
 
                         submitOptions = {
                             payment_source: {
@@ -735,7 +732,7 @@ define(
                             }
                         }
                         self.logger(submitOptions);
-                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' ) {
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' && $('#vault').is(':checked') ) {
 
                         submitOptions = {
                             payment_source: {
