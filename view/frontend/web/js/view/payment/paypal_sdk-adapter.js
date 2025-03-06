@@ -14,16 +14,16 @@ define([
         isAcdcEnable: window.checkoutConfig.payment.paypalcp.acdc.enable,
         isEnableReferenceTransactions: window.checkoutConfig.payment.paypalcp.referenceTransaction.enable,
 
-        loadSdk: function (callbackOnLoaded, withVault = false) {
+        loadSdk: function (callbackOnLoaded, withVault = true) {
             var self = this;
             self.logger('#loadSdk 1 #', callbackOnLoaded);
-            // self.logger('#loadSdk 2 #', withVault);
+            self.logger('#loadSdk 2 #', withVault);
 
             self.onLoadedCallback = callbackOnLoaded;
 
-            // if(withVault) {
-            //     self.paypalSdk += '&vault=true';
-            // }
+            if(withVault) {
+                self.paypalSdk += '&vault=true';
+            }
 
             var componentUrl = self.paypalSdk;
             var idToken = null;
