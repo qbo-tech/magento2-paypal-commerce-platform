@@ -81,12 +81,9 @@
                             id="installmentsAgreement" data-bind=" visible: canShowInstallmentsBA,
                                         options: installmentAgreementOptions,
                                         optionsText: function(i) {
-                                            return [
-                                                i.value,
-                                                i.currency_code,
-                                                i.term,
-                                                i.interval
-                                            ].join('    ');
+                                            let prefix = i.term == 1 ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ') : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
+                                            let suffix = i.total_consumer_fee ? ` con interés Total de ${i.total_consumer_fee.toFixed(2)} MXN` : ' sin intereses';
+                                            return i.term == 1 ? prefix : prefix + suffix;
                                         },
                                         value: selectedInstallmentsBA
                                     ">
@@ -115,11 +112,11 @@
 </div>
 <!-- /ko -->
 
-<div id="acdc_card" class="ppcp payment-method" data-bind="css: {'_active': ( 'paypalcp_hf' == isSelected())}, visible: isVisibleCard()">
+<div id="acdc_card" class="ppcp payment-method" data-bind="css: {'_active': ( 'paypalcp_cf' == isSelected())}, visible: isVisibleCard()">
     <div class="payment-method-title field choice">
         <input type="radio" name="payment[method]" class="radio"
-            data-bind="attr: {'id': getCode('paypalcp_hf')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_hf'), visible: isRadioButtonVisible()" />
-        <label class="label" data-bind="attr: {'for': getCode('paypalcp_hf')}">
+            data-bind="attr: {'id': getCode('paypalcp_cf')}, value: 'paypalcp', checked: isChecked, click: selectedPayPalMethod('paypalcp_cf'), visible: isRadioButtonVisible()" />
+        <label class="label" data-bind="attr: {'for': getCode('paypalcp_cf')}">
             <span data-bind="text: getTitleMethodCard()"></span>
         </label>
 
@@ -163,12 +160,9 @@
                                     disable: !installmentsAvailable(),
                                     options: installmentOptions,
                                     optionsText: function(i) {
-                                        return [
-                                            i.value,
-                                            i.currency_code,
-                                            i.term,
-                                            i.interval
-                                        ].join('    ');
+                                        let prefix = i.term == 1 ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ') : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
+                                        let suffix = i.total_consumer_fee ? ` con interés Total de ${i.total_consumer_fee.toFixed(2)} MXN` : ' sin intereses';
+                                        return i.term == 1 ? prefix : prefix + suffix;
                                     },
                                     value: selectedInstallments
                                 ">
@@ -192,14 +186,14 @@
                             </label>
                             <div class='form-control' id='card-number'></div>
                         </div>
-                        <div class="form-group" style="width:48%; display: inline-block;">
+                        <div class="form-group" style="width:49%; display: inline-block;">
                             <label for='expiration-date'>
                                 <!-- ko i18n: 'Expiration date' -->
                                 <!-- /ko -->
                             </label>
                             <div class='form-control' id='expiration-date'></div>
                         </div>
-                        <div class="form-group" style="width:48%; display: inline-block;">
+                        <div class="form-group" style="width:50%; display: inline-block;">
                             <label for='cvv'>
                                 <!-- ko i18n: 'CVV' -->
                                 <!-- /ko -->
@@ -212,12 +206,12 @@
                                 <!-- ko i18n: 'Card holder name' -->
                                 <!-- /ko -->
                             </label>
-                            <div class="form-control">
-                                <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off"
-                                    placeholder="Nombre del titular" />
+                            <div class="form-control" id="card-holder-name">
+<!--                                <input type="text" id="card-holder-name" name="card-holder-name" autocomplete="off"-->
+<!--                                    placeholder="Nombre del titular" />-->
                             </div>
                         </div>
-                        <div class="form-group" data-bind="if: isInstallmentsEnable(), visible: canShowInstallments">
+                        <div class="form-group" data-bind="if: isInstallmentsEnable(), visible: canShowInstallments" style="padding: 0 6px;">
                             <label for='installments'>
                                 <!-- ko i18n: 'Pay to MSI' -->
                                 <!-- /ko -->
@@ -227,12 +221,9 @@
                                     disable: !installmentsAvailable(),
                                     options: installmentOptions,
                                     optionsText: function(i) {
-                                        return [
-                                            i.value,
-                                            i.currency_code,
-                                            i.term,
-                                            i.interval
-                                        ].join('    ');
+                                        let prefix = i.term == 1 ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ') : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
+                                        let suffix = i.total_consumer_fee ? ` con interés Total de ${i.total_consumer_fee.toFixed(2)} MXN` : ' sin intereses';
+                                        return i.term == 1 ? prefix : prefix + suffix;
                                     },
                                     value: selectedInstallments
                                 ">
@@ -244,10 +235,14 @@
                                 <!-- /ko -->
                             </label>
                         </div>
-                        <button value="submit" id="submit" class="btn">
-                            <!-- ko i18n: 'Pay' -->
-                            <!-- /ko -->
-                        </button>
+                        <div class="form-group">
+                            <div class="form-control">
+                                <button value="submit" id="submit" class="btn">
+                                    <!-- ko i18n: 'Pay' -->
+                                    <!-- /ko -->
+                                </button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

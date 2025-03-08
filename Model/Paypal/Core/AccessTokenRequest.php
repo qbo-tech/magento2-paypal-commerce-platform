@@ -11,7 +11,9 @@ class AccessTokenRequest extends HttpRequest
         parent::__construct("/v1/oauth2/token", "POST");
         $this->headers["Authorization"] = "Basic " . $authorizationString;
         $body = [
-            "grant_type" => "client_credentials"
+            "grant_type" => 'client_credentials',
+            "response_type" => 'id_token',
+            "ignoreCache" => 'true'
         ];
 
         if (!is_null($refreshToken))
@@ -21,6 +23,7 @@ class AccessTokenRequest extends HttpRequest
         }
 
         $this->body = $body;
+
         $this->headers["Content-Type"] = "application/x-www-form-urlencoded";
     }
 }

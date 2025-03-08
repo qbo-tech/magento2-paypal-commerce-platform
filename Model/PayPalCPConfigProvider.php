@@ -94,7 +94,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ],
                     'acdc' => [
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
-                        'enable_installments' => $this->_paypalConfig->isEnableMsi(),
+                        'installments_type' => $this->_paypalConfig->getInstallmentsType(),
                         'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
                         'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
                         'msiMinimum' => $this->_paypalConfig->getMSIMinimum(),
@@ -137,7 +137,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         ];
 
         if($this->_paypalConfig->isEnableAcdc()){
-            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'hosted-fields,buttons';
+            $this->_params[self::SDK_CONFIG_COMPONENTS] = 'card-fields,buttons';
         }
     }
 
@@ -177,21 +177,23 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         }
 
         $paymentTokens = [];
-
+        $customerId = sprintf("Mage%s", $customerId);
         $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
-        if ($response->statusCode == 200) {
+
+        if ( $response->statusCode == 200 && isset($response->result->payment_tokens) ) {
 
             foreach ($response->result->payment_tokens as $token) {
 
-                if (property_exists($token->source, 'card')) {
+                if (property_exists($token->payment_source, 'card')) {
                     $paymentTokens['cards'][] = [
                         'id' => $token->id,
-                        'brand' => $token->source->card->brand,
-                        'last_digits' => $token->source->card->last_digits
+                        'brand' => $token->payment_source->card->brand,
+                        'last_digits' => $token->payment_source->card->last_digits
                     ];
                 }
             }
+
             if(isset($paymentTokens['cards'])) {
                 $this->getCalculatedFinancialOptions($paymentTokens);
             }

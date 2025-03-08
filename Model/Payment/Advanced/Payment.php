@@ -236,15 +236,17 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             //TODO move function.
-            if ($payment->getAdditionalInformation('payment_source')) {
-                $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
-                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
-            }
+//            if ($payment->getAdditionalInformation('payment_source')) {
+//                $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
+//                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+//            }
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
             if ($paypalCMID) {
                 $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
+
+            $this->_logger->error('Request Payment Advanced : ' . print_r($this->_paypalOrderCaptureRequest, true));
 
             $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
@@ -267,7 +269,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Handle Billing Agreement's Errors 
+     * Handle Billing Agreement's Errors
      *
      * @return string
      */

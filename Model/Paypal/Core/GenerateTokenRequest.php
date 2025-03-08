@@ -6,6 +6,7 @@ use PayPalHttp\HttpRequest;
 
 class GenerateTokenRequest extends HttpRequest
 {
+
     public function __construct($accessToken, $customerId)
     {
         parent::__construct("/v1/identity/generate-token", "POST");
