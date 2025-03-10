@@ -236,10 +236,10 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             //TODO move function.
-//            if ($payment->getAdditionalInformation('payment_source')) {
-//                $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
-//                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
-//            }
+            if ($payment->getAdditionalInformation('payment_source') && $this->isBillingAgreements($payment)) {
+                $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
+                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+            }
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
             if ($paypalCMID) {
@@ -266,6 +266,17 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMessage));
         }
         return $this;
+    }
+
+    /**
+     * @param $payment
+     * @return bool
+     */
+    private function isBillingAgreements($payment) {
+        $paymentSource = $payment->getAdditionalInformation('payment_source') != null ?
+            json_decode($payment->getAdditionalInformation('payment_source'))
+            : null;
+        return isset($paymentSource->token->type) && $paymentSource->token->type == 'BILLING_AGREEMENT';
     }
 
     /**
