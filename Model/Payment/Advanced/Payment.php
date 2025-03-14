@@ -256,34 +256,61 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
             $this->_logger->error(__METHOD__ . ' | Exception response : ' . print_r($this->_response, true));
-            $paymentSource = json_decode($payment->getAdditionalInformation('payment_source'));
+
             $errorMessage = self::GATEWAY_ERROR_MESSAGE;
 
-            if (
-                isset($paymentSource->token->type)
-                && $paymentSource->token->type == 'BILLING_AGREEMENT'
-                && isset($this->_response->message)
-                && json_decode($this->_response->message)->name == 'AGREEMENT_ALREADY_CANCELLED'
-            ) {
-                $this->removeBillingAgreement();
-                $errorMessage = self::BA_ERROR_MESSAGE;
-            }
+            $this->_processBillingAgreementsErrors($payment, $errorMessage);
 
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMessage));
         }
         return $this;
     }
 
+    /**
+     * Handle Billing Agreement's Errors 
+     *
+     * @return string
+     */
+    private function _processBillingAgreementsErrors($payment, &$errorMessage)
+    {
+        $paymentSource = $payment->getAdditionalInformation('payment_source') != null ?
+            json_decode($payment->getAdditionalInformation('payment_source'))
+            : null;
 
-    private function removeBillingAgreement(){
+         if (
+            $paymentSource &&
+            isset($paymentSource->token->type) &&
+            $paymentSource->token->type == 'BILLING_AGREEMENT' &&
+            isset($this->_response->message) && !is_null($this->_response->message)
+         ) {
+            $message = json_decode($this->_response->message);
+            if (isset($message->name) && $message->name == 'AGREEMENT_ALREADY_CANCELLED') {
+                $this->removeBillingAgreement();
+                $errorMessage = self::BA_ERROR_MESSAGE;
+            }
+        }
+        return $errorMessage;
+    }
+
+    /**
+     * Remove Billing Agreement from BD
+     *
+     * @return $this
+     */
+    private function removeBillingAgreement()
+    {
         $currentBAId = $this->checkoutSession->getData('current_ba_id');
-        $billingAgreementModel = $this->billingAgreement->load($currentBAId);
+        $billingAgreement = $this->billingAgreement->load($currentBAId);
 
-        if (!$billingAgreementModel->getId()) {
+        if (!$billingAgreement->getId()) {
+            $this->_logger->error("PayPal Commerce: Billing Agreement not found");
             return;
         }
-
-        $billingAgreementModel->delete();
+        try {
+            $billingAgreement->delete();
+        } catch (\Exception $e) {
+            $this->_logger->error($e->getMessage());
+        }
     }
 
     /**
