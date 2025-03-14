@@ -281,10 +281,7 @@ class Event
             $this->_payment->setNotificationResult(true);
             $this->_payment->setIsTransactionClosed(true);
 
-            $order = $this->_orderRepository->get($this->_payment->getOrder()->getId());
-            $order->setState(\Magento\Sales\Model\Order::STATE_CANCELED);
-            $order->setStatus(\Magento\Sales\Model\Order::STATE_CANCELED);
-            $order->save();
+            $this->orderManagement->cancel($this->_payment->getOrder()->getId());
 
             $this->_payment->getOrder()
                 ->addCommentToStatusHistory(
