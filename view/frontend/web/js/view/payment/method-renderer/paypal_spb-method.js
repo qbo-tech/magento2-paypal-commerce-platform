@@ -52,7 +52,17 @@ define(
             selectedInstallments: ko.observable(),
             selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
+            getInstallmentText: function (i) {
+                let prefix = i.term == 1
+                    ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ')
+                    : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
 
+                let suffix = i.total_consumer_fee
+                    ? ` (con comisión Total de ${i.total_consumer_fee.toFixed(2)} MXN)`
+                    : ' sin intereses';
+
+                return i.term == 1 ? prefix : prefix + suffix;
+            },
             isActiveReferenceTransaction: function () {
                 var self = this;
 
@@ -339,7 +349,7 @@ define(
                                 self.canShowInstallments(true);
 
                                 var option = {
-                                    value: "Tu tarjeta no es elegible para pago a Meses",
+                                    value: $t('Your card is not eligible for installment payments'),
                                     currency_code: '',
                                     interval: '',
                                     term: '',

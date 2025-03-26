@@ -170,7 +170,7 @@ define(
                                     self.canShowInstallments(true);
 
                                     var option = {
-                                        value: "Tu tarjeta no es elegible para pago a Meses",
+                                        value: $t('Your card is not eligible for installment payments'),
                                         currency_code: '',
                                         interval: '',
                                         term: '',

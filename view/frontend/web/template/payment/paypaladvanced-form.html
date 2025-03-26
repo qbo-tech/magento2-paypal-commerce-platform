@@ -80,11 +80,7 @@
                     <select class="form-control" style="font-size: 14px;" name="installmentsAgreement"
                             id="installmentsAgreement" data-bind=" visible: canShowInstallmentsBA,
                                         options: installmentAgreementOptions,
-                                        optionsText: function(i) {
-                                            let prefix = i.term == 1 ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ') : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
-                                            let suffix = i.total_consumer_fee ? ` con interés Total de ${i.total_consumer_fee.toFixed(2)} MXN` : ' sin intereses';
-                                            return i.term == 1 ? prefix : prefix + suffix;
-                                        },
+                                        optionsText: getInstallmentText,
                                         value: selectedInstallmentsBA
                                     ">
                     </select>
@@ -159,11 +155,7 @@
                         id="installmentsCustomerCard" data-bind=" visible: canShowInstallments,
                                     disable: !installmentsAvailable(),
                                     options: installmentOptions,
-                                    optionsText: function(i) {
-                                        let prefix = i.term == 1 ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ') : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
-                                        let suffix = i.total_consumer_fee ? ` con interés Total de ${i.total_consumer_fee.toFixed(2)} MXN` : ' sin intereses';
-                                        return i.term == 1 ? prefix : prefix + suffix;
-                                    },
+                                    optionsText: getInstallmentText,
                                     value: selectedInstallments
                                 ">
                     </select>
@@ -220,11 +212,7 @@
                                 data-bind="
                                     disable: !installmentsAvailable(),
                                     options: installmentOptions,
-                                    optionsText: function(i) {
-                                        let prefix = i.term == 1 ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ') : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
-                                        let suffix = i.total_consumer_fee ? ` con interés Total de ${i.total_consumer_fee.toFixed(2)} MXN` : ' sin intereses';
-                                        return i.term == 1 ? prefix : prefix + suffix;
-                                    },
+                                    optionsText: getInstallmentText,
                                     value: selectedInstallments
                                 ">
                             </select>

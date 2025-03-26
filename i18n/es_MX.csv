@@ -80,3 +80,4 @@ Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "Gateway response error","Error de respuesta de la puerta de enlace"
 "Sorry, the payment method is not available, please try again later.","Lo sentimos, método de pago no disponible, inténtelo más tarde."
 "It is not possible to use paypal, please try another","No es posible usar este método de pago en este momento. Por favor, inténtalo más tarde."
+"Your card is not eligible for installment payments", "Tu tarjeta no es elegible para pago a Meses"
