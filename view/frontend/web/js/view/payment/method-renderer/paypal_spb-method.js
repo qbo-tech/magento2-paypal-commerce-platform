@@ -318,7 +318,6 @@ define(
                     }
                 };
 
-                console.log("installments_type ===> ", self.paypalConfigs.acdc.installments_type);
 
                 const cardField = paypal.CardFields({
                     styles: styleObject,

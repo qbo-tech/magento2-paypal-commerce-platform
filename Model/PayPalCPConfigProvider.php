@@ -180,7 +180,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $customerId = sprintf("Mage%s", $customerId);
         $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
-
         if ( $response->statusCode == 200 && isset($response->result->payment_tokens) ) {
 
             foreach ($response->result->payment_tokens as $token) {
@@ -195,18 +194,19 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             }
 
             if(isset($paymentTokens['cards'])) {
-                $this->getCalculatedFinancialOptions($paymentTokens);
+                $installmentsType = $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_INSTALLMENTS_TYPE);
+                $this->getCalculatedFinancialOptions($paymentTokens, $installmentsType);
             }
 
         }
         return $paymentTokens;
     }
 
-    private function getCalculatedFinancialOptions(&$paymentTokens)
+    private function getCalculatedFinancialOptions(&$paymentTokens, $installmentsType = null)
     {
-
         foreach ($paymentTokens['cards'] as $index => $payment) {
-            $this->_calculatedFinancialOptionsRequest->body = [
+            // Base body structure
+            $body = [
                 "financing_country_code" => $this->_paypalConfig->getCountryCode(),
                 "transaction_amount" => [
                     "value" => $this->_checkoutSession->getQuote()->getGrandTotal(),
@@ -220,6 +220,15 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ]
                 ]
             ];
+
+            // Validate installments type
+            if ($installmentsType === 'installments_cost_to_buyer') {
+                $body["flow_context"] = [
+                    "attributes" => ["FEE_POLICY_CHARGE_CONSUMER"]
+                ];
+            }
+
+            $this->_calculatedFinancialOptionsRequest->body = $body;
 
             $response = $this->_paypalApi->execute($this->_calculatedFinancialOptionsRequest);
 
