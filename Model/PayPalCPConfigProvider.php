@@ -114,8 +114,6 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             ]
         ];
 
-        $this->_logger->debug(__METHOD__ . ' | CONFIG ' . print_r($config, true));
-
         return $config;
     }
 
@@ -155,7 +153,8 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return null;
     }
 
-    private function getCustomerAgreements($customerId){
+    private function getCustomerAgreements($customerId)
+    {
         $agreements = $this->_billingAgreement->getAvailableCustomerBillingAgreements($customerId);
         $agreementsIds = [];
         foreach ($agreements as $agreement){
@@ -221,7 +220,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                 ]
             ];
 
-            // Validate installments type
+            // Validate installments type (MCI)
             if ($installmentsType === 'installments_cost_to_buyer') {
                 $body["flow_context"] = [
                     "attributes" => ["FEE_POLICY_CHARGE_CONSUMER"]
