@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui/etc/ui_configuration.xsd">
+    <columns name="order_columns">
+        <column name="paypal_installments" class="Magento\Ui\Component\Listing\Columns\Column">
+            <settings>
+                <label translate="true">PayPal Installments</label>
+                <sortable>false</sortable>
+                <filter>false</filter>
+                <component>Magento_Ui/js/grid/columns/column</component>
+            </settings>
+        </column>
+    </columns>
+</listing>

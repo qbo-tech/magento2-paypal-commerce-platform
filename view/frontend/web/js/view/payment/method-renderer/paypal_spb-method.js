@@ -683,7 +683,8 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        ...(installment.total_consumer_fee > 0 && installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id })
+                        ...(installment.total_consumer_fee > 0 && installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id }),
+                        ...(installment.total_consumer_fee > 0 && installment.fee_reference_id && { total_consumer_fee: installment.total_consumer_fee })
                     };
 
                     self.logger('validateInstallment#submitOption', submitOptions);

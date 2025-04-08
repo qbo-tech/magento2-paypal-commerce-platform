@@ -235,6 +235,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         try {
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
+
             //TODO move function.
             if ($payment->getAdditionalInformation('payment_source')) {
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
@@ -367,8 +368,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $payment->setTransactionId($_txnId)
                     ->setIsTransactionPending(true)
                     ->setIsTransactionClosed(false);
-
-                //$this->_sendPendingPaymentEmail();
                 break;
             case self::COMPLETED_SALE_CODE:
                 $payment->setTransactionId($_txnId)
@@ -402,6 +401,27 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                     if (property_exists($paymentSource->paypal, 'account_id')) {
                         $infoInstance->setAdditionalInformation('Paypal Account Id', $paymentSource->paypal->account_id);
                     }
+                }
+            }
+        }
+
+        if (property_exists($this->_response->result, 'credit_financing_offer')) {
+            $creditFinance = $this->_response->result->credit_financing_offer;
+
+            if ($creditFinance) {
+
+                if (property_exists($creditFinance, 'consumer_fee_amount')) {
+                    $infoInstance->setAdditionalInformation('installments_type', 'MCI');
+                } else {
+                    $infoInstance->setAdditionalInformation('installments_type', 'MSI');
+                }
+
+                if (property_exists($creditFinance, 'term')) {
+                    $infoInstance->setAdditionalInformation('term', $creditFinance->term);
+                }
+
+                if (property_exists($creditFinance, 'consumer_fee_amount')) {
+                    $infoInstance->setAdditionalInformation('consumer_fee_amount', $creditFinance->consumer_fee_amount->value);
                 }
             }
         }
