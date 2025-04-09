@@ -47,7 +47,7 @@ class Info extends \Magento\Payment\Block\Info
     /** @var PriceCurrencyInterface $priceCurrency */
     protected $priceCurrency;
 
-    const ALLOWED_FRONTEND_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type"];
+    const ALLOWED_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type"];
 
     /**
      * Constructor
@@ -79,12 +79,10 @@ class Info extends \Magento\Payment\Block\Info
 
         if ($info->getAdditionalInformation()) {
             foreach ($info->getAdditionalInformation() as $field => $value) {
-                if($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
-                    if(in_array($field, self::ALLOWED_FRONTEND_FIELDS)) {
-                        $value = $field == "installments_type" ? __("Yes") : $value;
-                        $value = $field == "consumer_fee_amount" ? $this->priceCurrency->convertAndFormat($value, false) : $value;
-                        $this->_beautifyField($result, $field, $value);
-                    }
+                if(in_array($field, self::ALLOWED_FIELDS)) {
+                    $value = $field == "installments_type" ? __("Yes") : $value;
+                    $value = $field == "consumer_fee_amount" ? $this->priceCurrency->convertAndFormat($value, false) : $value;
+                    $this->_beautifyField($result, $field, $value);
                 }
             } 
         }      
