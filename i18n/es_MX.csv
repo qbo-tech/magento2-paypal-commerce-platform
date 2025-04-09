@@ -82,3 +82,8 @@ Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "It is not possible to use paypal, please try another","No es posible usar este método de pago en este momento. Por favor, inténtalo más tarde."
 "Your card is not eligible for installment payments", "Tu tarjeta no es elegible para pago a Meses"
 "with total fee:", "con comisión Total de:"
+"Installments type", "Pago a meses"
+"Term","Plazos"
+"Consumer fee amount","Comisión"
+"Payment id","ID de transacción"
+"Yes","Sí"

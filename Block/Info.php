@@ -34,6 +34,8 @@
 
 namespace PayPal\CommercePlatform\Block;
 
+use Magento\Framework\Pricing\PriceCurrencyInterface;
+
 class Info extends \Magento\Payment\Block\Info
 {
 
@@ -41,6 +43,11 @@ class Info extends \Magento\Payment\Block\Info
      * @var string
      */
     protected $_template = 'PayPal_CommercePlatform::info/default.phtml';
+
+    /** @var PriceCurrencyInterface $priceCurrency */
+    protected $priceCurrency;
+
+    const ALLOWED_FRONTEND_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type"];
 
     /**
      * Constructor
@@ -52,10 +59,12 @@ class Info extends \Magento\Payment\Block\Info
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Magento\Payment\Model\Config $paymentConfig,
+        PriceCurrencyInterface $priceCurrency,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->paymentConfig = $paymentConfig;
+        $this->priceCurrency = $priceCurrency;
     }
     /**
      * 
@@ -65,18 +74,33 @@ class Info extends \Magento\Payment\Block\Info
     protected function _prepareSpecificInformation($transport = null) 
     {
         $transport = parent::_prepareSpecificInformation($transport);
-        $data = [];
+        $result = [];
         $info = $this->getInfo();
 
-        if ($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE && $info->getAdditionalInformation()
-        ) {
+        if ($info->getAdditionalInformation()) {
             foreach ($info->getAdditionalInformation() as $field => $value) {
-                //Remove "_" and replace for capitals
-                $beautifiedFieldName = str_replace("_", " ", ucwords(trim(preg_replace('/(?<=\\w)(?=[A-Z])/', " $1", $field))));
-                $data[__($beautifiedFieldName)->getText()] = $value;
-            }        
-        }
-        return $transport->setData(array_merge($data, $transport->getData()));
+                if($this->_appState->getAreaCode() === \Magento\Backend\App\Area\FrontNameResolver::AREA_CODE) {
+                    if(in_array($field, self::ALLOWED_FRONTEND_FIELDS)) {
+                        $value = $field == "installments_type" ? __("Yes") : $value;
+                        $value = $field == "consumer_fee_amount" ? $this->priceCurrency->convertAndFormat($value, false) : $value;
+                        $this->_beautifyField($result, $field, $value);
+                    }
+                }
+            } 
+        }      
+        return $transport->setData(array_merge($result, $transport->getData()));
+    }
+   
+   /**
+    * Prepare and trsanform fields
+    * Remove "_" and replace for capitals
+    */
+    protected function _beautifyField(&$result, $field, $value) 
+    {
+        $beautifiedFieldName = str_replace("_", " ", ucwords(trim(preg_replace('/(?<=\\w)(?=[A-Z])/', " $1", $field))));
+        $result[__($beautifiedFieldName)->__toString()] = __($value);
+        
+        return $result;
     }
 
 }
