@@ -1,12 +1,12 @@
 <?php
 /** @var PayPal\CommercePlatform\Block\PaypalSdk $block */
 /** @var Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
-
+/** @var \Magento\Framework\Escaper $escaper */
 $paypalUrl = $block->getPaypalUrl();
 $clientToken = $block->getClientToken();
 $enableVault = $block->isEnableVaulting();
 $isDebug = $block->isDebug();
-
+$nonce = $escaper->escapeJs($block->getNonce());
 $scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
 ?>
 
@@ -34,6 +34,8 @@ $scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
     [
         'id' => 'paypal-sdk',
         'src' => $scriptUrl,
+        'nonce' => $nonce,
+        'data-csp-nonce' => $nonce,
         'data-sdk-client-token' => $clientToken,
         'data-error' => 'window.ErrorCallback',
         'data-cancel' => 'window.CancelCallback',

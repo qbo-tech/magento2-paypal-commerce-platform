@@ -3,6 +3,7 @@
 namespace PayPal\CommercePlatform\Block;
 
 use Magento\Framework\View\Element\Template;
+use PayPal\CommercePlatform\Helper\NonceProvider;
 use PayPal\CommercePlatform\Helper\PaypalToken;
 use PayPal\CommercePlatform\Model\PayPalCPConfigProvider;
 
@@ -10,15 +11,18 @@ class PaypalSdk extends Template
 {
     protected $paypalConfig;
     protected $paypalTokenHelper;
+    protected $nonceProvider;
 
     public function __construct(
         Template\Context $context,
         PayPalCPConfigProvider $paypalConfig,
         PaypalToken $paypalTokenHelper,
+        NonceProvider $nonceProvider,
         array $data = []
     ) {
         $this->paypalConfig = $paypalConfig;
         $this->paypalTokenHelper = $paypalTokenHelper;
+        $this->nonceProvider = $nonceProvider;
         parent::__construct($context, $data);
     }
 
@@ -32,7 +36,6 @@ class PaypalSdk extends Template
         return $this->paypalTokenHelper->getClientToken();
     }
 
-
     public function isEnableVaulting()
     {
         return $this->paypalConfig->isEnableVaulting();
@@ -43,5 +46,9 @@ class PaypalSdk extends Template
         return $this->paypalConfig->isDebug();
     }
 
+    public function getNonce()
+    {
+        return $this->nonceProvider->generateNonce();
+    }
 
 }
