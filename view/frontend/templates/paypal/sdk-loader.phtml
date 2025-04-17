@@ -6,7 +6,9 @@ $paypalUrl = $block->getPaypalUrl();
 $clientToken = $block->getClientToken();
 $enableVault = $block->isEnableVaulting();
 $isDebug = $block->isDebug();
-$nonce = $escaper->escapeJs($block->getNonce());
+//$nonce = $escaper->escapeJs($block->getNonce());
+$nonce = $block->getNonce();
+
 $scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
 ?>
 
