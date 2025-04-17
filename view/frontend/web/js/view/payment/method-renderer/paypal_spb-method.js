@@ -52,6 +52,7 @@ define(
             selectedInstallments: ko.observable(),
             selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
+            renderedButtons: ko.observable(false),
             getInstallmentText: function (i) {
                 let prefix = i.term == 1
                     ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ')
@@ -636,8 +637,15 @@ define(
                 }
 
                 if(typeof paypal !== 'undefined') {
-                    console.log("render buttons on CardFields");
-                    self.renderButtons();
+
+                    if(self.renderedButtons()) {
+                        console.log("buttons already rendered on CardFields");
+                    } else {
+                        console.log("render buttons on CardFields");
+                        self.renderButtons();
+                        self.renderedButtons(true)
+                    }
+
                 }
 
                 if ((typeof paypal === 'undefined')) {
