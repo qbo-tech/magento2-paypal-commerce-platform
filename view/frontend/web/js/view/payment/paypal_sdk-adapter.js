@@ -2,9 +2,9 @@ define([
     'Magento_Checkout/js/view/payment/default',
     'mage/storage',
     'jquery',
-    'paypalTokenAdapter',
+    //'paypalTokenAdapter',
     'Magento_Customer/js/customer-data'
-], function (Component, storage, $, paypalTokenAdapter, customerData) {
+], function (Component, storage, $/*, paypalTokenAdapter*/, customerData) {
     'use strict';
     return {
         componentName: "paypalSdkComponent",

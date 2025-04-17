@@ -3,7 +3,7 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'mage/storage',
         'jquery',
-        'paypalSdkAdapter',
+        //'paypalSdkAdapter',
         'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
@@ -12,7 +12,7 @@ define(
         'Magento_Checkout/js/model/totals',
         'mage/translate'
     ],
-    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
+    function (Component, storage, $, /*paypalSdkAdapter,*/ paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
         'use strict';
 
         return Component.extend({
@@ -607,13 +607,15 @@ define(
 
                     body.loader('show');
 
-                    paypalSdkAdapter.loadSdk(function () {
+                   /* paypalSdkAdapter.loadSdk(function () {
                         self.rendersPayments();
 
                         $('#card-form button#submit').attr('disabled', true);
                         body.loader('hide');
 
-                    });
+                    }); */
+                } else {
+                    self.rendersPayments();
                 }
             },
             enableCheckout: function () {

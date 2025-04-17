@@ -10,23 +10,24 @@ $isDebug = $block->isDebug();
 $scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
 ?>
 
-<script>
-    // Define global callback handlers BEFORE PayPal SDK is loaded
-    window.CompletedCallback = function (resultIndicator, successIndicator) {
-        console.log('PayPal completed callback', { resultIndicator, successIndicator });
-        // Add any Magento logic here, like triggering next step or success message
-    };
+<?= $secureRenderer->renderTag(
+    'script',
+    [],
+    "
+        window.CompletedCallback = function (resultIndicator, successIndicator) {
+            console.log('PayPal completed callback', { resultIndicator, successIndicator });
+        };
 
-    window.CancelCallback = function () {
-        console.warn('PayPal payment was cancelled.');
-        // Handle cancel case
-    };
+        window.CancelCallback = function () {
+            console.warn('PayPal payment was cancelled.');
+        };
 
-    window.ErrorCallback = function () {
-        console.error('PayPal payment error occurred.');
-        // Handle error case
-    };
-</script>
+        window.ErrorCallback = function () {
+            console.error('PayPal payment error occurred.');
+        };
+    ",
+    false
+); ?>
 
 <?= /* @noEscape */ $secureRenderer->renderTag(
     'script',
@@ -43,11 +44,16 @@ $scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
 ); ?>
 
 <?php if ($isDebug): ?>
-    <script>
-        console.log('PayPal SDK loaded with:', {
-            src: '<?= $scriptUrl ?>',
-            clientToken: '<?= $clientToken ?>',
-            enableVault: <?= $enableVault ? 'true' : 'false' ?>
-        });
-    </script>
+    <?= $secureRenderer->renderTag(
+        'script',
+        [],
+        "
+            console.log('PayPal SDK loaded!', {
+                src: '{$scriptUrl}',
+                clientToken: '{$clientToken}',
+                enableVault: " . ($enableVault ? 'true' : 'false') . "
+            });
+        ",
+        false
+    ); ?>
 <?php endif; ?>
