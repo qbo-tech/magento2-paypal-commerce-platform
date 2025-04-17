@@ -2,7 +2,7 @@ define(
     [
         'Magento_Checkout/js/view/payment/default',
         'jquery',
-        'paypalSdkAdapter',
+        //'paypalSdkAdapter',
         'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
@@ -12,7 +12,7 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/totals',
     ],
-    function (Component, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
+    function (Component, $, /*paypalSdkAdapter,*/ paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
         'use strict';
 
         if (window.checkoutConfig.payment.paypalcp.acdc.enable) {
@@ -625,7 +625,7 @@ define(
             },
             loadSdk: function () {
                 var self = this;
-                self.logger('loadSDK')
+                self.logger('loadSDK in CardFields')
 
                 var currentBA = $('.agreement-list input[name=pp-input-agreement]:checked').val();
 
@@ -635,21 +635,26 @@ define(
                     self.canShowInstallmentsBA(true);
                 }
 
+                if(typeof paypal !== 'undefined') {
+                    console.log("render buttons on CardFields");
+                    self.renderButtons();
+                }
+
                 if ((typeof paypal === 'undefined')) {
-                    var body = $('body').loader();
+                    // var body = $('body').loader();
+                    //
+                    // self.logger('SDK Paypal not loaded');
+                    //
+                    // body.loader('show');
 
-                    self.logger('SDK Paypal not loaded');
-
-                    body.loader('show');
-
-                    return paypalSdkAdapter.loadSdk(function () {
-                        self.renderButtons();
-                        console.info('paypalSdkAdapter', paypalSdkAdapter)
-
-                        body.loader('hide');
-
-                        return this;
-                    }, self.isActiveReferenceTransaction() || self.isActiveAcdc());
+                    // return paypalSdkAdapter.loadSdk(function () {
+                    //     self.renderButtons();
+                    //     console.info('paypalSdkAdapter', paypalSdkAdapter)
+                    //
+                    //     body.loader('hide');
+                    //
+                    //     return this;
+                    // }, self.isActiveReferenceTransaction() || self.isActiveAcdc());
                 }
             },
             renderButtons: function () {

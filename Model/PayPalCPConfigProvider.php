@@ -60,6 +60,17 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $this->_logger          = $logger;
     }
 
+    public function isEnableVaulting()
+    {
+        return $this->_paypalConfig->isEnableVaulting();
+    }
+
+    public function isDebug()
+    {
+        return $this->_paypalConfig->isSetFlag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE);
+    }
+
+
     public function getConfig()
     {
         if (!$this->_paypalConfig->isMethodActive($this->_payment_code)) {
@@ -95,7 +106,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'acdc' => [
                         'enable' => $this->_paypalConfig->isEnableAcdc(),
                         'installments_type' => $this->_paypalConfig->getInstallmentsType(),
-                        'enable_vaulting' => $this->_paypalConfig->isEnableVaulting(),
+                        'enable_vaulting' => $this->isEnableVaulting(),
                         'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
                         'msiMinimum' => $this->_paypalConfig->getMSIMinimum(),
                     ],
@@ -104,7 +115,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'title_method_card'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_CARD),
                         'title_method_oxxo'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_OXXO),
                     ],
-                    self::SDK_CONFIG_DEBUG => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE),
+                    self::SDK_CONFIG_DEBUG => $this->isDebug(),
                     'fraudNet' => [
                         'sourceWebIdentifier' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_SWI),
                         'fncls' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_FNCLS),
@@ -129,7 +140,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $this->_params = [
             self::SDK_CONFIG_CLIENT_ID  => $this->_paypalConfig->getClientId(),
             self::SDK_CONFIG_CURRENCY   => $this->_paypalConfig->getCurrency(),
-            self::SDK_CONFIG_DEBUG      => $this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE) ? 'true' : 'false',
+            self::SDK_CONFIG_DEBUG      => $this->isDebug() ? 'true' : 'false',
             self::SDK_CONFIG_LOCALE     => $this->_paypalConfig->getLocale(),
             self::SDK_CONFIG_INTENT     => 'capture',
         ];

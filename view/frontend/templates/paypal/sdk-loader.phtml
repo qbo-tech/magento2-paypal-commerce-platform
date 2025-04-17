@@ -1,0 +1,53 @@
+<?php
+/** @var PayPal\CommercePlatform\Block\PaypalSdk $block */
+/** @var Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+
+$paypalUrl = $block->getPaypalUrl();
+$clientToken = $block->getClientToken();
+$enableVault = $block->isEnableVaulting();
+$isDebug = $block->isDebug();
+
+$scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
+?>
+
+<script>
+    // Define global callback handlers BEFORE PayPal SDK is loaded
+    window.CompletedCallback = function (resultIndicator, successIndicator) {
+        console.log('PayPal completed callback', { resultIndicator, successIndicator });
+        // Add any Magento logic here, like triggering next step or success message
+    };
+
+    window.CancelCallback = function () {
+        console.warn('PayPal payment was cancelled.');
+        // Handle cancel case
+    };
+
+    window.ErrorCallback = function () {
+        console.error('PayPal payment error occurred.');
+        // Handle error case
+    };
+</script>
+
+<?= /* @noEscape */ $secureRenderer->renderTag(
+    'script',
+    [
+        'id' => 'paypal-sdk',
+        'src' => $scriptUrl,
+        'data-sdk-client-token' => $clientToken,
+        'data-error' => 'window.ErrorCallback',
+        'data-cancel' => 'window.CancelCallback',
+        'data-complete' => 'window.CompletedCallback'
+    ],
+    '',
+    false
+); ?>
+
+<?php if ($isDebug): ?>
+    <script>
+        console.log('PayPal SDK loaded with:', {
+            src: '<?= $scriptUrl ?>',
+            clientToken: '<?= $clientToken ?>',
+            enableVault: <?= $enableVault ? 'true' : 'false' ?>
+        });
+    </script>
+<?php endif; ?>
