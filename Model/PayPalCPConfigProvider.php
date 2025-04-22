@@ -70,6 +70,11 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return $this->_paypalConfig->isSetFlag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_DEBUG_MODE);
     }
 
+    public function isEnableAcdc()
+    {
+        return $this->_paypalConfig->isEnableAcdc();
+    }
+
 
     public function getConfig()
     {
@@ -104,7 +109,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'enable' => (boolean)$this->_paypalConfig->isEnableOxxo(),
                     ],
                     'acdc' => [
-                        'enable' => $this->_paypalConfig->isEnableAcdc(),
+                        'enable' => $this->isEnableAcdc(),
                         'installments_type' => $this->_paypalConfig->getInstallmentsType(),
                         'enable_vaulting' => $this->isEnableVaulting(),
                         'card_fisrt_acdc' => $this->_paypalConfig->isCardFirstAcdc(),
@@ -145,14 +150,14 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             self::SDK_CONFIG_INTENT     => 'capture',
         ];
 
-        if($this->_paypalConfig->isEnableAcdc()){
+        if($this->isEnableAcdc()){
             $this->_params[self::SDK_CONFIG_COMPONENTS] = 'card-fields,buttons';
         }
     }
 
     public function canRemember()
     {
-        return ($this->_paypalConfig->isEnableAcdc() && $this->_paypalConfig->isEnableVaulting());
+        return ($this->isEnableAcdc() && $this->isEnableVaulting());
     }
 
     private function validateCustomerId()

@@ -41,6 +41,11 @@ class PaypalSdk extends Template
         return $this->paypalConfig->isEnableVaulting();
     }
 
+    public function isEnableAcdc()
+    {
+        return $this->paypalConfig->isEnableAcdc();
+    }
+
     public function isDebug()
     {
         return $this->paypalConfig->isDebug();

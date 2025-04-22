@@ -1,15 +1,15 @@
 <?php
 /** @var PayPal\CommercePlatform\Block\PaypalSdk $block */
 /** @var Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
-/** @var \Magento\Framework\Escaper $escaper */
+
 $paypalUrl = $block->getPaypalUrl();
 $clientToken = $block->getClientToken();
 $enableVault = $block->isEnableVaulting();
+$enableAcdc = $block->isEnableAcdc();
 $isDebug = $block->isDebug();
-//$nonce = $escaper->escapeJs($block->getNonce());
 $nonce = $block->getNonce();
 
-$scriptUrl = $paypalUrl . ($enableVault ? '&vault=true' : '');
+$scriptUrl = $paypalUrl . ($enableVault && $enableAcdc ? '&vault=true' : '');
 ?>
 
 <?= $secureRenderer->renderTag(

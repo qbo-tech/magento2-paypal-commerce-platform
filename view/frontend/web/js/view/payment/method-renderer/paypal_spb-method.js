@@ -226,14 +226,14 @@ define(
                 return data;
             },
             renderButton: function (fundingSource, elementId) {
-                var self = this;
-                console.info('elementId ==> ', elementId);
+                let button;
+                const self = this;
                 if (self.isActiveReferenceTransaction()) {
                     elementId = elementId+'-ba';
                     // Initialize the buttons
-                    var button = paypal.Buttons({
+                    button = paypal.Buttons({
                         style: {
-                            label:   'pay'
+                            label: 'pay'
                         },
                         fundingSource: fundingSource,
                         // Generate billing agreement token
@@ -257,7 +257,7 @@ define(
                     });
                 } else {
                     // Initialize the buttons
-                    var button = paypal.Buttons({
+                    button = paypal.Buttons({
                         fundingSource: fundingSource,
                         // Set up the transaction
                         createOrder: function (data, actions) {
@@ -646,23 +646,6 @@ define(
                         self.renderedButtons(true)
                     }
 
-                }
-
-                if ((typeof paypal === 'undefined')) {
-                    // var body = $('body').loader();
-                    //
-                    // self.logger('SDK Paypal not loaded');
-                    //
-                    // body.loader('show');
-
-                    // return paypalSdkAdapter.loadSdk(function () {
-                    //     self.renderButtons();
-                    //     console.info('paypalSdkAdapter', paypalSdkAdapter)
-                    //
-                    //     body.loader('hide');
-                    //
-                    //     return this;
-                    // }, self.isActiveReferenceTransaction() || self.isActiveAcdc());
                 }
             },
             renderButtons: function () {
