@@ -3,7 +3,6 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'mage/storage',
         'jquery',
-        //'paypalSdkAdapter',
         'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
@@ -12,7 +11,7 @@ define(
         'Magento_Checkout/js/model/totals',
         'mage/translate'
     ],
-    function (Component, storage, $, /*paypalSdkAdapter,*/ paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
+    function (Component, storage, $, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
         'use strict';
 
         return Component.extend({

@@ -3,7 +3,9 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="paypal_cp_config_provider" xsi:type="object">PayPal\CommercePlatform\Model\PayPalCPConfigProvider</item>
+                <item name="paypal_cp_config_provider" xsi:type="object">
+                    PayPal\CommercePlatform\Model\PayPalCPConfigProvider
+                </item>
             </argument>
         </arguments>
     </type>

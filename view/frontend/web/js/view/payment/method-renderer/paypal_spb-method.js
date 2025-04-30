@@ -2,7 +2,6 @@ define(
     [
         'Magento_Checkout/js/view/payment/default',
         'jquery',
-        //'paypalSdkAdapter',
         'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
@@ -12,7 +11,7 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/totals',
     ],
-    function (Component, $, /*paypalSdkAdapter,*/ paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
+    function (Component, $, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
         'use strict';
 
         if (window.checkoutConfig.payment.paypalcp.acdc.enable) {
@@ -682,8 +681,8 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        ...(installment.total_consumer_fee > 0 && installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id }),
-                        ...(installment.total_consumer_fee > 0 && installment.fee_reference_id && { total_consumer_fee: installment.total_consumer_fee })
+                        ...(installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id }),
+                        ...(installment.total_consumer_fee > 0 && { total_consumer_fee: installment.total_consumer_fee })
                     };
 
                     self.logger('validateInstallment#submitOption', submitOptions);

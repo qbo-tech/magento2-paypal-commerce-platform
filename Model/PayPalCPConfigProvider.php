@@ -5,7 +5,7 @@ namespace PayPal\CommercePlatform\Model;
 /**
  * Class PaypalCPConfigProvider
  */
-class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
+class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
     const SDK_CONFIG_CLIENT_ID  = 'client-id';

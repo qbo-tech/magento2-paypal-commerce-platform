@@ -239,10 +239,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             //TODO move function.
             if ($payment->getAdditionalInformation('payment_source')) {
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
-
-                if(isset($this->paymentSource['token']) || $this->isBillingAgreements($payment)) {
-                    $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
-                }
+                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
