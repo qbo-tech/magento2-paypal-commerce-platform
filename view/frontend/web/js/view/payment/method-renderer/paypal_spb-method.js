@@ -134,7 +134,13 @@ define(
             },
 
             parseInstallOptions: function (qualifyingFinancingOption) {
-                const { monthly_payment, credit_financing, discount_percentage, total_consumer_fee, fee_reference_id } = qualifyingFinancingOption;
+                const {
+                    monthly_payment,
+                    credit_financing,
+                    discount_percentage,
+                    total_consumer_fee,
+                    fee_reference_id
+                } = qualifyingFinancingOption;
 
                 let parsedOptions = {
                     value: monthly_payment.value,
@@ -169,7 +175,7 @@ define(
                 }
 
                 var total = totals.getSegment('grand_total').value;
-                console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:',  msiMinimum );
+                console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:', msiMinimum);
 
                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
@@ -177,7 +183,7 @@ define(
                     console.info('Current term: ', term);
 
                     if (msiMinimum.hasOwnProperty(term)) {
-                        if(msiMinimum[term] <= total) {
+                        if (msiMinimum[term] <= total) {
                             options.push(self.parseInstallOptions(qualifyingFinancingOption));
                         }
 
@@ -202,7 +208,7 @@ define(
 
                 console.info("self.currentMethod ==> ", self.currentMethod);
 
-                if(self.currentMethod == 'paypalspb_paypal' && self.isActiveReferenceTransaction()){
+                if (self.currentMethod == 'paypalspb_paypal' && self.isActiveReferenceTransaction()) {
                     var paymentType = 'BILLING_AGREEMENT';
                     var submitOptions = self.validateBillingAgreementInstallment({});
                 } else {
@@ -231,7 +237,7 @@ define(
                 let button;
                 const self = this;
                 if (self.isActiveReferenceTransaction()) {
-                    elementId = elementId+'-ba';
+                    elementId = elementId + '-ba';
                     // Initialize the buttons
                     button = paypal.Buttons({
                         style: {
@@ -335,7 +341,7 @@ define(
                             };
 
                             return self.paypalConfigs.acdc.installments_type === "installments_cost_to_buyer"
-                                ? { ...baseConfig, includeBuyerInstallments: true }
+                                ? {...baseConfig, includeBuyerInstallments: true}
                                 : baseConfig;
 
                         },
@@ -421,7 +427,7 @@ define(
 
                         try {
                             self.placeOrder();
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 self._enableCheckout();
                             }, 3000);
                         } catch (err) {
@@ -470,7 +476,11 @@ define(
 
                 } else {
                     let messageNotAvailable = $t('Sorry, the payment method is not available, please try again later.')
-                    $("#paypalcheckout").html('<div class="payment-not-available">'+messageNotAvailable+'</div>').css({ 'color': 'red', 'font-weight': 'bold', 'margin': '20px 10px' });
+                    $("#paypalcheckout").html('<div class="payment-not-available">' + messageNotAvailable + '</div>').css({
+                        'color': 'red',
+                        'font-weight': 'bold',
+                        'margin': '20px 10px'
+                    });
                 }
 
 
@@ -488,13 +498,13 @@ define(
 
                     var submitOptions = {};
                     let vaulting = $('#vault').is(':checked');
-                    if(vaulting) {
+                    if (vaulting) {
                         submitOptions = {
                             payment_source: {
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: "Mage"+self.paypalConfigs.customer.id
+                                            id: "Mage" + self.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -638,9 +648,9 @@ define(
                     self.canShowInstallmentsBA(true);
                 }
 
-                if(typeof paypal !== 'undefined') {
+                if (typeof paypal !== 'undefined') {
 
-                    if(self.renderedButtons()) {
+                    if (self.renderedButtons()) {
                         console.log("buttons already rendered on CardFields");
                     } else {
                         console.log("render buttons on CardFields");
@@ -681,8 +691,8 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        ...(installment.fee_reference_id && { fee_reference_id: installment.fee_reference_id }),
-                        ...(installment.total_consumer_fee > 0 && { total_consumer_fee: installment.total_consumer_fee })
+                        ...(installment.fee_reference_id && {fee_reference_id: installment.fee_reference_id}),
+                        ...(installment.total_consumer_fee > 0 && {total_consumer_fee: installment.total_consumer_fee})
                     };
 
                     self.logger('validateInstallment#submitOption', submitOptions);
@@ -707,7 +717,7 @@ define(
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: "Mage"+this.paypalConfigs.customer.id
+                                            id: "Mage" + this.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -740,14 +750,14 @@ define(
                             }
                         }
                         self.logger(submitOptions);
-                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' && $('#vault').is(':checked') ) {
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' && $('#vault').is(':checked')) {
 
                         submitOptions = {
                             payment_source: {
                                 card: {
                                     attributes: {
                                         customer: {
-                                            id: "Mage"+this.paypalConfigs.customer.id
+                                            id: "Mage" + this.paypalConfigs.customer.id
                                         },
                                         vault: {
                                             store_in_vault: "ON_SUCCESS",
@@ -876,7 +886,7 @@ define(
 
                     self.logger('On DELETE ', tokenId);
 
-                    return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({ id: tokenId })
+                    return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({id: tokenId})
                     ).done(function (response) {
 
                             $('li#card-' + tokenId).remove();
@@ -891,7 +901,7 @@ define(
                     });
                 });
 
-                $('.agreement-list').on('click', '.agreement-delete', function(el){
+                $('.agreement-list').on('click', '.agreement-delete', function (el) {
                     body.loader('show');
 
                     var objAgreement = $(this);
@@ -927,7 +937,7 @@ define(
 
                         const card = self.customerCards().find(element => element.id == cardId);
 
-                        if(typeof card.financing_options !== "undefined" && typeof card.financing_options[0] !== "undefined" && self.isInstallmentsEnable()) {
+                        if (typeof card.financing_options !== "undefined" && typeof card.financing_options[0] !== "undefined" && self.isInstallmentsEnable()) {
                             var options = self.fillInstallmentOptions(card.financing_options[0]);
                             self.installmentOptions(options);
                             self.installmentsAvailable(true);
@@ -945,7 +955,7 @@ define(
                     var submitOptions = {};
                     self.validateInstallment(submitOptions);
 
-                    self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
+                    self.createOrder({'fraudNetCMI': self.sessionIdentifier}).done(function (response) {
                         console.log('token-submit#createOrder#done#response', response);
                         self.orderId = response.result.id//.orderID;
                         self.placeOrder();
@@ -957,7 +967,7 @@ define(
                     $('#submit').prop('disabled', false);
                 });
 
-                if ( self.isActiveReferenceTransaction()) {
+                if (self.isActiveReferenceTransaction()) {
                     self.initializeAgreementsEvents();
                 }
             },
@@ -965,7 +975,10 @@ define(
                 var self = this;
                 $('li#agreement-' + agreementId).remove();
 
-                return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({ id: agreementId, reference: referenceId })
+                return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({
+                        id: agreementId,
+                        reference: referenceId
+                    })
                 ).done(function (response) {
                     self.installmentAgreementOptions(null);
                     self.selectedInstallmentsBA(null);
@@ -981,7 +994,7 @@ define(
             initializeAgreementsEvents: function () {
                 var self = this;
 
-                if(self.customerBillingAgreements().length > 0){
+                if (self.customerBillingAgreements().length > 0) {
                     $('#paypal-button-container-ba').hide();
                 }
 
@@ -1007,13 +1020,13 @@ define(
                         self.currentBAId = agreementId;
                         self.currentBAReference = agreement.reference;
 
-                        if(self.isInstallmentsEnable()){
+                        if (self.isInstallmentsEnable()) {
                             $('#token-ba-submit').prop('disabled', true);
 
-                            self.calculatedFinancingOptions({ 'agreementReference': agreement.reference }).done(function (response) {
+                            self.calculatedFinancingOptions({'agreementReference': agreement.reference}).done(function (response) {
                                 console.log('agreementReference#response', response);
 
-                                if(typeof response.statusCode !== 'undefined' && ( response.statusCode === 200 || response.statusCode === 201 ) && typeof response.result !== 'undefined') {
+                                if (typeof response.statusCode !== 'undefined' && (response.statusCode === 200 || response.statusCode === 201) && typeof response.result !== 'undefined') {
                                     var financialOptions = response.result.financing_options[0];
 
                                     console.info('financialOptions ===> ', financialOptions);
@@ -1036,7 +1049,7 @@ define(
                             }).fail(function (response) {
                                 console.error('FAILED paid whit token card', response);
                             })
-                        }else{
+                        } else {
                             $('#token-ba-submit').prop('disabled', false);
                         }
 
@@ -1052,18 +1065,21 @@ define(
                     $('#token-ba-submit').prop('disabled', true);
                     event.preventDefault();
 
-                    self.getBillingAgreement({ 'id': self.currentBAId, 'reference': self.currentBAReference }).done(function (response) {
+                    self.getBillingAgreement({
+                        'id': self.currentBAId,
+                        'reference': self.currentBAReference
+                    }).done(function (response) {
                         self.currentBA = response.ba;
                         var submitOptions = {};
                         self.validateBillingAgreementInstallment(submitOptions);
                         self._enableCheckout();
 
-                        self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
+                        self.createOrder({'fraudNetCMI': self.sessionIdentifier}).done(function (response) {
                             console.log('token-ba-submit#createOrder#done#response', response);
-                            if(typeof response.statusCode !== 'undefined' && ( response.statusCode === 200 || response.statusCode === 201 ) && typeof response.result.id !== 'undefined') {
+                            if (typeof response.statusCode !== 'undefined' && (response.statusCode === 200 || response.statusCode === 201) && typeof response.result.id !== 'undefined') {
                                 self.orderId = response.result.id;
                                 $(this).prop('checked', false);
-                                $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
+                                $('.agreement-list input[name=pp-input-agreement]').prop('checked', false);
                                 self.placeOrder();
                             } else {
                                 self.messageContainer.addErrorMessage({
