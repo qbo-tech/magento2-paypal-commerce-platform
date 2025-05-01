@@ -214,6 +214,7 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             }
 
         }
+        
         return $paymentTokens;
     }
 
@@ -247,9 +248,39 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
             $response = $this->_paypalApi->execute($this->_calculatedFinancialOptionsRequest);
 
+            $financeOptions = $response->result->financing_options ?? [];
+//            if ($installmentsType === 'installments_cost_to_buyer') {
+//                $financeOptions = $this->sanitizeFinancingOptions($financeOptions);
+//            }
+
             if ($response->statusCode == 200) {
-                $paymentTokens['cards'][$index]['financing_options'] = $response->result->financing_options;
+                $paymentTokens['cards'][$index]['financing_options'] = $financeOptions;
             }
         }
     }
+
+
+    private function sanitizeFinancingOptions($financeOptions)
+    {
+        foreach ($financeOptions as &$option) {
+            if (!isset($option->qualifying_financing_options)) {
+                continue;
+            }
+
+            foreach ($option->qualifying_financing_options as &$qualifyingOption) {
+                if (
+                    isset($qualifyingOption->total_consumer_fee->value) &&
+                    (float)$qualifyingOption->total_consumer_fee->value == 0 &&
+                    isset($qualifyingOption->fee_reference_id)
+                ) {
+                    unset($qualifyingOption->fee_reference_id);
+                }
+            }
+            unset($qualifyingOption);
+        }
+        unset($option);
+
+        return $financeOptions;
+    }
+
 }

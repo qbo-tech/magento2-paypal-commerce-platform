@@ -372,7 +372,6 @@ define(
                             }
 
                             qualifyingOptions.forEach(function (financialOption) {
-                                // const totalConsumerFee = financialOption.total_consumer_fee ? parseFloat(financialOption.total_consumer_fee.value) : 0;
                                 console.log("financialOption ===> ", financialOption);
                                 var options = self.fillInstallmentOptions(financialOption);
                                 self.installmentOptions(options);
@@ -691,7 +690,7 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        ...(installment.fee_reference_id && {fee_reference_id: installment.fee_reference_id}),
+                        ...(installment?.fee_reference_id && {fee_reference_id: installment.fee_reference_id}),
                         ...(installment.total_consumer_fee > 0 && {total_consumer_fee: installment.total_consumer_fee})
                     };
 
