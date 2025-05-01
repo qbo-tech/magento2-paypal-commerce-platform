@@ -203,7 +203,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         $infoInstance   = $this->getInfoInstance();
         $infoInstance->setAdditionalInformation('payment_source');
-
         $additionalData = $data->getData('additional_data') ?: $data->getData();
 
         foreach ($additionalData as $key => $value) {
@@ -235,12 +234,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         try {
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
-
             //TODO move function.
             if ($payment->getAdditionalInformation('payment_source')) {
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
+
+            $this->_logger->debug(__METHOD__ . ' | PaymentBodyRequest : ', $this->_paypalOrderCaptureRequest->body);
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
             if ($paypalCMID) {

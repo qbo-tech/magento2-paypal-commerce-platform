@@ -8,12 +8,12 @@ namespace PayPal\CommercePlatform\Model;
 class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
-    const SDK_CONFIG_CLIENT_ID  = 'client-id';
-    const SDK_CONFIG_CURRENCY   = 'currency';
-    const SDK_CONFIG_DEBUG      = 'debug';
+    const SDK_CONFIG_CLIENT_ID = 'client-id';
+    const SDK_CONFIG_CURRENCY = 'currency';
+    const SDK_CONFIG_DEBUG = 'debug';
     const SDK_CONFIG_COMPONENTS = 'components';
-    const SDK_CONFIG_LOCALE     = 'locale';
-    const SDK_CONFIG_INTENT     = 'intent';
+    const SDK_CONFIG_LOCALE = 'locale';
+    const SDK_CONFIG_INTENT = 'intent';
     const SDK_CONFIG_DISABLE_FUNDING = 'disable-funding';
     const LENGTH_IDENTIFIER = 15;
 
@@ -51,13 +51,13 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         \Magento\Checkout\Model\Session $checkoutSession,
         \PayPal\CommercePlatform\Logger\Handler $logger
     ) {
-        $this->_paypalConfig    = $paypalConfig;
-        $this->_paypalApi       = $paypalApi;
+        $this->_paypalConfig = $paypalConfig;
+        $this->_paypalApi = $paypalApi;
         $this->_calculatedFinancialOptionsRequest = $calculatedFinancingOptionsRequest;
         $this->_billingAgreement = $billingAgreement;
         $this->_customerSession = $customerSession;
         $this->_checkoutSession = $checkoutSession;
-        $this->_logger          = $logger;
+        $this->_logger = $logger;
     }
 
     public function isEnableVaulting()
@@ -76,6 +76,11 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     }
 
 
+    public function getGrandTotal()
+    {
+        return $this->_checkoutSession->getQuote()->getGrandTotal();
+    }
+
     public function getConfig()
     {
         if (!$this->_paypalConfig->isMethodActive($this->_payment_code)) {
@@ -86,13 +91,14 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                 $this->_payment_code => [
                     'title' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE),
                     'urlSdk' => $this->getUrlSdk(),
-                    'style'  => [
-                        'layout'  => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LAYOUT),
-                        'color'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_COLOR),
-                        'shape'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
-                        'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
+                    'style' => [
+                        'layout' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LAYOUT),
+                        'color' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_COLOR),
+                        'shape' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_SHAPE),
+                        'label' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
                     ],
                     'authorizationBasic' => 'Basic ' . $this->_paypalApi->getAuthorizationString(),
+                    'grandTotal' => $this->getGrandTotal(),
                     'customer' => [
                         'id' => $this->validateCustomerId(),
                         'payments' => $this->getCustomerPaymentTokens($this->validateCustomerId()),
@@ -117,8 +123,8 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     ],
                     'splitOptions' => [
                         'title_method_paypal' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_PAYPAL),
-                        'title_method_card'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_CARD),
-                        'title_method_oxxo'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_OXXO),
+                        'title_method_card' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_CARD),
+                        'title_method_oxxo' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_TITLE_METHOD_OXXO),
                     ],
                     self::SDK_CONFIG_DEBUG => $this->isDebug(),
                     'fraudNet' => [
@@ -143,14 +149,14 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     private function buildParams()
     {
         $this->_params = [
-            self::SDK_CONFIG_CLIENT_ID  => $this->_paypalConfig->getClientId(),
-            self::SDK_CONFIG_CURRENCY   => $this->_paypalConfig->getCurrency(),
-            self::SDK_CONFIG_DEBUG      => $this->isDebug() ? 'true' : 'false',
-            self::SDK_CONFIG_LOCALE     => $this->_paypalConfig->getLocale(),
-            self::SDK_CONFIG_INTENT     => 'capture',
+            self::SDK_CONFIG_CLIENT_ID => $this->_paypalConfig->getClientId(),
+            self::SDK_CONFIG_CURRENCY => $this->_paypalConfig->getCurrency(),
+            self::SDK_CONFIG_DEBUG => $this->isDebug() ? 'true' : 'false',
+            self::SDK_CONFIG_LOCALE => $this->_paypalConfig->getLocale(),
+            self::SDK_CONFIG_INTENT => 'capture',
         ];
 
-        if($this->isEnableAcdc()){
+        if ($this->isEnableAcdc()) {
             $this->_params[self::SDK_CONFIG_COMPONENTS] = 'card-fields,buttons';
         }
     }
@@ -160,7 +166,7 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return ($this->isEnableAcdc() && $this->isEnableVaulting());
     }
 
-    private function validateCustomerId()
+    public function validateCustomerId()
     {
         if ($this->_customerSession->isLoggedIn()) {
             return $this->_customerSession->getCustomerId();
@@ -169,11 +175,11 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return null;
     }
 
-    private function getCustomerAgreements($customerId)
+    public function getCustomerAgreements($customerId)
     {
         $agreements = $this->_billingAgreement->getAvailableCustomerBillingAgreements($customerId);
         $agreementsIds = [];
-        foreach ($agreements as $agreement){
+        foreach ($agreements as $agreement) {
             $agreementsIds[] = [
                 'id' => $agreement->getAgreementId(),
                 'reference' => $agreement->getReferenceId(),
@@ -185,9 +191,9 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return $agreementsIds;
     }
 
-    private function getCustomerPaymentTokens($customerId)
+    public function getCustomerPaymentTokens($customerId)
     {
-        if(!$this->validateCustomerId()){
+        if (!$this->validateCustomerId()) {
             return [];
         }
 
@@ -195,7 +201,7 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $customerId = sprintf("Mage%s", $customerId);
         $response = $this->_paypalApi->execute(new \PayPal\CommercePlatform\Model\Paypal\Vault\PaymentTokensRequest($customerId));
 
-        if ( $response->statusCode == 200 && isset($response->result->payment_tokens) ) {
+        if ($response->statusCode == 200 && isset($response->result->payment_tokens)) {
 
             foreach ($response->result->payment_tokens as $token) {
 
@@ -208,24 +214,25 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                 }
             }
 
-            if(isset($paymentTokens['cards'])) {
+            if (isset($paymentTokens['cards'])) {
                 $installmentsType = $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_INSTALLMENTS_TYPE);
                 $this->getCalculatedFinancialOptions($paymentTokens, $installmentsType);
             }
 
         }
-        
+
         return $paymentTokens;
     }
 
     private function getCalculatedFinancialOptions(&$paymentTokens, $installmentsType = null)
     {
+        $grandTotal = $this->getGrandTotal();
+        $this->_logger->debug(__METHOD__ . ' | GrandTotal: ' . $grandTotal);;
         foreach ($paymentTokens['cards'] as $index => $payment) {
-            // Base body structure
             $body = [
                 "financing_country_code" => $this->_paypalConfig->getCountryCode(),
                 "transaction_amount" => [
-                    "value" => $this->_checkoutSession->getQuote()->getGrandTotal(),
+                    "value" => $grandTotal,
                     "currency_code" => $this->_checkoutSession->getQuote()->getQuoteCurrencyCode()
                 ],
                 "funding_instrument" => [

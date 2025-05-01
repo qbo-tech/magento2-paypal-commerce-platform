@@ -55,25 +55,11 @@ class Index extends \Magento\Framework\App\Action\Action
         try {
             $accessToken = $this->paypalAccessTokenRequest->createRequest();
 
-            //dd($accessToken);
-
             if(isset($accessToken->result) && isset($accessToken->result->id_token)){
                 $response = ['id_token' => $accessToken->result->id_token];
             } else {
                 throw new \Exception(__('An error has occurred on the server, please try again later'));
             }
-
-//            if(isset($accessToken->result) && isset($accessToken->result->access_token)){
-//                $tokenGenerated = $this->paypalAccessTokenRequest->createGenerateTokenRequest($accessToken->result->access_token);
-//            } else {
-//                throw new \Exception(__('An error has occurred on the server, please try again later'));
-//            }
-//
-//            if(isset($tokenGenerated->result) && isset($tokenGenerated->result->client_token)){
-//                $response = ['token' => $tokenGenerated->result->client_token];
-//            } else {
-//                throw new \Exception(__('An error has occurred on the server, please try again later'));
-//            }
 
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
