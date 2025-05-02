@@ -69,7 +69,7 @@ define(
             },
 
             isInstallmentsEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type !== 'no'));
+                return this.isAcdcEnable && this.paypalConfigs.acdc.installments_type !== 'no';
             },
 
             isVaultingEnable: function () {

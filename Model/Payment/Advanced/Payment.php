@@ -204,7 +204,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $infoInstance   = $this->getInfoInstance();
         $infoInstance->setAdditionalInformation('payment_source');
         $additionalData = $data->getData('additional_data') ?: $data->getData();
-
         foreach ($additionalData as $key => $value) {
             #In some cases, additonal data may include extension_attribites which is an object. Skip setting objects to additional data as it will throw an exception in @Magento\Payment\Model\Info
             if(!is_object($value)) {
@@ -237,7 +236,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             //TODO move function.
             if ($payment->getAdditionalInformation('payment_source')) {
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
-                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+
+                if(!isset($this->paymentSource['card'])) {
+                    $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+                }
+
             }
 
             $this->_logger->debug(__METHOD__ . ' | PaymentBodyRequest : ', $this->_paypalOrderCaptureRequest->body ?? []);
@@ -251,6 +254,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
+
             $this->_processTransaction($payment);
             $this->_eventManager->dispatch('paypalcp_order_capture_after', ['payment' => $payment]);
 

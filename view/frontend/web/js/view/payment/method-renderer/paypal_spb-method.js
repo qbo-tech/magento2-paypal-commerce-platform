@@ -195,7 +195,7 @@ define(
                 return false;
             },
             isInstallmentsEnable: function () {
-                return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type != 'no'));
+                return this.isActiveReferenceTransaction() || (this.isAcdcEnable && this.paypalConfigs.acdc.installments_type != 'no');
             },
             isVaultingEnable: function () {
                 return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customer.id != null));
@@ -596,10 +596,20 @@ define(
                     }
 
                     submitOptions = self.validateInstallment(submitOptions);
-
                     self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
+                    let installments = {};
 
-                    cardField.submit(submitOptions).catch((error) => {
+                    if(submitOptions.payment_source?.card?.attributes?.installments) {
+                        installments = submitOptions.payment_source.card.attributes.installments;
+                    }
+
+                    if(submitOptions?.installments) {
+                        installments =  submitOptions?.installments;
+                    }
+
+                    self.logger('submitOptions#co-payment-form, #card-form#installments', installments);
+
+                    cardField.submit({installments}).catch((error) => {
                         console.error("Error al procesar el pago", error);
                         self.messageContainer.addErrorMessage({
                             message: $t('Transaction cannot be processed, please verify your card information or try another.')
