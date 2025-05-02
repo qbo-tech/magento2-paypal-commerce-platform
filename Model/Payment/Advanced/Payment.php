@@ -240,7 +240,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
             }
 
-            $this->_logger->debug(__METHOD__ . ' | PaymentBodyRequest : ', $this->_paypalOrderCaptureRequest->body);
+            $this->_logger->debug(__METHOD__ . ' | PaymentBodyRequest : ', $this->_paypalOrderCaptureRequest->body ?? []);
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
             if ($paypalCMID) {
