@@ -54,7 +54,7 @@ class Index extends \Magento\Framework\App\Action\Action
 
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
-            $resultJson->setData(array('reason' => $e->getMessage()));
+            $resultJson->setData(array('reason' => __('An error has occurred on the server, please try again later')));
             return $resultJson->setHttpResponseCode(500);
         }
 
