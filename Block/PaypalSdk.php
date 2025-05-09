@@ -46,6 +46,26 @@ class PaypalSdk extends Template
         return $this->paypalConfig->isEnableAcdc();
     }
 
+    public function isEnableBcdc()
+    {
+        return $this->paypalConfig->isEnableBcdc();
+    }
+
+    public function isEnableReferenceTransaction()
+    {
+        return $this->paypalConfig->isEnableReferenceTransaction();
+    }
+
+    public function isEnableOxxo()
+    {
+        return $this->paypalConfig->isEnableOxxo();
+    }
+
+    public function isPaypalActive()
+    {
+        return $this->paypalConfig->isPaypalActive();
+    }
+
     public function isDebug()
     {
         return $this->paypalConfig->isDebug();
@@ -55,5 +75,7 @@ class PaypalSdk extends Template
     {
         return $this->nonceProvider->generateNonce();
     }
+
+
 
 }

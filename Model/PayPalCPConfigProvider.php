@@ -75,15 +75,33 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return $this->_paypalConfig->isEnableAcdc();
     }
 
+    public function isEnableBcdc()
+    {
+        return $this->_paypalConfig->isEnableBcdc();
+    }
+
+    public function isEnableReferenceTransaction()
+    {
+        return $this->_paypalConfig->isEnableReferenceTransaction();
+    }
+
+    public function isEnableOxxo()
+    {
+        return $this->_paypalConfig->isEnableOxxo();
+    }
 
     public function getGrandTotal()
     {
         return $this->_checkoutSession->getQuote()->getGrandTotal();
     }
 
+    public function isPaypalActive() {
+        return $this->_paypalConfig->isMethodActive($this->_payment_code);
+    }
+
     public function getConfig()
     {
-        if (!$this->_paypalConfig->isMethodActive($this->_payment_code)) {
+        if (!$this->isPaypalActive()) {
             return [];
         }
         $config = [
@@ -105,14 +123,14 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'agreements' => $this->getCustomerAgreements($this->validateCustomerId())
                     ],
                     'referenceTransaction' => [
-                        'enable' => $this->_paypalConfig->isEnableReferenceTransaction(),
+                        'enable' => $this->isEnableReferenceTransaction(),
                         'msiMinimum' => $this->_paypalConfig->getMSIMinimum('referenceTransaction'),
                     ],
                     'bcdc' => [
-                        'enable' => $this->_paypalConfig->isEnableBcdc(),
+                        'enable' => $this->isEnableBcdc(),
                     ],
                     'oxxo' => [
-                        'enable' => (boolean)$this->_paypalConfig->isEnableOxxo(),
+                        'enable' => (boolean)$this->isEnableOxxo(),
                     ],
                     'acdc' => [
                         'enable' => $this->isEnableAcdc(),
@@ -255,9 +273,6 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             $response = $this->_paypalApi->execute($this->_calculatedFinancialOptionsRequest);
 
             $financeOptions = $response->result->financing_options ?? [];
-//            if ($installmentsType === 'installments_cost_to_buyer') {
-//                $financeOptions = $this->sanitizeFinancingOptions($financeOptions);
-//            }
 
             if ($response->statusCode == 200) {
                 $paymentTokens['cards'][$index]['financing_options'] = $financeOptions;
