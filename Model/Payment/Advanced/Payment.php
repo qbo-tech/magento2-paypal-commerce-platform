@@ -161,10 +161,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $paypalOrderId = $payment->getAdditionalInformation('payment_id');
         $creditMemoIndex = (int)$payment->getAdditionalInformation('credit_memo_count') + 1;
+        $order = $payment->getOrder();
+        $invoice = $order->getInvoiceCollection()->getFirstItem();
 
         $paypalRefundRequest = new \PayPalCheckoutSdk\Payments\CapturesRefundRequest($paypalOrderId);
 
         $creditmemo = $payment->getCreditmemo();
+        $invoiceId = $creditmemo->getInvoiceId() || empty($invoice) ? $creditmemo->getInvoiceId() : $invoice->getId();
 
         $memoCurrencyCode = $creditmemo->getBaseCurrencyCode();
 
@@ -173,7 +176,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 'value'         => $amount,
                 'currency_code' => $memoCurrencyCode
             ],
-            'invoice_id'    => $creditmemo->getInvoiceId() . '-' . $creditMemoIndex,
+            'invoice_id'    => $invoiceId . '-' . $creditMemoIndex,
             'note_to_payer' => $creditmemo->getCustomerNote()
         ];
 
