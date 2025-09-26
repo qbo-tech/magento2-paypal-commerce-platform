@@ -60,6 +60,7 @@ define(
                 console.log("initialize GrandTotal: ", self.grandTotal());
 
                 quote.totals.subscribe(function (totals) {
+
                     if (!totals || !totals.base_grand_total) {
                         return;
                     }
@@ -70,6 +71,22 @@ define(
                     if (previousGrandTotal !== currentGrandTotal) {
                         console.log('Grand total changed ===> ', currentGrandTotal, previousGrandTotal);
                         self.refreshFinancingOptions();
+
+                        // clean previous buttons
+                        const container = document.getElementById('paypal-button-container');
+                        if (container) {
+                            container.innerHTML = '';
+                        }
+
+                        const cardContainer = document.getElementById('card-button-container');
+                        if (cardContainer) {
+                            cardContainer.innerHTML = '';
+                        }
+
+                        if(cardContainer || container) {
+                            self.renderButtons();
+                        }
+
                     }
 
                     // Always update the stored observable
