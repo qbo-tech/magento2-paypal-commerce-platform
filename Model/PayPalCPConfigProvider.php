@@ -5,7 +5,7 @@ namespace PayPal\CommercePlatform\Model;
 /**
  * Class PaypalCPConfigProvider
  */
-class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
+class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
     const BASE_URL_SDK = 'https://www.paypal.com/sdk/js?';
     const SDK_CONFIG_CLIENT_ID  = 'client-id';
@@ -60,6 +60,11 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $this->_logger          = $logger;
     }
 
+    public function getGrandTotal()
+    {
+        return $this->_checkoutSession->getQuote()->getGrandTotal();
+    }
+
     public function getConfig()
     {
         if (!$this->_paypalConfig->isMethodActive($this->_payment_code)) {
@@ -77,6 +82,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'label'   => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::XML_CONFIG_LABEL),
                     ],
                     'authorizationBasic' => 'Basic ' . $this->_paypalApi->getAuthorizationString(),
+                    'grandTotal' => $this->getGrandTotal(),
                     'customer' => [
                         'id' => $this->validateCustomerId(),
                         'payments' => $this->getCustomerPaymentTokens($this->validateCustomerId()),
@@ -146,7 +152,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return ($this->_paypalConfig->isEnableAcdc() && $this->_paypalConfig->isEnableVaulting());
     }
 
-    private function validateCustomerId()
+    public function validateCustomerId()
     {
         if ($this->_customerSession->isLoggedIn()) {
             return $this->_customerSession->getCustomerId();
@@ -155,7 +161,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return null;
     }
 
-    private function getCustomerAgreements($customerId){
+    public function getCustomerAgreements($customerId){
         $agreements = $this->_billingAgreement->getAvailableCustomerBillingAgreements($customerId);
         $agreementsIds = [];
         foreach ($agreements as $agreement){
@@ -170,7 +176,7 @@ class PaypalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         return $agreementsIds;
     }
 
-    private function getCustomerPaymentTokens($customerId)
+    public function getCustomerPaymentTokens($customerId)
     {
         if(!$this->validateCustomerId()){
             return [];

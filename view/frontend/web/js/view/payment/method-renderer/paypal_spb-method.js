@@ -44,6 +44,7 @@ define(
             sessionIdentifier: window.checkoutConfig.payment.paypalcp.fraudNet.sessionIdentifier,
             customerCards: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.payments.cards),
             customerBillingAgreements: ko.observableArray(window.checkoutConfig.payment.paypalcp.customer.agreements),
+            grandTotal: ko.observable(window.checkoutConfig.payment.paypalcp.grandTotal),
             canShowInstallments: ko.observable(false),
             canShowInstallmentsBA: ko.observable(false),
             installmentsAvailable: ko.observable(false),
@@ -52,6 +53,97 @@ define(
             selectedInstallments: ko.observable(),
             selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
+
+            initialize: function () {
+                this._super();
+
+                let self = this;
+                console.log("initialize GrandTotal: ", self.grandTotal());
+
+                quote.totals.subscribe(function (totals) {
+
+                    if (!totals || !totals.base_grand_total) {
+                        return;
+                    }
+
+                    const currentGrandTotal = parseFloat(totals.base_grand_total);
+                    const previousGrandTotal = parseFloat(self.grandTotal());
+
+                    if (previousGrandTotal !== currentGrandTotal) {
+                        console.log('Grand total changed ===> ', currentGrandTotal, previousGrandTotal);
+                        self.refreshFinancingOptions();
+
+                        // clean previous buttons
+                        const container = document.getElementById('paypal-button-container');
+                        if (container) {
+                            container.innerHTML = '';
+                        }
+
+                        const cardContainer = document.getElementById('card-button-container');
+                        if (cardContainer) {
+                            cardContainer.innerHTML = '';
+                        }
+
+                        if(cardContainer || container) {
+                            self.renderButtons();
+                        }
+
+                    }
+
+                    // Always update the stored observable
+                    self.grandTotal(currentGrandTotal);
+                });
+
+                return this;
+            },
+            validateGrandTotal: function () {
+                const self = this;
+
+                return new Promise(function (resolve) {
+                    const currentGrandTotal = parseFloat(quote.totals().grand_total);
+                    const previousGrandTotal = parseFloat(self.grandTotal());
+                    console.log('Grand total => ', currentGrandTotal, ' Previous total => ', previousGrandTotal);
+
+                    if (previousGrandTotal !== currentGrandTotal) {
+                        console.log('Grand total changed ===> ', currentGrandTotal, previousGrandTotal);
+                        // Assuming refreshFinancingOptions is async
+                        self.refreshFinancingOptions().done(function () {
+                            self.grandTotal(currentGrandTotal);
+                            resolve();
+                        }).fail(function () {
+                            console.error('Failed to refresh financing options.');
+                            resolve(); // still resolve to not block
+                        });
+                    } else {
+                        self.grandTotal(currentGrandTotal);
+                        resolve();
+                    }
+                });
+            },
+            refreshFinancingOptions: function () {
+                const self = this;
+                const url = 'paypalcheckout/financing';
+
+                self.installmentsAvailable(false);
+
+                return storage.post(url).done(function (response) {
+                    console.log('FinancingOptions refreshed', response);
+
+                    // Update customer cards if returned
+                    if (response.payments && response.payments.cards) {
+                        self.customerCards(response.payments.cards);
+                    }
+
+                    // Update billing agreements if returned
+                    if (response && response.agreements) {
+                        self.customerBillingAgreements(response.agreements);
+                    }
+
+                    self.initializeEvents();
+                }).fail(function (error) {
+                    console.error('Failed to refresh PayPal data', error);
+                });
+            },
 
             isActiveReferenceTransaction: function () {
                 var self = this;
@@ -88,14 +180,18 @@ define(
             },
             selectedPayPalMethod: function (method) {
                 var self = this;
-                self.currentMethod = method;
                 var data = this.getData();
-
+                self.currentMethod = method;
                 self.selectedMethod = method;
                 data.method = self.paypalMethod;
-
                 selectPaymentMethodAction(data);
-                checkoutData.setSelectedPaymentMethod(this.item.method);
+                checkoutData.setSelectedPaymentMethod(self.item.method);
+
+                var body = $('body').loader();
+                body.loader('show');
+                self.validateGrandTotal().then(function () {
+                    body.loader('hide');
+                });
             },
             isVisibleCard: function () {
                 var self = this;
