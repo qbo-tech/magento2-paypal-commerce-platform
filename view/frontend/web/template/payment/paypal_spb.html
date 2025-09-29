@@ -8,13 +8,14 @@
             <span data-bind="text: getTitleMethodCard()"></span>
         </label>
     </div>
-    <div class="payment-method-content">
+    <div class="payment-method-content spb">
         <!--         ko foreach: getRegion('messages') -->
         <!--         ko template: getTemplate() -->
         <!-- /ko -->
         <!--         /ko -->
 
         <div id="card-button-container" style="min-height: 50px;"></div>
+        <div id="card-button-container-2" style="min-height: 50px;"></div>
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
             <!--                 ko template: getTemplate() -->
@@ -104,18 +105,12 @@
                         <!-- /ko -->
                     </label>
                     <select class="form-control" style="font-size: 14px;" name="installmentsAgreement"
-                            id="installmentsAgreement" data-bind=" visible: canShowInstallmentsBA,
-                                        options: installmentAgreementOptions,
-                                        optionsText: function(i) {
-                                            return [
-                                                i.value,
-                                                i.currency_code,
-                                                i.term,
-                                                i.interval
-                                            ].join('    ');
-                                        },
-                                        value: selectedInstallmentsBA
-                                    ">
+                            id="installmentsAgreement"
+                            data-bind=" visible: canShowInstallmentsBA,
+                            options: installmentAgreementOptions,
+                            optionsText: getInstallmentText,
+                            value: selectedInstallmentsBA
+                    ">
                     </select>
                     <button value="submit" id="token-ba-submit" class="btn" disabled="disable">
                         <!-- ko i18n: 'Pay' -->

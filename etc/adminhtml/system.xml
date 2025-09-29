@@ -39,14 +39,6 @@
                         <label>Title</label>
                         <config_path>payment/paypalcp/title</config_path>
                     </field>
-                    <!--
-                    <field id="intent" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Intent</label>
-                        <config_path>payment/paypalcp/title</config_path>
-                    </field>
-                    sale -> authorize (capturar al momento de capturar invoice)
-                    capture -> capture
-                     -->
                     <field id="enable_items" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Transfer Items (Line Items)</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -159,10 +151,10 @@
                                 <field id="enable_acdc">1</field>
                             </depends>
                         </field>
-                        <field id="enable_installments" type="select" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <field id="installments_type" type="select" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                             <label>Enable MSI</label>
-                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                            <config_path>payment/paypalcp/enable_installments</config_path>
+                            <source_model>PayPal\CommercePlatform\Model\Config\Source\InstallmentsOptions</source_model>
+                            <config_path>payment/paypalcp/installments_type</config_path>
                             <depends>
                                 <field id="enable_acdc">1</field>
                             </depends>

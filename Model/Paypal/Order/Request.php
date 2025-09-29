@@ -197,7 +197,7 @@ class Request
      * @param string $paypalCMID
      * @return \PayPalHttp\HttpResponse
      */
-    public function createRequest($customerEmail, $paypalCMID, $billingAgreement = false)
+    public function createRequest($customerEmail, $paypalCMID, $billingAgreement = false, $vault = null)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
@@ -206,7 +206,7 @@ class Request
         if ($customerEmail) {
             $this->_quote->setCustomerEmail($customerEmail);
         }
-        $requestBody = $this->buildRequestBody($billingAgreement);
+        $requestBody = $this->buildRequestBody($billingAgreement, $vault);
 
         if ($paypalCMID) {
             $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
@@ -236,10 +236,11 @@ class Request
      * Setting up the JSON request body for creating the order with minimum request body. The intent in the
      * request body should be "AUTHORIZE" for authorize intent flow.
      *
-     * @param \Magento\Quote\Model\Quote $quote
-     *
+     * @param bool $billingAgreement
+     * @param null $vault
+     * @return array
      */
-    private function buildRequestBody($billingAgreement = false)
+    private function buildRequestBody(bool $billingAgreement = false, $vault = null)
     {
         $currencyCode = $this->_quote->getBaseCurrencyCode();
         $amount = $this->_formatPrice($this->_quote->getGrandTotal());
@@ -268,6 +269,24 @@ class Request
                 ]
             ]
         ];
+
+        if ($vault) {
+            $requestBody['payment_source'] = [
+                "card" => [
+                    "attributes" => [
+                        "customer" => [
+                            "id" => $this->_customer->getId(),
+                        ],
+                        "vault" => [
+                            "customer_type" => "CONSUMER",
+                            "permit_multiple_payment_tokens" => true,
+                            "store_in_vault" => "ON_SUCCESS",
+                            "usage_type" => "MERCHANT"
+                        ]
+                    ]
+                ]
+            ];
+        }
 
         if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS)) {
             $requestBody['purchase_units'][0]['items'] = $this->getItemsFormatted();

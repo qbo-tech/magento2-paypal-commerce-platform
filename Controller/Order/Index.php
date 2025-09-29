@@ -15,6 +15,7 @@ class Index extends \Magento\Framework\App\Action\Action
     const FRAUDNET_CMI_PARAM = 'fraudNetCMI';
 	const CUSTOMER_ID_PARAM = 'customer_email';
 	const BA_PARAM = 'ba';
+	const VAULT_PARAM = 'vault';
 
     /** @var \Magento\Framework\Filesystem\DriverInterface */
     protected $_driver;
@@ -68,8 +69,9 @@ class Index extends \Magento\Framework\App\Action\Action
             $paypalCMID = $paramsData[self::FRAUDNET_CMI_PARAM] ?? null;
 			$customerEmail = $paramsData[self::CUSTOMER_ID_PARAM] ?? null;
 			$billingAgreement = isset($paramsData[self::BA_PARAM]) && $paramsData[self::BA_PARAM] == 1;
+			$vault = $paramsData[self::VAULT_PARAM] ?? null;
 
-            $response = $this->_paypalOrderRequest->createRequest($customerEmail, $paypalCMID, $billingAgreement);
+            $response = $this->_paypalOrderRequest->createRequest($customerEmail, $paypalCMID, $billingAgreement, $vault);
 
             if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
                 $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);

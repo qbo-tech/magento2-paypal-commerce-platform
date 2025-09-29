@@ -8,11 +8,11 @@
             <span data-bind="text: getTitleMethodPaypal()"></span>
         </label>
     </div>
-    <div class="payment-method-content">
+    <div class="payment-method-content standard">
         <!--         ko foreach: getRegion('messages') -->
         <!--         ko template: getTemplate() -->
         <!-- /ko -->
-        <!--         /ko -->
+        <!-- /ko -->
 
         <div id="paypal-button-container" style="min-height: 50px;"></div>
 
@@ -81,14 +81,7 @@
                     <select class="form-control" style="font-size: 14px;" name="installmentsAgreement"
                             id="installmentsAgreement" data-bind=" visible: canShowInstallmentsBA,
                                         options: installmentAgreementOptions,
-                                        optionsText: function(i) {
-                                            return [
-                                                i.value,
-                                                i.currency_code,
-                                                i.term,
-                                                i.interval
-                                            ].join('    ');
-                                        },
+                                        optionsText: getInstallmentText,
                                         value: selectedInstallmentsBA
                                     ">
                     </select>

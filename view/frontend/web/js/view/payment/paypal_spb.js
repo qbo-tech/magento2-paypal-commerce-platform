@@ -8,7 +8,6 @@ define(
         rendererList
     ) {
         'use strict';
-        console.log('paypal_spb');
 
         rendererList.push(
             {

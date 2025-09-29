@@ -30,7 +30,8 @@ CVV,CVV
 "An error has occurred on the server, please try again later","Se ha producido un error. Inténtalo más tarde o recarga la página."
 "Transaction cannot be processed, please verify your card information or try another.","La transacción no puede ser procesada, por favor verifica la información de tu tarjeta o intenta con otra."
 "Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes.","Este medio de pago no se encuentra disponible: Lo sentimos, inténtalo más tarde o comunícate al servicio al clientes."
-MONTHS,"MESES"
+MONTHS,"Meses"
+MONTH,"Mes"
 "PayPal Checkout Mexico","PayPal Checkout Mexico"
 Enabled,Enabled
 "Sandbox Mode","Sandbox Mode"
@@ -60,7 +61,8 @@ Pay with,Pagar con
 New card, Nueva tarjeta
 New agreement, Nuevo acuerdo de pago
 MSI,Meses sin intereses.
-Pay to MSI,Pago a meses sin intereses
+MCI,Meses con intereses.
+Pay to MSI,Pago a meses
 Download vourcher,Descargar vourcher
 Thanks for your purchase. Below you will find your ticket or card to make your payment at Oxxo Stores.,Gracias por tu compra. A continuación encontrarás tu ticket o ficha para realizar tu pago en Tiendas Oxxo.
 Generate Voucher and complete order,Generar Voucher y finalizar pedido
@@ -76,4 +78,12 @@ Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "Declining Pending Payment Transaction","Rechazar transacción de pago pendiente"
 "The transaction id is not present","El ID de la transacción no está presente."
 "Gateway response error","Error de respuesta de la puerta de enlace"
+"Sorry, the payment method is not available, please try again later.","Lo sentimos, método de pago no disponible, inténtelo más tarde."
 "It is not possible to use paypal, please try another","No es posible usar este método de pago en este momento. Por favor, inténtalo más tarde."
+"Your card is not eligible for installment payments", "Tu tarjeta no es elegible para pago a Meses"
+"with total fee:", "con comisión Total de:"
+"Installments type", "Pago a meses"
+"Term","Plazos"
+"Consumer fee amount","Comisión (Meses)"
+"Payment id","ID de transacción"
+"Yes","Sí"
