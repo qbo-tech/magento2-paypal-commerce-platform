@@ -86,6 +86,7 @@ define(
                         if(cardContainer || container) {
                             self.renderButtons();
                         }
+                        
                     }
 
                     // Always update the stored observable
