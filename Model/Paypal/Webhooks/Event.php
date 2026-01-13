@@ -194,22 +194,62 @@ class Event
      */
     protected function _paymentCompleted($eventData)
     {
-        $paymentResource = isset($eventData['resource']['amount']) ?  $eventData['resource']['amount'] : $eventData['resource']['purchase_units'][0]['amount'];
+        $this->_logger->info('[PAYPAL-Webhook] Start payment completed');
+        try {
+            $order = $this->_payment->getOrder();
 
-        $this->_payment->setIsTransactionClosed(0)
-            ->registerCaptureNotification($paymentResource['value'], true);
+            $paymentResource = isset($eventData['resource']['amount']) ? $eventData['resource']['amount'] : ($eventData['resource']['purchase_units'][0]['amount'] ?? null);
 
-        $this->_payment->getOrder()->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)
-            ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING)
-            ->save();
+            if (!$paymentResource || !isset($paymentResource['value'])) {
+                $this->_logger->critical('[PAYPAL-Webhook] Amount not found in webhook payload', [
+                    'eventData' => $eventData
+                ]);
+                return;
+            }
 
-        // notify customer
-        $this->_payment->getOrder()->addStatusHistoryComment(
-                __(
-                    'Thank you for your payment. Registered notification about captured amount.'
-                )
-        )->setIsCustomerNotified(true)->save();
+            $capturedAmount = round((float)$paymentResource['value'], 2);
 
+            $orderTotal = round((float)$order->getGrandTotal(), 2);
+
+            if ($capturedAmount !== $orderTotal) {
+
+                $message = sprintf(
+                    'Unable to process order. Amount mismatch: Captured amount: $%s, Order total: $%s',
+                    number_format($capturedAmount, 2),
+                    number_format($orderTotal, 2)
+                );
+
+                $order->addCommentToStatusHistory($message);
+                $this->_orderRepository->save($order);
+
+                $this->_logger->critical('[PAYPAL-Webhook] Amount mismatch detected', [
+                    'order_id'        => $order->getIncrementId(),
+                    'paypal_amount'   => $capturedAmount,
+                    'order_total'     => $orderTotal,
+                    'event_id'        => $eventData['resource']['id'] ?? null
+                ]);
+
+                return;
+            }
+
+            $this->_payment->setIsTransactionClosed(0)
+                ->registerCaptureNotification($capturedAmount, true);
+
+            $order->setState(\Magento\Sales\Model\Order::STATE_PROCESSING)
+                ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
+
+            $order->addStatusHistoryComment(
+                __('Thank you for your payment. Registered notification about captured amount.')
+            )->setIsCustomerNotified(true);
+
+            $this->_orderRepository->save($order);
+
+        } catch (\Exception $e) {
+            $this->_logger->critical('[PAYPAL-Webhook] Error processing completed payment', [
+                'exception' => $e->getMessage(),
+                'eventData' => $eventData
+            ]);
+        }
     }
 
     /**
