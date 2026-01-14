@@ -194,14 +194,14 @@ class Event
      */
     protected function _paymentCompleted($eventData)
     {
-        $this->_logger->info('[PAYPAL-Webhook] Start payment completed');
+        $this->_logger->info('[PAYPAL-WEBHOOK] Start payment completed');
         try {
             $order = $this->_payment->getOrder();
 
             $paymentResource = isset($eventData['resource']['amount']) ? $eventData['resource']['amount'] : ($eventData['resource']['purchase_units'][0]['amount'] ?? null);
 
             if (!$paymentResource || !isset($paymentResource['value'])) {
-                $this->_logger->critical('[PAYPAL-Webhook] Amount not found in webhook payload', [
+                $this->_logger->critical('[PAYPAL-WEBHOOK] Amount not found in webhook payload', [
                     'eventData' => $eventData
                 ]);
                 return;
@@ -222,7 +222,7 @@ class Event
                 $order->addCommentToStatusHistory($message);
                 $this->_orderRepository->save($order);
 
-                $this->_logger->critical('[PAYPAL-Webhook] Amount mismatch detected', [
+                $this->_logger->critical('[PAYPAL-WEBHOOK] Amount mismatch detected', [
                     'order_id'        => $order->getIncrementId(),
                     'paypal_amount'   => $capturedAmount,
                     'order_total'     => $orderTotal,
@@ -245,7 +245,7 @@ class Event
             $this->_orderRepository->save($order);
 
         } catch (\Exception $e) {
-            $this->_logger->critical('[PAYPAL-Webhook] Error processing completed payment', [
+            $this->_logger->critical('[PAYPAL-WEBHOOK] Error processing completed payment', [
                 'exception' => $e->getMessage(),
                 'eventData' => $eventData
             ]);
@@ -330,7 +330,7 @@ class Event
                 ->save();
 
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
-            $this->_logger->debug(sprintf('[PAYPAL-Webhook] Error Canceled: %s', $e->getMessage()));
+            $this->_logger->debug(sprintf('[PAYPAL-WEBHOOK] Error Canceled: %s', $e->getMessage()));
         }
     }
 }

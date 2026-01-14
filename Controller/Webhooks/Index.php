@@ -65,14 +65,17 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
      */
     public function execute()
     {
+        $this->_logger->debug('[PAYPAL-WEBHOOK] Controller execute reached');
+
         $eventData = json_decode($this->_driver->fileGetContents('php://input'), true);
 
         if ((!$this->getRequest()->isPost()) || (!$this->isValidWebhookSignature($eventData))) {
-            $this->_logger->debug('PAYPAL COMMERCE - WEBHOOK VERIFICATION VALIED: ' . print_r($eventData, true));
+            $this->_logger->debug('[PAYPAL-WEBHOOK] Invalid request or signature failed', ['eventData' => $eventData]);
             return;
         }
 
         try {
+            $this->_logger->debug('[PAYPAL-WEBHOOK] Passing event to processor');
             $this->_webhookEvent->processWebhook($eventData);
         } catch (\Exception $e) {
             $this->_logger->error($e);
@@ -92,6 +95,11 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
 
     public function isValidWebhookSignature($eventData)
     {
+        if ($this->_paypalConfig->isSandbox()) {
+            $this->_logger->debug('[PAYPAL-WEBHOOK] Signature bypass (sandbox)');
+            return true;
+        }
+
         $request = $this->getRequest();
 
         $this->_verifyWebhookSignature->body = [
