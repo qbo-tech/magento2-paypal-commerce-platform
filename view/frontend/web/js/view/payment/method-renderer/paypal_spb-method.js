@@ -2,7 +2,6 @@ define(
     [
         'Magento_Checkout/js/view/payment/default',
         'jquery',
-        'paypalSdkAdapter',
         'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
@@ -12,7 +11,7 @@ define(
         'mage/storage',
         'Magento_Checkout/js/model/totals',
     ],
-    function (Component, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
+    function (Component, $, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
         'use strict';
 
         if (window.checkoutConfig.payment.paypalcp.acdc.enable) {
@@ -53,7 +52,7 @@ define(
             selectedInstallments: ko.observable(),
             selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
-
+            renderedButtons: ko.observable(false),
             initialize: function () {
                 this._super();
 
@@ -87,7 +86,7 @@ define(
                         if(cardContainer || container) {
                             self.renderButtons();
                         }
-
+                        
                     }
 
                     // Always update the stored observable
@@ -144,7 +143,17 @@ define(
                     console.error('Failed to refresh PayPal data', error);
                 });
             },
+            getInstallmentText: function (i) {
+                let prefix = i.term == 1
+                    ? [i.value, i.currency_code, 'x', 'Pago en una sola exhibición'].join(' ')
+                    : [i.value, i.currency_code, 'x', i.term, i.interval].join(' ');
 
+                let suffix = i.total_consumer_fee
+                    ? ` (con comisión Total de ${i.total_consumer_fee.toFixed(2)} MXN)`
+                    : ' sin intereses';
+
+                return i.term == 1 ? prefix : prefix + suffix;
+            },
             isActiveReferenceTransaction: function () {
                 var self = this;
 
@@ -203,10 +212,13 @@ define(
                 return false;
             },
             isInstallmentsEnable: function () {
-                return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                return this.isActiveReferenceTransaction() || (this.isAcdcEnable && this.paypalConfigs.acdc.installments_type != 'no');
             },
             isVaultingEnable: function () {
                 return this.isActiveReferenceTransaction() || ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_vaulting) && (this.paypalConfigs.customer.id != null));
+            },
+            isRememberCardActive: function () {
+                return this.paypalConfigs.customer.id != null && this.isAcdcEnable && this.paypalConfigs.acdc.enable_vaulting;
             },
             getTitleMethodPaypal: function () {
                 if ((this.isBcdcEnable == false) && (this.isAcdcEnable == false)) {
@@ -216,20 +228,40 @@ define(
                 }
             },
 
-            parseInstallOptions: function(qualifyingFinancingOption) {
-                return {
-                    value: qualifyingFinancingOption.monthly_payment.value,
-                    currency_code: qualifyingFinancingOption.monthly_payment.currency_code,
-                    interval: $t(qualifyingFinancingOption.credit_financing.interval),
-                    term: qualifyingFinancingOption.credit_financing.term,
-                    interval_duration: qualifyingFinancingOption.credit_financing.interval_duration,
-                    discount_percentage: qualifyingFinancingOption.discount_percentage
+            parseInstallOptions: function (qualifyingFinancingOption) {
+                const {
+                    monthly_payment,
+                    credit_financing,
+                    discount_percentage,
+                    total_consumer_fee,
+                    fee_reference_id
+                } = qualifyingFinancingOption;
+
+                let parsedOptions = {
+                    value: monthly_payment.value,
+                    currency_code: monthly_payment.currency_code,
+                    interval: $t(credit_financing.interval),
+                    term: credit_financing.term,
+                    interval_duration: credit_financing.interval_duration,
+                    discount_percentage
                 };
+
+                if (this.paypalConfigs.acdc.installments_type === 'installments_cost_to_buyer') {
+                    parsedOptions = {
+                        ...parsedOptions,
+                        total_consumer_fee: total_consumer_fee ? parseFloat(total_consumer_fee.value) : 0,
+                        fee_reference_id
+                    };
+                }
+
+                return parsedOptions;
             },
 
             fillInstallmentOptions: function (financialOption, minimumType = 'acdc') {
                 var self = this;
                 var options = [];
+
+                console.log("financialOption ==> ", financialOption);
 
                 if ('acdc' === minimumType) {
                     var msiMinimum = window.checkoutConfig.payment.paypalcp.acdc.msiMinimum;
@@ -238,7 +270,7 @@ define(
                 }
 
                 var total = totals.getSegment('grand_total').value;
-                console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:',  msiMinimum );
+                console.info('filtering by minimum installment amount ', ' | total: ', total, ' | minimums:', msiMinimum);
 
                 financialOption.qualifying_financing_options.forEach(function (qualifyingFinancingOption) {
 
@@ -246,7 +278,7 @@ define(
                     console.info('Current term: ', term);
 
                     if (msiMinimum.hasOwnProperty(term)) {
-                        if(msiMinimum[term] <= total) {
+                        if (msiMinimum[term] <= total) {
                             options.push(self.parseInstallOptions(qualifyingFinancingOption));
                         }
 
@@ -271,7 +303,7 @@ define(
 
                 console.info("self.currentMethod ==> ", self.currentMethod);
 
-                if(self.currentMethod == 'paypalspb_paypal' && self.isActiveReferenceTransaction()){
+                if (self.currentMethod == 'paypalspb_paypal' && self.isActiveReferenceTransaction()) {
                     var paymentType = 'BILLING_AGREEMENT';
                     var submitOptions = self.validateBillingAgreementInstallment({});
                 } else {
@@ -289,6 +321,7 @@ define(
                     }
                 };
 
+
                 if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
                     data.additional_data.payment_source = JSON.stringify(submitOptions.payment_source);
                 }
@@ -296,14 +329,14 @@ define(
                 return data;
             },
             renderButton: function (fundingSource, elementId) {
-                var self = this;
-                console.info('elementId ==> ', elementId);
+                let button;
+                const self = this;
                 if (self.isActiveReferenceTransaction()) {
-                    elementId = elementId+'-ba';
+                    elementId = elementId + '-ba';
                     // Initialize the buttons
-                    var button = paypal.Buttons({
+                    button = paypal.Buttons({
                         style: {
-                            label:   'pay'
+                            label: 'pay'
                         },
                         fundingSource: fundingSource,
                         // Generate billing agreement token
@@ -327,7 +360,7 @@ define(
                     });
                 } else {
                     // Initialize the buttons
-                    var button = paypal.Buttons({
+                    button = paypal.Buttons({
                         fundingSource: fundingSource,
                         // Set up the transaction
                         createOrder: function (data, actions) {
@@ -358,14 +391,11 @@ define(
                 }
 
             },
-            /**
-             * Renders the PayPal card fields
-             *
-             */
-            renderHostedFields: function () {
+
+            renderCardFields: function () {
                 var self = this;
 
-                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type != 'no'));
 
                 if ((typeof paypal === 'undefined')) {
                     self.loadSdk();
@@ -373,197 +403,239 @@ define(
                     if ((typeof paypal === 'undefined')) return;
                 }
 
-                if (!paypal.HostedFields.isEligible()) {
-                    self.logger('HostedFields HOSTEDFIELDS_NOT_ELIGIBLE');
-                    self.isVisibleCard(false);
-                    self.installmentsAvailable(false);
-                    return;
-                } else {
 
-                    paypal.HostedFields.render({
-                        styles: {
-                            'input': {
-                                'font-size': '14px',
-                                'color': '#3A3A3A',
-                                'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
-                            },
-                            '.number': {
-                                'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
-                            },
-                            '.valid': {
-                                'color': 'black'
-                            },
-                            '.invalid': {
-                                'color': 'red'
-                            }
+                const styleObject = {
+                    input: {
+                        "font-size": "14px",
+                        'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif",
+                        "font-weight": "lighter",
+                        color: "#3A3A3A",
+                    },
+                    '.number': {
+                        'font-family': "'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif"
+                    },
+                    '.valid': {
+                        'color': 'black'
+                    },
+                    '.invalid': {
+                        'color': 'red'
+                    }
+                };
+
+
+                const cardField = paypal.CardFields({
+                    styles: styleObject,
+                    installments: {
+                        onInstallmentsRequested: function () {
+
+                            const baseConfig = {
+                                amount: String(totals.getSegment('grand_total').value),
+                                currencyCode: 'MXN',
+                                financingCountryCode: 'MX',
+                                billingCountryCode: 'MX'
+                            };
+
+                            return self.paypalConfigs.acdc.installments_type === "installments_cost_to_buyer"
+                                ? {...baseConfig, includeBuyerInstallments: true}
+                                : baseConfig;
+
                         },
-                        fields: {
-                            number: {
-                                selector: '#card-number',
-                                placeholder: 'Número de tarjeta'
-                            },
-                            cvv: {
-                                selector: '#cvv',
-                                placeholder: 'Código de seguridad '
-                            },
-                            expirationDate: {
-                                selector: '#expiration-date',
-                                placeholder: 'mm / aa'
-                            }
-                        },
-                        installments: {
-                            onInstallmentsRequested: function () {
-                                return {
-                                    amount: String(totals.getSegment('grand_total').value),
-                                    currencyCode: 'MXN'
-                                };
-                            },
-                            onInstallmentsAvailable: function (installments) {
-                                var qualifyingOptions = installments && installments.financing_options && installments.financing_options.filter(function (financialOption) {
-                                    return financialOption.product === 'CARD_ISSUER_INSTALLMENTS';
-                                });
-
-                                var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
-                                if (!hasCardIssuerInstallment) {
-                                    self.logger("MSI not available");
-                                    self.installmentsAvailable(false);
-                                    self.canShowInstallments(true);
-
-                                    var option = {
-                                        value: "Tu tarjeta no es elegible para Meses sin Intereses",
-                                        currency_code: '',
-                                        interval: '',
-                                        term: '',
-                                        interval_duration: '',
-                                        discount_percentage: ''
-                                    };
-                                    var options = [];
-                                    options.push(option);
-                                    self.installmentOptions(options);
-
-                                    return;
-                                }
-
-                                qualifyingOptions.forEach(function (financialOption) {
-
-                                    var options = self.fillInstallmentOptions(financialOption);
-                                    self.installmentOptions(options);
-                                    self.installmentsAvailable(true);
-                                    self.canShowInstallments(true);
-
-                                    self.logger('financialOption.qualifying_financing_options#option', option);
-                                });
-                            },
-                            onInstallmentsError: function () {
-                                self.installmentsAvailable(false);
-                                console.error('Error while fetching installments');
-                            }
-                        },
-                        createOrder: function (data) {
-                            let requestBody = {};
-                            requestBody.customer_email = quote.guestEmail;
-                            requestBody.fraudNetCMI = self.sessionIdentifier;
-
-                            return fetch('/paypalcheckout/order', {
-                                method: 'post',
-                                body: JSON.stringify(requestBody),
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-Requested-With': 'XMLHttpRequest'
-                                }
-                            }).then(function (res) {
-                                self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# res =', res);
-
-                                if (res.ok) {
-                                    return res.json();
-                                } else {
-                                    self.messageContainer.addErrorMessage({
-                                        message: $t('An error has occurred on the server, please try again later')
-                                    });
-                                    return false;
-                                }
-                            }).then(function (data) {
-                                self.logger('###paypal_advanced-method#hostedfieldsRender#createOrder# data.result =', data.result);
-                                return data.result.id;
-                            }).catch(function (error) {
-                                console.log('Hubo un problema con la petición :' + error);
-                                self._enableCheckout();
+                        onInstallmentsAvailable: function (installments) {
+                            var qualifyingOptions = installments && installments.financing_options && installments.financing_options.filter(function (financialOption) {
+                                return financialOption.product === 'CARD_ISSUER_INSTALLMENTS';
                             });
 
-                        },
-                        onApprove: function (data, actions) {
-                            self.logger('###paypal_advanced-method#hostedfieldsRender#onApprove#data', data, actions);
-                            self.orderId = data.id;
+                            var hasCardIssuerInstallment = Boolean(qualifyingOptions && qualifyingOptions.length >= 1 && qualifyingOptions[0].qualifying_financing_options.length > 1);
+                            if (!hasCardIssuerInstallment) {
+                                self.logger("MSI not available");
+                                self.installmentsAvailable(false);
+                                self.canShowInstallments(true);
 
+                                var option = {
+                                    value: $t('Your card is not eligible for installment payments'),
+                                    currency_code: '',
+                                    interval: '',
+                                    term: '',
+                                    interval_duration: '',
+                                    discount_percentage: ''
+                                };
+                                var options = [];
+                                options.push(option);
+                                self.installmentOptions(options);
+
+                                return;
+                            }
+
+                            qualifyingOptions.forEach(function (financialOption) {
+                                console.log("financialOption ===> ", financialOption);
+                                var options = self.fillInstallmentOptions(financialOption);
+                                self.installmentOptions(options);
+                                self.installmentsAvailable(true);
+                                self.canShowInstallments(true);
+
+                                self.logger('financialOption.qualifying_financing_options#option', options);
+                            });
+                        },
+                        onInstallmentsError: function () {
+                            self.installmentsAvailable(false);
+                            console.error('Error while fetching installments');
+                        }
+                    },
+                    createOrder: function (data) {
+                        let requestBody = {};
+                        requestBody.customer_email = quote.guestEmail;
+                        requestBody.fraudNetCMI = self.sessionIdentifier;
+                        requestBody.vault = $('#vault').is(':checked')
+                        self.logger('###paypal_advanced-method#cardfieldsRender#createOrder#data', data);
+
+                        return fetch('/paypalcheckout/order', {
+                            method: 'post',
+                            body: JSON.stringify(requestBody),
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(function (res) {
+                            self.logger('###paypal_advanced-method#cardfieldsRender#createOrder# res =', res);
+
+                            if (res.ok) {
+                                return res.json();
+                            } else {
+                                self.messageContainer.addErrorMessage({
+                                    message: $t('An error has occurred on the server, please try again later')
+                                });
+                                return false;
+                            }
+                        }).then(function (data) {
+                            self.logger('###paypal_advanced-method#cardfieldsRender#createOrder# data.result =', data.result);
+                            return data.result.id;
+                        }).catch(function (error) {
+                            console.log('Hubo un problema con la petición :' + error);
+                            self._enableCheckout();
+                        });
+
+                    },
+                    onApprove: function (data, actions) {
+                        self.logger('###paypal_advanced-method#cardfieldsRender#onApprove#data', data, actions);
+                        self.orderId = data.orderID;
+
+                        try {
                             self.placeOrder();
-                        },
-                        onError: function (err) {
-
-                            self.logger('paypal_advanced-method#hostedfieldsRender#onError', err);
+                            setTimeout(function () {
+                                self._enableCheckout();
+                            }, 3000);
+                        } catch (err) {
+                            self.logger('paypal_advanced-method#cardfieldsRender#onApprove', err);
                             self.messageContainer.addErrorMessage({
                                 message: $t('Transaction cannot be processed, please verify your card information or try another.')
                             });
                             self._enableCheckout();
                         }
 
-                    }).then(function (hf) {
-                        $('#card-form button#submit').attr('disabled', true);
+                    },
+                    onError: function (err) {
 
-                        $('#card-holder-name').bind('input', function () {
-                            self.isValidFields(hf);
+                        self.logger('paypal_advanced-method#cardfieldsRender#onError', err);
+                        self.messageContainer.addErrorMessage({
+                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
                         });
+                        self._enableCheckout();
+                    }
 
-                        hf.on('empty', function (event) {
-                            self.isValidFields(hf);
-                        });
+                });
 
-                        hf.on('notEmpty', function (event) {
-                            self.isValidFields(hf);
-                        });
+                if (cardField.isEligible()) {
 
-                        hf.on('validityChange', function (event) {
-                            self.isValidFields(hf);
-                        });
+                    console.log("rendering fields");
 
-                        $('#co-payment-form, #card-form').submit(function (event) {
-                            console.info('submitting...');
-                            event.preventDefault();
+                    const nameField = cardField.NameField({
+                        placeholder: "Nombre del titular"
+                    });
+                    nameField.render("#card-holder-name");
 
-                            $('#submit').prop('disabled', true);
+                    const numberField = cardField.NumberField({
+                        placeholder: "Número de tarjeta"
+                    });
+                    numberField.render("#card-number");
 
-                            var body = $('body').loader();
-                            body.loader('show');
+                    const cvvField = cardField.CVVField({
+                        placeholder: "Código de Seguridad"
+                    });
+                    cvvField.render("#cvv");
 
-                            var submitOptions = {
-                                cardholderName: document.getElementById('card-holder-name').value,
-                                vault: $('#vault').is(':checked'),
-                            };
+                    const expiryField = cardField.ExpiryField({
+                        placeholder: "MM / AA"
+                    });
+                    expiryField.render("#expiration-date");
 
-                            submitOptions = self.validateInstallment(submitOptions);
-
-                            self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
-
-                            hf.submit(submitOptions)
-                                .then(function (payload) {
-                                    self.logger('hf.submit#payload', payload);
-                                    self.orderId = payload.orderId;
-                                    self.logger('placeorder', self.placeOrder());
-                                })
-                                .catch(function (err) {
-                                    self.logger('catch => ', err);
-
-                                    if (err.hasOwnProperty('details')) {
-                                        self.messageContainer.addErrorMessage({
-                                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
-                                        });
-                                    }
-
-                                    self._enableCheckout();
-                                });
-                            return false;
-                        });
+                } else {
+                    let messageNotAvailable = $t('Sorry, the payment method is not available, please try again later.')
+                    $("#paypalcheckout").html('<div class="payment-not-available">' + messageNotAvailable + '</div>').css({
+                        'color': 'red',
+                        'font-weight': 'bold',
+                        'margin': '20px 10px'
                     });
                 }
+
+
+                $('#card-form button#submit').attr('disabled', false);
+
+
+                $('#co-payment-form, #card-form').submit(function (event) {
+                    console.info('submitting...');
+                    event.preventDefault();
+
+                    $('#submit').prop('disabled', true);
+
+                    var body = $('body').loader();
+                    body.loader('show');
+
+                    var submitOptions = {};
+                    let vaulting = $('#vault').is(':checked');
+                    if (vaulting) {
+                        submitOptions = {
+                            payment_source: {
+                                card: {
+                                    attributes: {
+                                        customer: {
+                                            id: self.paypalConfigs.customer.id
+                                        },
+                                        vault: {
+                                            store_in_vault: "ON_SUCCESS",
+                                            usage_type: "MERCHANT",
+                                            customer_type: "CONSUMER",
+                                            permit_multiple_payment_tokens: true
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    }
+
+                    submitOptions = self.validateInstallment(submitOptions);
+                    self.logger('submitOptions#co-payment-form, #card-form#submitOptions', submitOptions);
+                    let installments = {};
+
+                    if(submitOptions.payment_source?.card?.attributes?.installments) {
+                        installments = submitOptions.payment_source.card.attributes.installments;
+                    }
+
+                    if(submitOptions?.installments) {
+                        installments =  submitOptions?.installments;
+                    }
+
+                    self.logger('submitOptions#co-payment-form, #card-form#installments', installments);
+
+                    cardField.submit({installments}).catch((error) => {
+                        console.error("Error al procesar el pago", error);
+                        self.messageContainer.addErrorMessage({
+                            message: $t('Transaction cannot be processed, please verify your card information or try another.')
+                        });
+                        self._enableCheckout();
+                    });
+
+                });
+
             },
             createOrder: function (requestBody) {
                 var self = this;
@@ -597,10 +669,9 @@ define(
 
                 return storage.post('/paypalcheckout/agreement/token', JSON.stringify(requestBody)
                 ).done(function (response) {
-                        console.log('createBillingAgreementToken#response', response);
-                        return response;
-                    }
-                ).fail(function (response) {
+                    console.log('createBillingAgreementToken#response', response);
+                    return response;
+                }).fail(function (response) {
                     self._enableCheckout();
                 });
             },
@@ -671,7 +742,7 @@ define(
             },
             loadSdk: function () {
                 var self = this;
-                self.logger('loadSDK')
+                self.logger('loadSDK in CardFields')
 
                 var currentBA = $('.agreement-list input[name=pp-input-agreement]:checked').val();
 
@@ -681,21 +752,16 @@ define(
                     self.canShowInstallmentsBA(true);
                 }
 
-                if ((typeof paypal === 'undefined')) {
-                    var body = $('body').loader();
+                if (typeof paypal !== 'undefined') {
 
-                    self.logger('SDK Paypal not loaded');
-
-                    body.loader('show');
-
-                    return paypalSdkAdapter.loadSdk(function () {
+                    if (self.renderedButtons()) {
+                        console.log("buttons already rendered on CardFields");
+                    } else {
+                        console.log("render buttons on CardFields");
                         self.renderButtons();
-                        console.info('paypalSdkAdapter', paypalSdkAdapter)
+                        self.renderedButtons(true)
+                    }
 
-                        body.loader('hide');
-
-                        return this;
-                    }, self.isActiveReferenceTransaction() || self.isActiveAcdc());
                 }
             },
             renderButtons: function () {
@@ -706,7 +772,7 @@ define(
                 };
 
                 if (self.isAcdcEnable) {
-                    self.renderHostedFields();
+                    self.renderCardFields();
                 } else {
                     FUNDING_SOURCES[paypal.FUNDING.CARD] = 'card-button-container';
                 }
@@ -729,8 +795,10 @@ define(
                     submitOptions.installments = {
                         term: installment.term,
                         interval_duration: installment.interval_duration,
-                        intervalDuration: installment.interval_duration
+                        ...(installment?.fee_reference_id && {fee_reference_id: installment.fee_reference_id}),
+                        ...(installment.total_consumer_fee > 0 && {total_consumer_fee: installment.total_consumer_fee})
                     };
+
                     self.logger('validateInstallment#submitOption', submitOptions);
 
                     if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (self.customerCards().length > 0) && $('.customer-card-list > ul > li > input[name=card]:checked').val() != 'new-card') {
@@ -746,7 +814,31 @@ define(
                             }
                         }
                         self.logger(submitOptions);
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' && $('#vault').is(':checked')) {
+
+                        submitOptions = {
+                            payment_source: {
+                                card: {
+                                    attributes: {
+                                        customer: {
+                                            id: this.paypalConfigs.customer.id
+                                        },
+                                        vault: {
+                                            store_in_vault: "ON_SUCCESS",
+                                            usage_type: "MERCHANT",
+                                            customer_type: "CONSUMER",
+                                            permit_multiple_payment_tokens: true
+                                        },
+                                        installments: submitOptions.installments
+                                    }
+                                }
+                            }
+
+                        };
+
+                        self.logger("with vaulting", submitOptions);
                     }
+
 
                 } else {
 
@@ -762,6 +854,28 @@ define(
                             }
                         }
                         self.logger(submitOptions);
+                    } else if (self.isActiveAcdc() && self.isVaultingEnable && $('.customer-card-list > ul > li > input[name=card]:checked').val() == 'new-card' && $('#vault').is(':checked')) {
+
+                        submitOptions = {
+                            payment_source: {
+                                card: {
+                                    attributes: {
+                                        customer: {
+                                            id: this.paypalConfigs.customer.id
+                                        },
+                                        vault: {
+                                            store_in_vault: "ON_SUCCESS",
+                                            usage_type: "MERCHANT",
+                                            customer_type: "CONSUMER",
+                                            permit_multiple_payment_tokens: true
+                                        }
+                                    }
+                                }
+                            }
+
+                        };
+
+                        self.logger("with vaulting2", submitOptions);
                     }
                 }
 
@@ -814,9 +928,9 @@ define(
 
                 return submitOptions;
             },
-            isValidFields: function (hostedFieldsInstance) {
+            isValidFields: function (fieldsInstance) {
                 var self = this;
-                var state = hostedFieldsInstance.getState();
+                var state = fieldsInstance.getState();
                 self.logger('state', state);
                 var formValid = Object.keys(state.fields).every(function (key) {
                     return !state.fields[key].isEmpty;
@@ -876,7 +990,7 @@ define(
 
                     self.logger('On DELETE ', tokenId);
 
-                    return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({ id: tokenId })
+                    return storage.post('/paypalcheckout/vault/remove/', JSON.stringify({id: tokenId})
                     ).done(function (response) {
 
                             $('li#card-' + tokenId).remove();
@@ -891,7 +1005,7 @@ define(
                     });
                 });
 
-                $('.agreement-list').on('click', '.agreement-delete', function(el){
+                $('.agreement-list').on('click', '.agreement-delete', function (el) {
                     body.loader('show');
 
                     var objAgreement = $(this);
@@ -927,7 +1041,7 @@ define(
 
                         const card = self.customerCards().find(element => element.id == cardId);
 
-                        if(typeof card.financing_options !== "undefined" && typeof card.financing_options[0] !== "undefined" && self.isInstallmentsEnable()) {
+                        if (typeof card.financing_options !== "undefined" && typeof card.financing_options[0] !== "undefined" && self.isInstallmentsEnable()) {
                             var options = self.fillInstallmentOptions(card.financing_options[0]);
                             self.installmentOptions(options);
                             self.installmentsAvailable(true);
@@ -945,7 +1059,7 @@ define(
                     var submitOptions = {};
                     self.validateInstallment(submitOptions);
 
-                    self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
+                    self.createOrder({'fraudNetCMI': self.sessionIdentifier}).done(function (response) {
                         console.log('token-submit#createOrder#done#response', response);
                         self.orderId = response.result.id//.orderID;
                         self.placeOrder();
@@ -957,7 +1071,7 @@ define(
                     $('#submit').prop('disabled', false);
                 });
 
-                if ( self.isActiveReferenceTransaction()) {
+                if (self.isActiveReferenceTransaction()) {
                     self.initializeAgreementsEvents();
                 }
             },
@@ -965,7 +1079,10 @@ define(
                 var self = this;
                 $('li#agreement-' + agreementId).remove();
 
-                return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({ id: agreementId, reference: referenceId })
+                return storage.post('/paypalcheckout/agreement/cancel', JSON.stringify({
+                        id: agreementId,
+                        reference: referenceId
+                    })
                 ).done(function (response) {
                     self.installmentAgreementOptions(null);
                     self.selectedInstallmentsBA(null);
@@ -981,7 +1098,7 @@ define(
             initializeAgreementsEvents: function () {
                 var self = this;
 
-                if(self.customerBillingAgreements().length > 0){
+                if (self.customerBillingAgreements().length > 0) {
                     $('#paypal-button-container-ba').hide();
                 }
 
@@ -1007,13 +1124,13 @@ define(
                         self.currentBAId = agreementId;
                         self.currentBAReference = agreement.reference;
 
-                        if(self.isInstallmentsEnable()){
+                        if (self.isInstallmentsEnable()) {
                             $('#token-ba-submit').prop('disabled', true);
 
-                            self.calculatedFinancingOptions({ 'agreementReference': agreement.reference }).done(function (response) {
+                            self.calculatedFinancingOptions({'agreementReference': agreement.reference}).done(function (response) {
                                 console.log('agreementReference#response', response);
 
-                                if(typeof response.statusCode !== 'undefined' && ( response.statusCode === 200 || response.statusCode === 201 ) && typeof response.result !== 'undefined') {
+                                if (typeof response.statusCode !== 'undefined' && (response.statusCode === 200 || response.statusCode === 201) && typeof response.result !== 'undefined') {
                                     var financialOptions = response.result.financing_options[0];
 
                                     console.info('financialOptions ===> ', financialOptions);
@@ -1036,7 +1153,7 @@ define(
                             }).fail(function (response) {
                                 console.error('FAILED paid whit token card', response);
                             })
-                        }else{
+                        } else {
                             $('#token-ba-submit').prop('disabled', false);
                         }
 
@@ -1052,18 +1169,21 @@ define(
                     $('#token-ba-submit').prop('disabled', true);
                     event.preventDefault();
 
-                    self.getBillingAgreement({ 'id': self.currentBAId, 'reference': self.currentBAReference }).done(function (response) {
+                    self.getBillingAgreement({
+                        'id': self.currentBAId,
+                        'reference': self.currentBAReference
+                    }).done(function (response) {
                         self.currentBA = response.ba;
                         var submitOptions = {};
                         self.validateBillingAgreementInstallment(submitOptions);
                         self._enableCheckout();
 
-                        self.createOrder({ 'fraudNetCMI': self.sessionIdentifier }).done(function (response) {
+                        self.createOrder({'fraudNetCMI': self.sessionIdentifier}).done(function (response) {
                             console.log('token-ba-submit#createOrder#done#response', response);
-                            if(typeof response.statusCode !== 'undefined' && ( response.statusCode === 200 || response.statusCode === 201 ) && typeof response.result.id !== 'undefined') {
+                            if (typeof response.statusCode !== 'undefined' && (response.statusCode === 200 || response.statusCode === 201) && typeof response.result.id !== 'undefined') {
                                 self.orderId = response.result.id;
                                 $(this).prop('checked', false);
-                                $('.agreement-list input[name=pp-input-agreement]').prop('checked',false);
+                                $('.agreement-list input[name=pp-input-agreement]').prop('checked', false);
                                 self.placeOrder();
                             } else {
                                 self.messageContainer.addErrorMessage({

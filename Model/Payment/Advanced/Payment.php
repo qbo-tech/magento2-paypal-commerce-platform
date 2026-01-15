@@ -161,10 +161,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         /** @var \Magento\Sales\Model\Order\Payment $payment */
         $paypalOrderId = $payment->getAdditionalInformation('payment_id');
         $creditMemoIndex = (int)$payment->getAdditionalInformation('credit_memo_count') + 1;
+        $order = $payment->getOrder();
+        $invoice = $order->getInvoiceCollection()->getFirstItem();
 
         $paypalRefundRequest = new \PayPalCheckoutSdk\Payments\CapturesRefundRequest($paypalOrderId);
 
         $creditmemo = $payment->getCreditmemo();
+        $invoiceId = $creditmemo->getInvoiceId() || empty($invoice) ? $creditmemo->getInvoiceId() : $invoice->getId();
 
         $memoCurrencyCode = $creditmemo->getBaseCurrencyCode();
 
@@ -173,7 +176,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 'value'         => $amount,
                 'currency_code' => $memoCurrencyCode
             ],
-            'invoice_id'    => $creditmemo->getInvoiceId() . '-' . $creditMemoIndex,
+            'invoice_id'    => $invoiceId . '-' . $creditMemoIndex,
             'note_to_payer' => $creditmemo->getCustomerNote()
         ];
 
@@ -203,9 +206,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         $infoInstance   = $this->getInfoInstance();
         $infoInstance->setAdditionalInformation('payment_source');
-
         $additionalData = $data->getData('additional_data') ?: $data->getData();
-
         foreach ($additionalData as $key => $value) {
             #In some cases, additonal data may include extension_attribites which is an object. Skip setting objects to additional data as it will throw an exception in @Magento\Payment\Model\Info
             if(!is_object($value)) {
@@ -238,16 +239,25 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             //TODO move function.
             if ($payment->getAdditionalInformation('payment_source')) {
                 $this->paymentSource = json_decode($payment->getAdditionalInformation('payment_source'), true);
-                $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+
+                if(!isset($this->paymentSource['card'])) {
+                    $this->_paypalOrderCaptureRequest->body = ['payment_source' => $this->paymentSource];
+                }
+
             }
+
+            $this->_logger->debug(__METHOD__ . ' | PaymentBodyRequest : ', $this->_paypalOrderCaptureRequest->body ?? []);
 
             $paypalCMID = $payment->getAdditionalInformation(self::FRAUDNET_CMI_PARAM);
             if ($paypalCMID) {
                 $this->_paypalOrderCaptureRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
             }
 
+            $this->_logger->error('Request Payment Advanced : ' . print_r($this->_paypalOrderCaptureRequest, true));
+
             $this->_eventManager->dispatch('paypalcp_order_capture_before', ['payment' => $payment, 'paypalCMID' => $paypalCMID]);
             $this->_response = $this->_paypalApi->execute($this->_paypalOrderCaptureRequest);
+
             $this->_processTransaction($payment);
             $this->_eventManager->dispatch('paypalcp_order_capture_after', ['payment' => $payment]);
 
@@ -267,7 +277,18 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Handle Billing Agreement's Errors 
+     * @param $payment
+     * @return bool
+     */
+    private function isBillingAgreements($payment) {
+        $paymentSource = $payment->getAdditionalInformation('payment_source') != null ?
+            json_decode($payment->getAdditionalInformation('payment_source'))
+            : null;
+        return isset($paymentSource->token->type) && $paymentSource->token->type == 'BILLING_AGREEMENT';
+    }
+
+    /**
+     * Handle Billing Agreement's Errors
      *
      * @return string
      */
@@ -351,8 +372,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                 $payment->setTransactionId($_txnId)
                     ->setIsTransactionPending(true)
                     ->setIsTransactionClosed(false);
-
-                //$this->_sendPendingPaymentEmail();
                 break;
             case self::COMPLETED_SALE_CODE:
                 $payment->setTransactionId($_txnId)
@@ -386,6 +405,27 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
                     if (property_exists($paymentSource->paypal, 'account_id')) {
                         $infoInstance->setAdditionalInformation('Paypal Account Id', $paymentSource->paypal->account_id);
                     }
+                }
+            }
+        }
+
+        if (property_exists($this->_response->result, 'credit_financing_offer')) {
+            $creditFinance = $this->_response->result->credit_financing_offer;
+
+            if ($creditFinance) {
+
+                if (property_exists($creditFinance, 'consumer_fee_amount')) {
+                    $infoInstance->setAdditionalInformation('installments_type', 'MCI');
+                } else {
+                    $infoInstance->setAdditionalInformation('installments_type', 'MSI');
+                }
+
+                if (property_exists($creditFinance, 'term')) {
+                    $infoInstance->setAdditionalInformation('term', $creditFinance->term);
+                }
+
+                if (property_exists($creditFinance, 'consumer_fee_amount')) {
+                    $infoInstance->setAdditionalInformation('consumer_fee_amount', $creditFinance->consumer_fee_amount->value);
                 }
             }
         }

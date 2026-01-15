@@ -3,7 +3,6 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'mage/storage',
         'jquery',
-        'paypalSdkAdapter',
         'paypalFraudNetAdapter',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/checkout-data',
@@ -12,7 +11,7 @@ define(
         'Magento_Checkout/js/model/totals',
         'mage/translate'
     ],
-    function (Component, storage, $, paypalSdkAdapter, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
+    function (Component, storage, $, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, totals, $t) {
         'use strict';
 
         return Component.extend({
@@ -70,7 +69,7 @@ define(
             },
 
             isInstallmentsEnable: function () {
-                return ((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                return this.isAcdcEnable && this.paypalConfigs.acdc.installments_type !== 'no';
             },
 
             isVaultingEnable: function () {
@@ -107,7 +106,7 @@ define(
             renderHostedFields: function () {
                 var self = this;
 
-                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.enable_installments));
+                self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type !== 'no'));
 
                 if ((typeof paypal === 'undefined')) {
                     return;
@@ -170,7 +169,7 @@ define(
                                     self.canShowInstallments(true);
 
                                     var option = {
-                                        value: "Tu tarjeta no es elegible para Meses sin Intereses",
+                                        value: $t('Your card is not eligible for installment payments'),
                                         currency_code: '',
                                         interval: '',
                                         term: '',
@@ -410,7 +409,7 @@ define(
                         disallowed: [paypal.FUNDING.CARD, paypal.FUNDING.CREDIT]
                     },
                     commit: true,
-                    enableVaultInstallments: (this.paypalConfigs.acdc.enable_installments) ? true : false,
+                    enableVaultInstallments: this.paypalConfigs.acdc.installments_type !== 'no',
                     //enableStandardCardFields: true,
                     createOrder: function () {
 
@@ -465,9 +464,8 @@ define(
             },
             rendersPayments: function () {
                 var self = this;
-
+                $t('MONTH');
                 $t('MONTHS');
-
                 self.renderHostedFields();
                 self.renderSmartButton();
             },
@@ -608,13 +606,15 @@ define(
 
                     body.loader('show');
 
-                    paypalSdkAdapter.loadSdk(function () {
+                   /* paypalSdkAdapter.loadSdk(function () {
                         self.rendersPayments();
 
                         $('#card-form button#submit').attr('disabled', true);
                         body.loader('hide');
 
-                    });
+                    }); */
+                } else {
+                    self.rendersPayments();
                 }
             },
             enableCheckout: function () {

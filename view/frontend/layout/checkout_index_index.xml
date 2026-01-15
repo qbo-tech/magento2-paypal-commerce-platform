@@ -4,6 +4,12 @@
         <css src="PayPal_CommercePlatform/css/paypalcp.css" rel="stylesheet" type="text/css" />
     </head>
     <body>
+        <referenceContainer name="after.body.start">
+            <block class="PayPal\CommercePlatform\Block\PaypalSdk"
+                   name="paypal.sdk.loader"
+                   template="PayPal_CommercePlatform::paypal/sdk-loader.phtml"
+                   before="-"/>
+        </referenceContainer>
         <referenceBlock name="checkout.root">
             <arguments>
                 <argument name="jsLayout" xsi:type="array">

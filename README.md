@@ -19,7 +19,7 @@ php bin/magento setup:static-content:deploy
 - Get your REST APP Credentiasl from https://developer.paypal.com
 - Enter your PayPal API credentials under PayPal Checkout Mexico Module configuration.
 - Set Sandbox/Live Mode
-- Save and clean the cache.
+- Save and clean the cache
 
 # Upgrading to specific version
 

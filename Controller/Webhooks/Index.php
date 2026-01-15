@@ -67,8 +67,13 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
     {
         $eventData = json_decode($this->_driver->fileGetContents('php://input'), true);
 
+        if(!$this->_paypalConfig->getWebhookId()) {
+            $this->_logger->debug('PAYPAL COMMERCE - WEBHOOK VERIFICATION - MISSING WEBHOOK ID BACKOFFICE CONFIG');
+            return;
+        }
+
         if ((!$this->getRequest()->isPost()) || (!$this->isValidWebhookSignature($eventData))) {
-            $this->_logger->debug('PAYPAL COMMERCE - WEBHOOK VERIFICATION VALIED: ' . print_r($eventData, true));
+            $this->_logger->debug('PAYPAL COMMERCE - WEBHOOK VERIFICATION FALIED: ' . print_r($eventData, true));
             return;
         }
 
@@ -106,6 +111,9 @@ class Index extends \Magento\Framework\App\Action\Action  implements \Magento\Fr
 
         $response = $this->_paypalApi->execute($this->_verifyWebhookSignature);
 
-        return $response->result->verification_status == 'SUCCESS' ? true : false;
+        if(isset($response->result) && $response->result->verification_status == 'SUCCESS') {
+            return true;
+        }
+        return false;
     }
 }

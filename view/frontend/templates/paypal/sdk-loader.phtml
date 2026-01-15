@@ -1,0 +1,67 @@
+<?php
+/** @var PayPal\CommercePlatform\Block\PaypalSdk $block */
+/** @var Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+
+$paypalUrl = $block->getPaypalUrl();
+$clientToken = $block->getClientToken();
+$enableVault = $block->isEnableVaulting();
+$enableAcdc = $block->isEnableAcdc();
+$isDebug = $block->isDebug();
+$nonce = $block->getNonce();
+
+$isPaypalActive = $block->isPaypalActive();
+$scriptUrl = $paypalUrl . ($enableVault && $enableAcdc ? '&vault=true' : '');
+?>
+<?php if ($isPaypalActive): ?>
+    <?= $secureRenderer->renderTag(
+        'script',
+        [],
+        "
+            window.CompletedCallback = function (resultIndicator, successIndicator) {
+                console.log('PayPal completed callback', { resultIndicator, successIndicator });
+            };
+
+            window.CancelCallback = function () {
+                console.warn('PayPal payment was cancelled.');
+            };
+
+            window.ErrorCallback = function () {
+                console.error('PayPal payment error occurred.');
+            };
+        ",
+        false
+    ); ?>
+
+    <?= /* @noEscape */
+    $secureRenderer->renderTag(
+        'script',
+        [
+            'id' => 'paypal-sdk',
+            'src' => $scriptUrl,
+            'nonce' => $nonce,
+            'data-csp-nonce' => $nonce,
+            'data-sdk-client-token' => $clientToken,
+            'data-error' => 'window.ErrorCallback',
+            'data-cancel' => 'window.CancelCallback',
+            'data-complete' => 'window.CompletedCallback'
+        ],
+        '',
+        false
+    ); ?>
+
+
+    <?php if ($isDebug): ?>
+        <?= $secureRenderer->renderTag(
+            'script',
+            [],
+            "
+                console.log('PayPal SDK loaded!', {
+                    src: '{$scriptUrl}',
+                    clientToken: '{$clientToken}',
+                    enableVault: " . ($enableVault ? 'true' : 'false') . "
+                });
+            ",
+            false
+        ); ?>
+    <?php endif; ?>
+<?php endif; ?>
