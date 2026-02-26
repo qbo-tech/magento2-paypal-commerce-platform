@@ -244,7 +244,7 @@ class Request
     private function buildRequestBody($agreementReference)
     {
         $currencyCode  = $this->_quote->getBaseCurrencyCode();
-        $total = $this->_formatPrice($this->_quote->getGrandTotal());
+        $total = $this->_formatPrice($this->_quote->getBaseGrandTotal());
 
         if(!$this->_quote->getReserveOrderId()) {
             $this->_quote->reserveOrderId();

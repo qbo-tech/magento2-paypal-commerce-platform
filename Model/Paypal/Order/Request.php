@@ -241,16 +241,16 @@ class Request
      */
     private function buildRequestBody($billingAgreement = false)
     {
-        $currencyCode = $this->_quote->getBaseCurrencyCode();
-        $amount = $this->_formatPrice($this->_quote->getGrandTotal());
-        $subtotal = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
-        $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
-        $taxAmount = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
-
         if (!$this->_quote->getReserveOrderId()) {
             $this->_quote->reserveOrderId();
             $this->quoteRepository->save($this->_quote);
         }
+
+        $currencyCode = $this->_quote->getBaseCurrencyCode();
+        $amount = $this->_formatPrice($this->_quote->getBaseGrandTotal());
+        $subtotal = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
+        $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
+        $taxAmount = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
 
         $requestBody = [
             'intent' => 'CAPTURE',
@@ -350,11 +350,11 @@ class Request
                 'description' => $item->getDescription(),
                 'unit_amount' => [
                     'currency_code' => $currencyCode,
-                    'value' => $this->_formatPrice($item->getPrice())
+                    'value' => $this->_formatPrice($item->getBasePrice())
                 ],
                 'tax' => [
                     'currency_code' => $currencyCode,
-                    'value' => $this->_formatPrice($item->getTaxAmount())
+                    'value' => $this->_formatPrice($item->getBaseTaxAmount())
                 ],
                 'quantity' => $item->getQty()
             ];
