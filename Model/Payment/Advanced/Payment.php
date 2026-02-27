@@ -332,12 +332,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $orderTotalInCents = (int)round($orderTotal * 100);
 
         if ($paypalAmountInCents === $orderTotalInCents) {
-            $this->_logger->debug('[PAYPAL COMMERCE CAPTURE] Amount matched before capture', [
-                'order_id' => $order->getIncrementId(),
-                'paypal_amount' => $paypalOrderAmount,
-                'order_total' => $orderTotal,
-                'paypal_order_id' => $paypalOrderId
-            ]);
             return;
         }
 
