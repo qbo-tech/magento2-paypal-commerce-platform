@@ -247,7 +247,7 @@ class Request
         }
 
         $currencyCode = $this->_quote->getBaseCurrencyCode();
-        $amount = $this->_formatPrice($this->_quote->getBaseGrandTotal());
+        $amount = $this->_formatPrice($this->_quote->getGrandTotal());
         $subtotal = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
         $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
         $taxAmount = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());

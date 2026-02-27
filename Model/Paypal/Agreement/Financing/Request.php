@@ -243,13 +243,13 @@ class Request
      */
     private function buildRequestBody($agreementReference)
     {
-        $currencyCode  = $this->_quote->getBaseCurrencyCode();
-        $total = $this->_formatPrice($this->_quote->getBaseGrandTotal());
-
         if(!$this->_quote->getReserveOrderId()) {
             $this->_quote->reserveOrderId();
             $this->quoteRepository->save($this->_quote);
         }
+
+        $currencyCode  = $this->_quote->getBaseCurrencyCode();
+        $total = $this->_formatPrice($this->_quote->getGrandTotal());
 
         return [
             'financing_country_code' => $this->_paypalConfig->getCountryCode() ?? self::DEFAULT_COUNTRY_CODE,
