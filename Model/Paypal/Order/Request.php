@@ -350,11 +350,11 @@ class Request
                 'description' => $item->getDescription(),
                 'unit_amount' => [
                     'currency_code' => $currencyCode,
-                    'value' => $this->_formatPrice($item->getBasePrice())
+                    'value' => $this->_formatPrice($item->getPrice())
                 ],
                 'tax' => [
                     'currency_code' => $currencyCode,
-                    'value' => $this->_formatPrice($item->getBaseTaxAmount())
+                    'value' => $this->_formatPrice($item->getTaxAmount())
                 ],
                 'quantity' => $item->getQty()
             ];
