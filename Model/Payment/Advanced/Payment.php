@@ -341,9 +341,6 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             number_format($orderTotal, 2)
         );
 
-        $order->addCommentToStatusHistory($message);
-        $this->orderRepository->save($order);
-
         $this->_logger->debug('[PAYPAL COMMERCE CAPTURE] Amount mismatch detected before capture', [
             'order_id' => $order->getIncrementId(),
             'paypal_amount' => $paypalOrderAmount,
