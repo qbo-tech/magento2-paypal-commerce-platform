@@ -241,16 +241,16 @@ class Request
      */
     private function buildRequestBody($billingAgreement = false)
     {
+        if (!$this->_quote->getReserveOrderId()) {
+            $this->_quote->reserveOrderId();
+            $this->quoteRepository->save($this->_quote);
+        }
+
         $currencyCode = $this->_quote->getBaseCurrencyCode();
         $amount = $this->_formatPrice($this->_quote->getGrandTotal());
         $subtotal = $this->_formatPrice($this->_cartPayment->getBaseSubtotal());
         $shippingAmount = $this->_formatPrice($this->_cartPayment->getBaseShippingAmount());
         $taxAmount = $this->_formatPrice($this->_cartPayment->getBaseTaxAmount());
-
-        if (!$this->_quote->getReserveOrderId()) {
-            $this->_quote->reserveOrderId();
-            $this->quoteRepository->save($this->_quote);
-        }
 
         $requestBody = [
             'intent' => 'CAPTURE',

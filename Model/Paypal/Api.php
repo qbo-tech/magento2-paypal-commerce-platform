@@ -199,6 +199,17 @@ class Api
         return $this->_ordersCaptureRequest;
     }
 
+    /**
+     * Retrieve instance OrdersGetRequest
+     *
+     * @param string $orderId
+     * @return \PayPalCheckoutSdk\Orders\OrdersGetRequest
+     */
+    public function getOrdersGetRequest($orderId)
+    {
+        return new \PayPalCheckoutSdk\Orders\OrdersGetRequest($orderId);
+    }
+
     public function getBaseUrl()
     {
         return $this->_paypalClient->environment->baseUrl();
