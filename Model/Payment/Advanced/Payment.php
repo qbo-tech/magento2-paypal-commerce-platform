@@ -3,8 +3,10 @@
 namespace PayPal\CommercePlatform\Model\Payment\Advanced;
 
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use PayPal\CommercePlatform\Model\Config;
 
@@ -69,6 +71,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     private $paymentSource;
 
     /**
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
      * @var \Magento\Checkout\Model\Session
      */
     protected $checkoutSession;
@@ -125,6 +132,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         TransportBuilder $transportBuilder,
         StoreManagerInterface $storeManager,
         Session $checkoutSession,
+        OrderRepositoryInterface $orderRepository,
         \Magento\Customer\Model\Session $customerSession,
         \PayPal\CommercePlatform\Model\Billing\Agreement $billingAgreement,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
@@ -153,6 +161,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->transportBuilder = $transportBuilder;
         $this->storeManager = $storeManager;
         $this->paymentSource = null;
+        $this->orderRepository = $orderRepository;
         $this->billingAgreement = $billingAgreement;
     }
 
@@ -234,6 +243,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_order = $payment->getOrder();
 
         try {
+            $this->validatePayPalOrderAmountBeforeCapture($payment, $paypalOrderId);
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             //TODO move function.
@@ -262,6 +272,11 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             $this->_eventManager->dispatch('paypalcp_order_capture_after', ['payment' => $payment]);
 
         } catch (\Exception $e) {
+
+            if ($e instanceof LocalizedException) {
+                throw $e;
+            }
+
             $this->_logger->error(sprintf('[PAYPAL COMMERCE CAPTURING ERROR] - %s', $e->getMessage()));
 
             $this->_logger->error(__METHOD__ . ' | Exception : ' . $e->getMessage());
@@ -274,6 +289,75 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMessage));
         }
         return $this;
+    }
+
+    /**
+     * Validate PayPal order amount (GET order) against Magento order total before capture.
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param string $paypalOrderId
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    private function validatePayPalOrderAmountBeforeCapture(InfoInterface $payment, $paypalOrderId)
+    {
+        $paypalOrderAmount = $this->getPayPalOrderAmount($paypalOrderId);
+        if ($paypalOrderAmount === null) {
+            $this->_logger->debug('[PAYPAL COMMERCE CAPTURE] PayPal order amount not found before capture', [
+                'paypal_order_id' => $paypalOrderId
+            ]);
+            return;
+        }
+
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $payment->getOrder();
+        $orderTotal = round((float)$order->getGrandTotal(), 2);
+
+        $paypalAmountInCents = (int)round($paypalOrderAmount * 100);
+        $orderTotalInCents = (int)round($orderTotal * 100);
+
+        if ($paypalAmountInCents === $orderTotalInCents) {
+            return;
+        }
+
+        $message = sprintf(
+            'Unable to process order. Amount mismatch: PayPal order amount: $%s, Order total: $%s',
+            number_format($paypalOrderAmount, 2),
+            number_format($orderTotal, 2)
+        );
+
+        $this->_logger->debug('[PAYPAL COMMERCE CAPTURE] Amount mismatch detected before capture', [
+            'order_id' => $order->getIncrementId(),
+            'paypal_amount' => $paypalOrderAmount,
+            'order_total' => $orderTotal,
+            'paypal_order_id' => $paypalOrderId
+        ]);
+
+        if ((bool)$this->getConfigValue('stop_on_amount_mismatch')) {
+            throw new LocalizedException(__($message));
+        }
+    }
+
+    /**
+     * Retrieve PayPal order amount from GET order endpoint.
+     *
+     * @param string $paypalOrderId
+     * @return float|null
+     */
+    private function getPayPalOrderAmount($paypalOrderId)
+    {
+        $orderGetRequest = $this->_paypalApi->getOrdersGetRequest($paypalOrderId);
+        $orderResponse = $this->_paypalApi->execute($orderGetRequest);
+
+        if (empty($orderResponse) || !isset($orderResponse->result)) {
+            return null;
+        }
+
+        if (!isset($orderResponse->result->purchase_units[0]->amount->value)) {
+            return null;
+        }
+
+        return round((float)$orderResponse->result->purchase_units[0]->amount->value, 2);
     }
 
     /**
