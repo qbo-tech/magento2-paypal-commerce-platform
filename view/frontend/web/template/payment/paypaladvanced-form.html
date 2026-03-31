@@ -122,8 +122,9 @@
         <label class="label" data-bind="attr: {'for': getCode('paypalcp_hf')}">
             <span data-bind="text: getTitleMethodCard()"></span>
         </label>
+    </div>
 
-        <div class="payment-method-content">
+    <div class="payment-method-content">
             <!-- ko foreach: getRegion('messages') -->
             <!--    ko template: getTemplate() -->
             <!--    /ko -->
@@ -251,16 +252,15 @@
                     </form>
                 </div>
             </div>
-        </div>
+    </div>
 
-        <div class="checkout-agreements-block">
-            <!--    ko foreach: $parent.getRegion('before-place-order') -->
-            <!--        ko template: getTemplate() -->
-            <!--        /ko -->
-            <!--    /ko -->
-        </div>
-        <div class="actions-toolbar">
-            <div class="primary" data-bind="attr: {'id': getCode('Express_button')}, enable: isFormValid"></div>
-        </div>
+    <div class="checkout-agreements-block">
+        <!--    ko foreach: $parent.getRegion('before-place-order') -->
+        <!--        ko template: getTemplate() -->
+        <!--        /ko -->
+        <!--    /ko -->
+    </div>
+    <div class="actions-toolbar">
+        <div class="primary" data-bind="attr: {'id': getCode('Express_button')}, enable: isFormValid"></div>
     </div>
 </div>
