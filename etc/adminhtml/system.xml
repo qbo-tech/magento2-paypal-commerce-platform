@@ -171,6 +171,24 @@
                                 <field id="enable_acdc">1</field>
                             </depends>
                         </field>
+                        <field id="acdc_3ds_mode" type="select" sortOrder="127" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>3D Secure Mode</label>
+                            <comment>Applies only to CardFields.</comment>
+                            <source_model>PayPal\CommercePlatform\Model\Config\Source\ThreeDsMode</source_model>
+                            <config_path>payment/paypalcp/acdc_3ds_mode</config_path>
+                            <depends>
+                                <field id="enable_acdc">1</field>
+                            </depends>
+                        </field>
+                        <field id="acdc_3ds_min_amount" type="text" sortOrder="128" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>3D Secure Minimum Amount</label>
+                            <comment>When the order total is below this amount, liability shift validation is skipped for Merchant initiated mode.</comment>
+                            <config_path>payment/paypalcp/acdc_3ds_min_amount</config_path>
+                            <depends>
+                                <field id="enable_acdc">1</field>
+                                <field id="acdc_3ds_mode">merchant_initiated</field>
+                            </depends>
+                        </field>
                         <group id="msi_minimum_acdc" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
                             <label>Minimum Installments Amounts</label>
                             <depends>

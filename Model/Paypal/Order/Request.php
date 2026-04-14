@@ -197,7 +197,7 @@ class Request
      * @param string $paypalCMID
      * @return \PayPalHttp\HttpResponse
      */
-    public function createRequest($customerEmail, $paypalCMID, $billingAgreement = false, $vault = null)
+    public function createRequest($customerEmail, $paypalCMID, $billingAgreement = false, $vault = null, $isCardFields = false)
     {
         $resultJson = $this->_resultJsonFactory->create();
 
@@ -206,7 +206,7 @@ class Request
         if ($customerEmail) {
             $this->_quote->setCustomerEmail($customerEmail);
         }
-        $requestBody = $this->buildRequestBody($billingAgreement, $vault);
+        $requestBody = $this->buildRequestBody($billingAgreement, $vault, $isCardFields);
 
         if ($paypalCMID) {
             $this->_orderCreateRequest->headers[self::PAYPAL_CLIENT_METADATA_ID_HEADER] = $paypalCMID;
@@ -240,7 +240,7 @@ class Request
      * @param null $vault
      * @return array
      */
-    private function buildRequestBody(bool $billingAgreement = false, $vault = null)
+    private function buildRequestBody(bool $billingAgreement = false, $vault = null, $isCardFields = false)
     {
         if (!$this->_quote->getReserveOrderId()) {
             $this->_quote->reserveOrderId();
@@ -286,6 +286,10 @@ class Request
                     ]
                 ]
             ];
+        }
+
+        if ($isCardFields && $this->_paypalConfig->isAcdcThreeDSMerchantInitiated()) {
+            $requestBody['payment_source']['card']['attributes']['verification']['method'] = 'SCA_ALWAYS';
         }
 
         if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS)) {

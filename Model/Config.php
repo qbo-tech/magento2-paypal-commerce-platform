@@ -31,6 +31,8 @@ class Config
     const CONFIG_XML_ENABLE_OXXO          = 'enable_oxxo';
     const CONFIG_XML_INSTALLMENTS_TYPE    = 'installments_type';
     const CONFIG_XML_ENABLE_REMEMBER_CARD = 'enable_remember_card';
+    const CONFIG_XML_ACDC_3DS_MODE        = 'acdc_3ds_mode';
+    const CONFIG_XML_ACDC_3DS_MIN_AMOUNT  = 'acdc_3ds_min_amount';
     const CONFIG_XML_LOCALE_CODE          = 'locale';
     const CONFIG_XML_COUNTRY_CODE         = 'country_code';
     const CONFIG_XML_ENABLE_DEBUG         = 'enable_debug';
@@ -57,6 +59,9 @@ class Config
     const CONFIG_XML_MSI_12 = 'msi12';
     const CONFIG_XML_MSI_18 = 'msi18';
     const CONFIG_XML_MSI_24 = 'msi24';
+
+    const ACDC_3DS_MODE_MERCHANT_INITIATED = 'merchant_initiated';
+    const ACDC_3DS_MODE_RISK_INITIATED = 'risk_initiated';
 
     /**
      * Button customization style options
@@ -222,6 +227,26 @@ class Config
     public function isEnableVaulting()
     {
         return $this->isSetFLag(self::CONFIG_XML_ENABLE_REMEMBER_CARD);
+    }
+
+    public function getAcdcThreeDSMode()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_ACDC_3DS_MODE);
+    }
+
+    public function isAcdcThreeDSMerchantInitiated()
+    {
+        return $this->getAcdcThreeDSMode() === self::ACDC_3DS_MODE_MERCHANT_INITIATED;
+    }
+
+    public function isAcdcThreeDSRiskInitiated()
+    {
+        return $this->getAcdcThreeDSMode() === self::ACDC_3DS_MODE_RISK_INITIATED;
+    }
+
+    public function getAcdcThreeDSMinimumAmount()
+    {
+        return (float)$this->getConfigValue(self::CONFIG_XML_ACDC_3DS_MIN_AMOUNT);
     }
 
     public function isEnableStc()

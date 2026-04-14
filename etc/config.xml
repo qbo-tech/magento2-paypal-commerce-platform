@@ -32,6 +32,8 @@
                 <title_card>Pago con tarjeta de Crédito / Débito</title_card>
                 <title_oxxo>Pago en Oxxo</title_oxxo>
                 <installments_type>installments_cost_to_buyer</installments_type>
+                <acdc_3ds_mode>merchant_initiated</acdc_3ds_mode>
+                <acdc_3ds_min_amount>0</acdc_3ds_min_amount>
             </paypalcp>
             <paypalspb>
                 <active>1</active>

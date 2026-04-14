@@ -47,7 +47,7 @@ class Info extends \Magento\Payment\Block\Info
     /** @var PriceCurrencyInterface $priceCurrency */
     protected $priceCurrency;
 
-    const ALLOWED_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type"];
+    const ALLOWED_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type", "three_d_secure"];
 
     /**
      * Constructor
@@ -95,6 +95,12 @@ class Info extends \Magento\Payment\Block\Info
     */
     protected function _beautifyField(&$result, $field, $value) 
     {
+        if ($field === 'three_d_secure') {
+            $result['3D'] = __($value);
+
+            return $result;
+        }
+
         $beautifiedFieldName = str_replace("_", " ", ucwords(trim(preg_replace('/(?<=\\w)(?=[A-Z])/', " $1", $field))));
         $result[__($beautifiedFieldName)->__toString()] = __($value);
         

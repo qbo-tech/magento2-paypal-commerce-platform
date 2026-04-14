@@ -53,6 +53,7 @@ define(
             selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
             renderedButtons: ko.observable(false),
+            cardFieldsApprovalData: null,
             initialize: function () {
                 this._super();
 
@@ -192,6 +193,9 @@ define(
                 var data = this.getData();
                 self.currentMethod = method;
                 self.selectedMethod = method;
+                if (method !== 'paypalcp_hf') {
+                    self.cardFieldsApprovalData = null;
+                }
                 data.method = self.paypalMethod;
                 selectPaymentMethodAction(data);
                 checkoutData.setSelectedPaymentMethod(self.item.method);
@@ -320,6 +324,11 @@ define(
                         payment_type: paymentType
                     }
                 };
+
+                if (self.cardFieldsApprovalData) {
+                    data.additional_data.three_d_secure_card_fields = 1;
+                    data.additional_data.three_d_secure_liability_shift = self.cardFieldsApprovalData.liabilityShift || '';
+                }
 
 
                 if ((self.isActiveAcdc() || self.isActiveReferenceTransaction()) && (submitOptions) && submitOptions.hasOwnProperty('payment_source')) {
@@ -483,9 +492,11 @@ define(
                     },
                     createOrder: function (data) {
                         let requestBody = {};
+                        self.cardFieldsApprovalData = null;
                         requestBody.customer_email = quote.guestEmail;
                         requestBody.fraudNetCMI = self.sessionIdentifier;
-                        requestBody.vault = $('#vault').is(':checked')
+                        requestBody.vault = $('#vault').is(':checked');
+                        requestBody.isCardFields = true;
                         self.logger('###paypal_advanced-method#cardfieldsRender#createOrder#data', data);
 
                         return fetch('/paypalcheckout/order', {
@@ -518,6 +529,9 @@ define(
                     onApprove: function (data, actions) {
                         self.logger('###paypal_advanced-method#cardfieldsRender#onApprove#data', data, actions);
                         self.orderId = data.orderID;
+                        self.cardFieldsApprovalData = {
+                            liabilityShift: data.liabilityShift || null
+                        };
 
                         try {
                             self.placeOrder();
@@ -534,6 +548,7 @@ define(
 
                     },
                     onError: function (err) {
+                        self.cardFieldsApprovalData = null;
 
                         self.logger('paypal_advanced-method#cardfieldsRender#onError', err);
                         self.messageContainer.addErrorMessage({
@@ -640,6 +655,7 @@ define(
             createOrder: function (requestBody) {
                 var self = this;
                 console.info('createOrder');
+                self.cardFieldsApprovalData = null;
 
                 var body = $('body').loader();
                 body.loader('show');

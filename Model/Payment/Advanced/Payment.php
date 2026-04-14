@@ -29,6 +29,13 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
     const PAYPAL_CLIENT_METADATA_ID_HEADER = 'PayPal-Client-Metadata-Id';
     const FRAUDNET_CMI_PARAM = 'fraudNetCMI';
+    const THREE_D_SECURE_CARD_FIELDS_PARAM = 'three_d_secure_card_fields';
+    const THREE_D_SECURE_LIABILITY_SHIFT_PARAM = 'three_d_secure_liability_shift';
+    const THREE_D_SECURE_PARAM = 'three_d_secure';
+    const THREE_D_SECURE_YES = 'Yes';
+    const THREE_D_SECURE_SUCCESS_STATUS = 'POSSIBLE';
+    const THREE_D_SECURE_FAILED_STATUS = 'NO';
+    const THREE_D_SECURE_UNKNOWN_STATUS = 'UNKNOWN';
 
     protected $_code = self::CODE;
 
@@ -244,6 +251,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
         try {
             $this->validatePayPalOrderAmountBeforeCapture($payment, $paypalOrderId);
+            $this->validateThreeDSBeforeCapture($payment, $paypalOrderId);
             $this->_paypalOrderCaptureRequest = $this->_paypalApi->getOrdersCaptureRequest($paypalOrderId);
 
             //TODO move function.
@@ -358,6 +366,166 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         }
 
         return round((float)$orderResponse->result->purchase_units[0]->amount->value, 2);
+    }
+
+    /**
+     * Validate 3DS liability shift before capture for CardFields flows.
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @param string $paypalOrderId
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    private function validateThreeDSBeforeCapture(InfoInterface $payment, $paypalOrderId)
+    {
+        if (!$this->shouldValidateThreeDS($payment)) {
+            $this->_logger->debug('[PAYPAL COMMERCE 3DS] Validation skipped', [
+                'order_id' => $payment->getOrder()->getIncrementId(),
+                'paypal_order_id' => $paypalOrderId,
+                'mode' => $this->paypalConfig->getAcdcThreeDSMode(),
+                'is_card_fields' => (bool)$payment->getAdditionalInformation(self::THREE_D_SECURE_CARD_FIELDS_PARAM),
+                'minimum_amount' => $this->paypalConfig->getAcdcThreeDSMinimumAmount(),
+                'order_total' => round((float)$payment->getOrder()->getGrandTotal(), 2),
+            ]);
+            return;
+        }
+
+        $this->_logger->debug('[PAYPAL COMMERCE 3DS] Validation started', [
+            'order_id' => $payment->getOrder()->getIncrementId(),
+            'paypal_order_id' => $paypalOrderId,
+            'mode' => $this->paypalConfig->getAcdcThreeDSMode(),
+            'client_liability_shift' => $payment->getAdditionalInformation(self::THREE_D_SECURE_LIABILITY_SHIFT_PARAM),
+        ]);
+
+        $threeDSResult = $this->getPayPalOrderThreeDSResult($paypalOrderId);
+        $isValid = $this->isThreeDSCaptureAllowed($threeDSResult);
+
+        $this->_logger->debug('[PAYPAL COMMERCE 3DS] Validation decision', [
+            'order_id' => $payment->getOrder()->getIncrementId(),
+            'paypal_order_id' => $paypalOrderId,
+            'mode' => $this->paypalConfig->getAcdcThreeDSMode(),
+            'is_valid' => $isValid,
+            'three_ds_result' => $threeDSResult,
+        ]);
+
+        if (!$isValid) {
+            $this->logThreeDSFailure($payment, $paypalOrderId, $threeDSResult);
+            throw new LocalizedException(__(self::GATEWAY_ERROR_MESSAGE));
+        }
+
+        if (($threeDSResult['liability_shift'] ?? null) === self::THREE_D_SECURE_SUCCESS_STATUS) {
+            $payment->setAdditionalInformation(self::THREE_D_SECURE_PARAM, self::THREE_D_SECURE_YES);
+        }
+    }
+
+    /**
+     * Determine whether the current payment requires server-side 3DS validation.
+     *
+     * @param \Magento\Payment\Model\InfoInterface $payment
+     * @return bool
+     */
+    private function shouldValidateThreeDS(InfoInterface $payment)
+    {
+        if (!$payment->getAdditionalInformation(self::THREE_D_SECURE_CARD_FIELDS_PARAM)) {
+            return false;
+        }
+
+        if ($this->paypalConfig->isAcdcThreeDSMerchantInitiated()) {
+            $minimumAmount = $this->paypalConfig->getAcdcThreeDSMinimumAmount();
+            $orderTotal = round((float)$payment->getOrder()->getGrandTotal(), 2);
+
+            return $orderTotal >= $minimumAmount;
+        }
+
+        return $this->paypalConfig->isAcdcThreeDSRiskInitiated();
+    }
+
+    private function isThreeDSCaptureAllowed(array $threeDSResult)
+    {
+        $liabilityShift = $threeDSResult['liability_shift'] ?? null;
+        /**
+         * PayPal 3DS / liability shift reference kept here for future changes.
+         *
+         * Current business rule:
+         * - Allow capture when liability_shift is POSSIBLE
+         * - Allow capture when liability_shift is null
+         * - Allow capture when liability_shift is missing
+         * - Reject any other value
+         *
+         * Historical reference from PayPal documentation / prior analysis:
+         * - POSSIBLE: authentication succeeded and liability shift is possible
+         * - NO: liability shift did not occur
+         * - UNKNOWN: result is unavailable / could not be determined
+         *
+         * If future requirements need finer handling by enrollment_status or
+         * authentication_status, this is the method to extend again.
+         */
+        if ($liabilityShift === null) {
+            return true;
+        }
+
+        return $liabilityShift === self::THREE_D_SECURE_SUCCESS_STATUS;
+    }
+
+    private function logThreeDSFailure(InfoInterface $payment, $paypalOrderId, array $threeDSResult)
+    {
+        $this->_logger->error('[PAYPAL COMMERCE 3DS] Liability shift validation failed', [
+            'order_id' => $payment->getOrder()->getIncrementId(),
+            'paypal_order_id' => $paypalOrderId,
+            'mode' => $this->paypalConfig->getAcdcThreeDSMode(),
+            'liability_shift' => $threeDSResult['liability_shift'] ?? null,
+            'enrollment_status' => $threeDSResult['enrollment_status'] ?? null,
+            'authentication_status' => $threeDSResult['authentication_status'] ?? null,
+            'client_liability_shift' => $payment->getAdditionalInformation(self::THREE_D_SECURE_LIABILITY_SHIFT_PARAM),
+        ]);
+    }
+
+    /**
+     * Retrieve the 3DS result from PayPal order details.
+     *
+     * @param string $paypalOrderId
+     * @return array<string, string|null>
+     */
+    private function getPayPalOrderThreeDSResult($paypalOrderId)
+    {
+        $orderGetRequest = $this->_paypalApi->getOrdersGetRequest($paypalOrderId);
+        $orderGetRequest->path = rtrim($orderGetRequest->path, '?') . '?fields=payment_source';
+        $orderResponse = $this->_paypalApi->execute($orderGetRequest);
+
+        if (empty($orderResponse) || !isset($orderResponse->result->payment_source->card)) {
+            $this->_logger->debug('[PAYPAL COMMERCE 3DS] GET order missing card/authentication payload', [
+                'paypal_order_id' => $paypalOrderId,
+                'status_code' => $orderResponse->statusCode ?? null,
+                'has_result' => !empty($orderResponse) && isset($orderResponse->result),
+            ]);
+            return [
+                'liability_shift' => null,
+                'enrollment_status' => null,
+                'authentication_status' => null,
+            ];
+        }
+
+        $authenticationResult = $orderResponse->result->payment_source->card->authentication_result ?? null;
+
+        $result = [
+            'liability_shift' => isset($authenticationResult->liability_shift)
+                ? (string)$authenticationResult->liability_shift
+                : null,
+            'enrollment_status' => isset($authenticationResult->three_d_secure->enrollment_status)
+                ? (string)$authenticationResult->three_d_secure->enrollment_status
+                : null,
+            'authentication_status' => isset($authenticationResult->three_d_secure->authentication_status)
+                ? (string)$authenticationResult->three_d_secure->authentication_status
+                : null,
+        ];
+
+        $this->_logger->debug('[PAYPAL COMMERCE 3DS] GET order authentication result', [
+            'paypal_order_id' => $paypalOrderId,
+            'three_ds_result' => $result,
+            'raw_authentication_result' => $authenticationResult ? json_decode(json_encode($authenticationResult), true) : null,
+        ]);
+
+        return $result;
     }
 
     /**

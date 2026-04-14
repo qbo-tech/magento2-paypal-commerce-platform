@@ -16,6 +16,7 @@ class Index extends \Magento\Framework\App\Action\Action
 	const CUSTOMER_ID_PARAM = 'customer_email';
 	const BA_PARAM = 'ba';
 	const VAULT_PARAM = 'vault';
+    const CARD_FIELDS_PARAM = 'isCardFields';
 
     /** @var \Magento\Framework\Filesystem\DriverInterface */
     protected $_driver;
@@ -70,8 +71,15 @@ class Index extends \Magento\Framework\App\Action\Action
 			$customerEmail = $paramsData[self::CUSTOMER_ID_PARAM] ?? null;
 			$billingAgreement = isset($paramsData[self::BA_PARAM]) && $paramsData[self::BA_PARAM] == 1;
 			$vault = $paramsData[self::VAULT_PARAM] ?? null;
+            $isCardFields = !empty($paramsData[self::CARD_FIELDS_PARAM]);
 
-            $response = $this->_paypalOrderRequest->createRequest($customerEmail, $paypalCMID, $billingAgreement, $vault);
+            $response = $this->_paypalOrderRequest->createRequest(
+                $customerEmail,
+                $paypalCMID,
+                $billingAgreement,
+                $vault,
+                $isCardFields
+            );
 
             if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
                 $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);
