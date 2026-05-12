@@ -10,8 +10,23 @@ define(
         'mage/translate',
         'mage/storage',
         'Magento_Checkout/js/model/totals',
+        'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Checkout/js/action/redirect-on-success',
     ],
-    function (Component, $, paypalFraudNetAdapter, selectPaymentMethodAction, checkoutData, quote, ko, $t, storage, totals) {
+    function (
+        Component,
+        $,
+        paypalFraudNetAdapter,
+        selectPaymentMethodAction,
+        checkoutData,
+        quote,
+        ko,
+        $t,
+        storage,
+        totals,
+        additionalValidators,
+        redirectOnSuccessAction
+    ) {
         'use strict';
 
         if (window.checkoutConfig.payment.paypalcp.acdc.enable) {
@@ -337,6 +352,42 @@ define(
 
                 return data;
             },
+            submitMagentoOrder: function () {
+                var self = this,
+                    deferred = $.Deferred();
+
+                if (!this.validate() ||
+                    !additionalValidators.validate() ||
+                    this.isPlaceOrderActionAllowed() !== true
+                ) {
+                    self._enableCheckout();
+                    deferred.reject();
+
+                    return deferred.promise();
+                }
+
+                this.isPlaceOrderActionAllowed(false);
+
+                this.getPlaceOrderDeferredObject()
+                    .done(function () {
+                        self.afterPlaceOrder();
+
+                        deferred.resolve.apply(deferred, arguments);
+
+                        if (self.redirectAfterPlaceOrder) {
+                            redirectOnSuccessAction.execute();
+                        }
+                    })
+                    .fail(function () {
+                        self._enableCheckout();
+                        deferred.reject.apply(deferred, arguments);
+                    })
+                    .always(function () {
+                        self.isPlaceOrderActionAllowed(true);
+                    });
+
+                return deferred.promise();
+            },
             renderButton: function (fundingSource, elementId) {
                 let button;
                 const self = this;
@@ -533,19 +584,9 @@ define(
                             liabilityShift: data.liabilityShift || null
                         };
 
-                        try {
-                            self.placeOrder();
-                            setTimeout(function () {
-                                self._enableCheckout();
-                            }, 3000);
-                        } catch (err) {
+                        return self.submitMagentoOrder().fail(function (err) {
                             self.logger('paypal_advanced-method#cardfieldsRender#onApprove', err);
-                            self.messageContainer.addErrorMessage({
-                                message: $t('Transaction cannot be processed, please verify your card information or try another.')
-                            });
-                            self._enableCheckout();
-                        }
-
+                        });
                     },
                     onError: function (err) {
                         self.cardFieldsApprovalData = null;
