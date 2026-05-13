@@ -8,6 +8,8 @@ $enableVault = $block->isEnableVaulting();
 $enableAcdc = $block->isEnableAcdc();
 $isDebug = $block->isDebug();
 $nonce = $block->getNonce();
+$moduleVersion = $block->getModuleVersion();
+$magentoVersion = $block->getMagentoVersion();
 
 $isPaypalActive = $block->isPaypalActive();
 $scriptUrl = $paypalUrl . ($enableVault && $enableAcdc ? '&vault=true' : '');
@@ -28,6 +30,8 @@ $scriptUrl = $paypalUrl . ($enableVault && $enableAcdc ? '&vault=true' : '');
             window.ErrorCallback = function () {
                 console.error('PayPal payment error occurred.');
             };
+
+            console.log('PayPal Commerce Platform (PPCP) v<?= $block->escapeJs($moduleVersion) ?> | Magento v<?= $block->escapeJs($magentoVersion) ?>');
         ",
         false
     ); ?>

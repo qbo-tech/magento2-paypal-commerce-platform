@@ -550,19 +550,67 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             json_decode($payment->getAdditionalInformation('payment_source'))
             : null;
 
-         if (
-            $paymentSource &&
-            isset($paymentSource->token->type) &&
-            $paymentSource->token->type == 'BILLING_AGREEMENT' &&
-            isset($this->_response->message) && !is_null($this->_response->message)
-         ) {
-            $message = json_decode($this->_response->message);
-            if (isset($message->name) && $message->name == 'AGREEMENT_ALREADY_CANCELLED') {
-                $this->removeBillingAgreement();
-                $errorMessage = self::BA_ERROR_MESSAGE;
-            }
+        if (!$paymentSource || !isset($paymentSource->token->type)) {
+            return $errorMessage;
         }
+
+        if ($paymentSource->token->type == 'BILLING_AGREEMENT') {
+            $this->_cancelBillingAgreementOnPayPal();
+            $this->removeBillingAgreement();
+            $errorMessage = self::BA_ERROR_MESSAGE;
+        }
+
+        if ($paymentSource->token->type == 'PAYMENT_METHOD_TOKEN') {
+            $this->_deleteVaultTokenOnPayPal($paymentSource->token->id ?? null);
+            $errorMessage = self::BA_ERROR_MESSAGE;
+        }
+
         return $errorMessage;
+    }
+
+    /**
+     * Cancel Billing Agreement on PayPal side via API.
+     *
+     * @return void
+     */
+    private function _cancelBillingAgreementOnPayPal()
+    {
+        $encryptedReference = $this->checkoutSession->getData('current_ba_reference');
+        if (!$encryptedReference) {
+            $this->_logger->error('PayPal Commerce: Billing Agreement reference not found in session for cancellation');
+            return;
+        }
+
+        try {
+            $agreementId = $this->billingAgreement->decryptReference($encryptedReference);
+            $cancelRequest = new \PayPal\CommercePlatform\Model\Paypal\Agreement\Cancel($agreementId);
+            $this->_paypalApi->execute($cancelRequest);
+            $this->_logger->info('PayPal Commerce: Billing Agreement cancelled on PayPal: ' . $agreementId);
+        } catch (\Exception $e) {
+            $this->_logger->error('PayPal Commerce: Error cancelling Billing Agreement on PayPal: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Delete ACDC vault token on PayPal side.
+     *
+     * @param string|null $tokenId
+     * @return void
+     */
+    private function _deleteVaultTokenOnPayPal($tokenId)
+    {
+        if (!$tokenId) {
+            $this->_logger->error('PayPal Commerce: Vault token ID not found in payment source for deletion');
+            return;
+        }
+
+        try {
+            $deleteRequest = new \PayPal\CommercePlatform\Model\Paypal\Vault\DeletePaymentTokensRequest($tokenId);
+            $this->_paypalApi->execute($deleteRequest);
+            $this->_logger->info('PayPal Commerce: Vault token deleted on PayPal: ' . $tokenId);
+        } catch (\Exception $e) {
+            $this->_logger->error('PayPal Commerce: Error deleting vault token on PayPal: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -581,6 +629,8 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         }
         try {
             $billingAgreement->delete();
+            $this->checkoutSession->unsetData('current_ba_id');
+            $this->checkoutSession->unsetData('current_ba_reference');
         } catch (\Exception $e) {
             $this->_logger->error($e->getMessage());
         }
