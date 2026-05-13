@@ -10,6 +10,7 @@ $isDebug = $block->isDebug();
 $nonce = $block->getNonce();
 $moduleVersion = $block->getModuleVersion();
 $magentoVersion = $block->getMagentoVersion();
+$versionLogMessage = 'PayPal Commerce Platform (PPCP) v' . $moduleVersion . ' | Magento v' . $magentoVersion;
 
 $isPaypalActive = $block->isPaypalActive();
 $scriptUrl = $paypalUrl . ($enableVault && $enableAcdc ? '&vault=true' : '');
@@ -31,7 +32,7 @@ $scriptUrl = $paypalUrl . ($enableVault && $enableAcdc ? '&vault=true' : '');
                 console.error('PayPal payment error occurred.');
             };
 
-            console.log('PayPal Commerce Platform (PPCP) v<?= $block->escapeJs($moduleVersion) ?> | Magento v<?= $block->escapeJs($magentoVersion) ?>');
+            console.log(" . json_encode($versionLogMessage) . ");
         ",
         false
     ); ?>
