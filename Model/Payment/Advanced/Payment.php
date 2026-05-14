@@ -292,7 +292,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
 
             $errorMessage = self::GATEWAY_ERROR_MESSAGE;
 
-            $this->_processBillingAgreementsErrors($payment, $errorMessage);
+            $this->_processStoredPaymentTokenErrors($payment, $errorMessage);
 
             throw new \Magento\Framework\Exception\LocalizedException(__($errorMessage));
         }
@@ -544,7 +544,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @return string
      */
-    private function _processBillingAgreementsErrors($payment, &$errorMessage)
+    private function _processStoredPaymentTokenErrors($payment, &$errorMessage)
     {
         $paymentSource = $payment->getAdditionalInformation('payment_source') != null ?
             json_decode($payment->getAdditionalInformation('payment_source'))
