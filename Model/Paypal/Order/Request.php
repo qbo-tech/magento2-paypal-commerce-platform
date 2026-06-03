@@ -289,7 +289,9 @@ class Request
         }
 
         if ($isCardFields && $this->_paypalConfig->isAcdcThreeDSMerchantInitiated()) {
-            $requestBody['payment_source']['card']['attributes']['verification']['method'] = 'SCA_ALWAYS';
+            if ($this->_quote->getGrandTotal() >= $this->_paypalConfig->getAcdcThreeDSMinimumAmount()) {
+                $requestBody['payment_source']['card']['attributes']['verification']['method'] = 'SCA_ALWAYS';
+            }
         }
 
         if ($this->_paypalConfig->isSetFLag(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_ENABLE_ITEMS)) {
