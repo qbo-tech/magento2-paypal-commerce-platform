@@ -555,14 +555,15 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
         }
 
         if ($paymentSource->token->type == 'BILLING_AGREEMENT') {
-            $this->_cancelBillingAgreementOnPayPal();
-            $this->removeBillingAgreement();
+            $agreementId = $paymentSource->token->id ?? null;
+            $this->_cancelBillingAgreementOnPayPal($agreementId);
+            $this->removeBillingAgreement($agreementId);
             $errorMessage = self::BA_ERROR_MESSAGE;
         }
 
         if ($paymentSource->token->type == 'PAYMENT_METHOD_TOKEN') {
             $this->_deleteVaultTokenOnPayPal($paymentSource->token->id ?? null);
-            $errorMessage = self::BA_ERROR_MESSAGE;
+            $errorMessage = self::GATEWAY_ERROR_MESSAGE;
         }
 
         return $errorMessage;
@@ -571,18 +572,27 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     /**
      * Cancel Billing Agreement on PayPal side via API.
      *
+     * @param string|null $agreementId
      * @return void
      */
-    private function _cancelBillingAgreementOnPayPal()
+    private function _cancelBillingAgreementOnPayPal($agreementId = null)
     {
-        $encryptedReference = $this->checkoutSession->getData('current_ba_reference');
-        if (!$encryptedReference) {
-            $this->_logger->error('PayPal Commerce: Billing Agreement reference not found in session for cancellation');
-            return;
+        if (!$agreementId) {
+            $encryptedReference = $this->checkoutSession->getData('current_ba_reference');
+            if (!$encryptedReference) {
+                $this->_logger->error('PayPal Commerce: Billing Agreement reference not found in session for cancellation');
+                return;
+            }
+
+            try {
+                $agreementId = $this->billingAgreement->decryptReference($encryptedReference);
+            } catch (\Exception $e) {
+                $this->_logger->error('PayPal Commerce: Error decrypting Billing Agreement reference: ' . $e->getMessage());
+                return;
+            }
         }
 
         try {
-            $agreementId = $this->billingAgreement->decryptReference($encryptedReference);
             $cancelRequest = new \PayPal\CommercePlatform\Model\Paypal\Agreement\Cancel($agreementId);
             $this->_paypalApi->execute($cancelRequest);
             $this->_logger->info('PayPal Commerce: Billing Agreement cancelled on PayPal: ' . $agreementId);
@@ -614,25 +624,51 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Remove Billing Agreement from BD
+     * Remove Billing Agreement from DB
      *
-     * @return $this
+     * @param string|null $agreementId
+     * @return void
      */
-    private function removeBillingAgreement()
+    private function removeBillingAgreement($agreementId = null)
     {
-        $currentBAId = $this->checkoutSession->getData('current_ba_id');
-        $billingAgreement = $this->billingAgreement->load($currentBAId);
+        $billingAgreementModel = null;
 
-        if (!$billingAgreement->getId()) {
-            $this->_logger->error("PayPal Commerce: Billing Agreement not found");
-            return;
+        if ($agreementId) {
+            $customerId = $this->_order ? $this->_order->getCustomerId() : null;
+            if ($customerId) {
+                $agreements = $this->billingAgreement->getAvailableCustomerBillingAgreements($customerId);
+                foreach ($agreements as $agreement) {
+                    try {
+                        $decryptedRef = $this->billingAgreement->decryptReference($agreement->getReferenceId());
+                        if ($decryptedRef === $agreementId) {
+                            $billingAgreementModel = $agreement;
+                            break;
+                        }
+                    } catch (\Exception $e) {
+                        // decrypt failed, continue
+                    }
+                }
+            }
         }
-        try {
-            $billingAgreement->delete();
-            $this->checkoutSession->unsetData('current_ba_id');
-            $this->checkoutSession->unsetData('current_ba_reference');
-        } catch (\Exception $e) {
-            $this->_logger->error($e->getMessage());
+
+        if (!$billingAgreementModel) {
+            $currentBAId = $this->checkoutSession->getData('current_ba_id');
+            if ($currentBAId) {
+                $billingAgreementModel = $this->billingAgreement->load($currentBAId);
+            }
+        }
+
+        if ($billingAgreementModel && $billingAgreementModel->getId()) {
+            try {
+                $billingAgreementModel->delete();
+                $this->checkoutSession->unsetData('current_ba_id');
+                $this->checkoutSession->unsetData('current_ba_reference');
+                $this->_logger->info('PayPal Commerce: Billing Agreement removed locally: ' . $billingAgreementModel->getId());
+            } catch (\Exception $e) {
+                $this->_logger->error('PayPal Commerce: Error deleting local Billing Agreement: ' . $e->getMessage());
+            }
+        } else {
+            $this->_logger->error("PayPal Commerce: Billing Agreement not found for local removal");
         }
     }
 

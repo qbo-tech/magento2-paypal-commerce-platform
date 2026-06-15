@@ -368,6 +368,15 @@ define(
 
                 return data;
             },
+            getPlaceOrderDeferredObject: function () {
+                var self = this;
+                return this._super()
+                    .fail(function (response) {
+                        self.enableCheckout();
+                        console.log('Place order failed. Refreshing customer cards...');
+                        self.refreshFinancingOptions();
+                    });
+            },
             isValidFields: function (hostedFieldsInstance) {
                 var self = this;
                 var state = hostedFieldsInstance.getState();
@@ -484,6 +493,27 @@ define(
 
                 body.loader('hide');
             },
+            refreshFinancingOptions: function () {
+                const self = this;
+                const url = 'paypalcheckout/financing';
+
+                self.installmentsAvailable(false);
+
+                return storage.post(url).done(function (response) {
+                    console.log('FinancingOptions refreshed', response);
+
+                    // Update customer cards if returned
+                    if (response.payments && response.payments.cards) {
+                        self.customerCards(response.payments.cards);
+                    } else {
+                        self.customerCards([]);
+                    }
+
+                    self.initializeEvents();
+                }).fail(function (error) {
+                    console.error('Failed to refresh PayPal data', error);
+                });
+            },
             initializeEvents: function () {
                 var self = this;
                 var body = $('body').loader();
@@ -493,6 +523,7 @@ define(
                 if (self.customerCards().length > 0) {
                     $('#paypalcheckout').hide();
                 } else {
+                    $('#paypalcheckout').show();
                     self.loadSdk();
                 }
 
@@ -567,18 +598,20 @@ define(
                     $('#token-submit').prop('disabled', true);
                     event.preventDefault();
 
+                    var body = $('body').loader();
+                    body.loader('show');
+
                     var submitOptions = {};
                     submitOptions = self.validateInstallment(submitOptions);
 
                     self.createOrder().done(function (response) {
                         self.orderId = response.result.id//.orderID;
                         self.placeOrder();
+                        self.enableCheckout();
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
-                        $('#submit').prop('disabled', false);
+                        self.enableCheckout();
                     });
-
-                    $('#submit').prop('disabled', false);
                 });
             },
             loadFraudnet: function () {
@@ -619,6 +652,7 @@ define(
             },
             enableCheckout: function () {
                 $('#submit').prop('disabled', false);
+                $('#token-submit').prop('disabled', false);
 
                 var body = $('body').loader();
                 body.loader('hide');

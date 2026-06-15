@@ -147,11 +147,15 @@ define(
                     // Update customer cards if returned
                     if (response.payments && response.payments.cards) {
                         self.customerCards(response.payments.cards);
+                    } else {
+                        self.customerCards([]);
                     }
 
                     // Update billing agreements if returned
                     if (response && response.agreements) {
                         self.customerBillingAgreements(response.agreements);
+                    } else {
+                        self.customerBillingAgreements([]);
                     }
 
                     self.initializeEvents();
@@ -351,6 +355,15 @@ define(
                 }
 
                 return data;
+            },
+            getPlaceOrderDeferredObject: function () {
+                var self = this;
+                return this._super()
+                    .fail(function (response) {
+                        self._enableCheckout();
+                        console.log('Place order failed. Refreshing customer cards/agreements...');
+                        self.refreshFinancingOptions();
+                    });
             },
             submitMagentoOrder: function () {
                 var self = this,
@@ -1022,6 +1035,8 @@ define(
 
                 if (self.customerCards().length > 0) {
                     $('#paypalcheckout').hide();
+                } else {
+                    $('#paypalcheckout').show();
                 }
                 self.loadSdk();
 
@@ -1120,12 +1135,11 @@ define(
                         console.log('token-submit#createOrder#done#response', response);
                         self.orderId = response.result.id//.orderID;
                         self.placeOrder();
+                        self._enableCheckout();
                     }).fail(function (response) {
                         console.error('FAILED paid whit token card', response);
-                        $('#submit').prop('disabled', false);
+                        self._enableCheckout();
                     });
-
-                    $('#submit').prop('disabled', false);
                 });
 
                 if (self.isActiveReferenceTransaction()) {
@@ -1270,6 +1284,8 @@ define(
             },
             _enableCheckout: function () {
                 $('#submit').prop('disabled', false);
+                $('#token-submit').prop('disabled', false);
+                $('#token-ba-submit').prop('disabled', false);
 
                 var body = $('body').loader();
                 body.loader('hide');
