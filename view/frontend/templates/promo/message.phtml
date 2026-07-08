@@ -1,0 +1,8 @@
+<?php
+/** @var PayPal\CommercePlatform\Block\PromoMessage $block */
+?>
+<?php if ($block->isEnabled()): ?>
+    <div class="paypal-promo-message-container" style="margin-top: 15px; margin-bottom: 15px; font-size: 14px; color: #333; line-height: 1.5; font-family: 'Inter', sans-serif;">
+        <span class="paypal-promo-text"><?= /* @noEscape */ $block->getPromoMessageHtml() ?></span>
+    </div>
+<?php endif; ?>

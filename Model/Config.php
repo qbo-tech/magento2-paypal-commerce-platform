@@ -44,6 +44,13 @@ class Config
     const CONFIG_XML_FRAUDNET_SWI         = 'source_web_identifier';
     const CONFIG_XML_FRAUDNET_FNCLS       = 'fncls';
 
+    const CONFIG_XML_PROMO_CHECKOUT       = 'promo_checkout';
+    const CONFIG_XML_PROMO_PDP            = 'promo_pdp';
+    const CONFIG_XML_PROMO_CART           = 'promo_cart';
+    const CONFIG_XML_PROMO_TEXT           = 'promo_message_text';
+    const CONFIG_XML_PROMO_LINK_TEXT      = 'promo_link_text';
+    const CONFIG_XML_PROMO_REDIRECT_URL   = 'promo_redirect_url';
+
     const CONFIG_XML_ENABLE_REFERENCE_TRANSACTION  = 'enable_reference_transaction';
 
     /** STC CONFIGS */
@@ -272,5 +279,35 @@ class Config
     public function isCardFirstAcdc()
     {
         return $this->isSetFLag(self::CONFIG_XML_CARD_FIRST_ACDC);
+    }
+
+    public function isPromoCheckoutEnabled()
+    {
+        return $this->isSetFlag(self::CONFIG_XML_PROMO_CHECKOUT);
+    }
+
+    public function isPromoPdpEnabled()
+    {
+        return $this->isSetFlag(self::CONFIG_XML_PROMO_PDP);
+    }
+
+    public function isPromoCartEnabled()
+    {
+        return $this->isSetFlag(self::CONFIG_XML_PROMO_CART);
+    }
+
+    public function getPromoMessageText()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_PROMO_TEXT) ?: __('Pagos Diferidos de hasta 18 meses pagando con PayPal.');
+    }
+
+    public function getPromoLinkText()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_PROMO_LINK_TEXT) ?: __('Conoce más.');
+    }
+
+    public function getPromoRedirectUrl()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_PROMO_REDIRECT_URL);
     }
 }

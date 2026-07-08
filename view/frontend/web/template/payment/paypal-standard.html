@@ -18,6 +18,12 @@
 
         <div id="card-button-container" style="min-height: 50px;"></div>
 
+        <!-- ko if: isPromoEnabled -->
+        <div class="paypal-promo-msg-checkout" style="margin-top: 15px; margin-bottom: 15px; font-size: 13px; color: #555;">
+            <span data-bind="html: getPromoMessageHtml()"></span>
+        </div>
+        <!-- /ko -->
+
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
             <!--                 ko template: getTemplate() -->
@@ -93,6 +99,12 @@
             </div>
             <div id="paypal-button-container-ba"></div>
             <div id="card-button-container-ba" style="display: none;"></div>
+
+            <!-- ko if: isPromoEnabled -->
+            <div class="paypal-promo-msg-checkout" style="margin-top: 15px; margin-bottom: 15px; font-size: 13px; color: #555;">
+                <span data-bind="html: getPromoMessageHtml()"></span>
+            </div>
+            <!-- /ko -->
         </div>
 
         <div class="checkout-agreements-block">

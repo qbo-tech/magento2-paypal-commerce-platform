@@ -69,6 +69,27 @@ define(
             isFormValid: ko.observable(false),
             renderedButtons: ko.observable(false),
             cardFieldsApprovalData: null,
+            isPromoEnabled: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.enable_checkout : false,
+            promoMessageText: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.message_text : '',
+            promoLinkText: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.link_text : '',
+            promoRedirectUrl: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.redirect_url : '',
+            getPromoMessageHtml: function () {
+                var text = this.promoMessageText;
+                var linkText = this.promoLinkText;
+                var url = this.promoRedirectUrl;
+                if (!text) {
+                    return '';
+                }
+                // Add trailing space to message if not present
+                if (text.charAt(text.length - 1) !== ' ') {
+                    text += ' ';
+                }
+                if (url && linkText) {
+                    var escapedLinkText = linkText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    text += '<a href="' + url + '" target="_blank" class="paypal-promo-link">' + escapedLinkText + '</a>';
+                }
+                return text;
+            },
             initialize: function () {
                 this._super();
 

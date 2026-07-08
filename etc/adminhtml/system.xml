@@ -319,6 +319,36 @@
                             <attribute type="shared">1</attribute>
                         </field>
                     </group>
+                    <group id="promo_messaging" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="150">
+                        <label>Promotional Messaging Options</label>
+                        <field id="promo_checkout" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Enable on Checkout Payment Method</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/promo_checkout</config_path>
+                        </field>
+                        <field id="promo_pdp" type="select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Enable on Product Detail Page (PDP)</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/promo_pdp</config_path>
+                        </field>
+                        <field id="promo_cart" type="select" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Enable on Cart Page</label>
+                            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                            <config_path>payment/paypalcp/promo_cart</config_path>
+                        </field>
+                        <field id="promo_message_text" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Custom Promo Message</label>
+                            <config_path>payment/paypalcp/promo_message_text</config_path>
+                        </field>
+                        <field id="promo_link_text" type="text" sortOrder="45" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Custom Promo text link</label>
+                            <config_path>payment/paypalcp/promo_link_text</config_path>
+                        </field>
+                        <field id="promo_redirect_url" type="text" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                            <label>Custom Promo url link</label>
+                            <config_path>payment/paypalcp/promo_redirect_url</config_path>
+                        </field>
+                    </group>
                 </group>
             </group>
         </section>

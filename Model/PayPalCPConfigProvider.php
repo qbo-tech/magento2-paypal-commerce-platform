@@ -149,6 +149,12 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                         'sourceWebIdentifier' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_SWI),
                         'fncls' => $this->_paypalConfig->getConfigValue(\PayPal\CommercePlatform\Model\Config::CONFIG_XML_FRAUDNET_FNCLS),
                         'sessionIdentifier' => 'M2' . bin2hex(random_bytes(self::LENGTH_IDENTIFIER)),
+                    ],
+                    'promo' => [
+                        'enable_checkout' => $this->_paypalConfig->isPromoCheckoutEnabled(),
+                        'message_text' => (string)$this->_paypalConfig->getPromoMessageText(),
+                        'link_text' => (string)$this->_paypalConfig->getPromoLinkText(),
+                        'redirect_url' => (string)$this->_paypalConfig->getPromoRedirectUrl(),
                     ]
                 ]
             ]
