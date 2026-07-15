@@ -1,5 +1,6 @@
 {
     "name": "qbo/module-paypal-commerce-platform",
+    "version": "2.2.11",
     "description": "Paypal Commerce Platform for Magento 2 (PPCP)",
     "type": "magento2-module",
     "license": "OSL-3.0",
