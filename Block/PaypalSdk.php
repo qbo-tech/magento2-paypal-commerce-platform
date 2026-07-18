@@ -87,14 +87,19 @@ class PaypalSdk extends Template
 
     public function getModuleVersion()
     {
-        $composerFile = dirname(__DIR__) . '/composer.json';
-        if (!is_readable($composerFile)) {
+        $moduleXml = dirname(__DIR__) . '/etc/module.xml';
+        if (!is_readable($moduleXml)) {
             return 'unknown';
         }
 
-        $composer = json_decode((string)file_get_contents($composerFile), true);
+        $xml = simplexml_load_file($moduleXml);
+        if ($xml === false) {
+            return 'unknown';
+        }
 
-        return $composer['version'] ?? 'unknown';
+        $setupVersion = (string)($xml->module->attributes()->setup_version ?? '');
+
+        return $setupVersion !== '' ? $setupVersion : 'unknown';
     }
 
 
