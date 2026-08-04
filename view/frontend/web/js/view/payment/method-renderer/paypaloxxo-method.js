@@ -166,14 +166,15 @@ define(
             createOrder: function (requestBody) {
                 var self = this;
                 let billing = quote.billingAddress();
+                let email = quote.guestEmail || (billing && billing.email) || '';
                 return storage.post('/paypalcheckout/order',
                     JSON.stringify({
                         'fraudNetCMI': self.sessionIdentifier,
-                        'customer_email': quote.guestEmail,
+                        'customer_email': email,
                         'payment_method': 'paypaloxxo',
                         'payment_source': {
                             'name': billing.firstname + ' ' + billing.lastname,
-                            'email': quote.guestEmail,
+                            'email': email,
                             'country_code': 'MX'
                         }
                     })

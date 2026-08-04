@@ -96,8 +96,8 @@ class OrderAccount extends Template
             $paypalOrderId = $order->getPayment()->getAdditionalInformation('order_id');
             $voucherRequest = $this->paypalApi->getVoucherRequest($paypalOrderId);
             $response = $this->paypalApi->execute($voucherRequest);
-            if (isset($response->result->payment_source->oxxo->document_references[0])) {
-                return $response->result->payment_source->oxxo->document_references[0]->value;
+            if (isset($response->result->payment_source->oxxo_pay->document_references[0])) {
+                return $response->result->payment_source->oxxo_pay->document_references[0]->value;
             } else {
                 return;
             }

@@ -90,7 +90,7 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
             $this->paypalOrderConfirmRequest = $this->_paypalApi->getOrdersConfirmRequest($paypalOrderId);
             $this->paypalOrderConfirmRequest->body = [
                 'payment_source' => [
-                    'oxxo' => $paymentSource
+                    'oxxo_pay' => $paymentSource
                 ],
                 'processing_instruction' => 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL',
                 'application_context' => [
@@ -158,8 +158,8 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
                     throw new \Exception(__('Gateway error. Reason: %1', $response->message));
                 }
 
-                if (isset($response->result->payment_source->oxxo->document_references[0])) {
-                    $voucherUrl = $response->result->payment_source->oxxo->document_references[0]->value;
+                if (isset($response->result->payment_source->oxxo_pay->document_references[0])) {
+                    $voucherUrl = $response->result->payment_source->oxxo_pay->document_references[0]->value;
                 } else {
                     throw new \Exception(self::OXXO_DOCUMENT_ERROR_MESSAGE);
                 }

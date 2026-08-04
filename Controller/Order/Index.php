@@ -2,6 +2,7 @@
 
 namespace PayPal\CommercePlatform\Controller\Order;
 
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Filesystem\Driver\File;
@@ -35,6 +36,11 @@ class Index extends \Magento\Framework\App\Action\Action
     private $oxxoPayment;
 
     /**
+     * @var \Magento\Customer\Model\Session
+     */
+    private $customerSession;
+
+    /**
      * @param \Magento\Framework\App\Action\Context $context
      * @param \Magento\Framework\Filesystem\Driver\File $driver
      * @param \PayPal\CommercePlatform\Model\Paypal\Order\Request $paypalOrderRequest
@@ -48,14 +54,16 @@ class Index extends \Magento\Framework\App\Action\Action
         Request $paypalOrderRequest,
         Handler $logger,
         JsonFactory $resultJsonFactory,
-        OxxoPayment $oxxoPayment
+        OxxoPayment $oxxoPayment,
+        CustomerSession $customerSession
     ) {
         parent::__construct($context);
-        $this->_driver        = $driver;
-        $this->_loggerHandler = $logger;
+        $this->_driver             = $driver;
+        $this->_loggerHandler      = $logger;
         $this->_paypalOrderRequest = $paypalOrderRequest;
         $this->_resultJsonFactory  = $resultJsonFactory;
-        $this->oxxoPayment  = $oxxoPayment;
+        $this->oxxoPayment         = $oxxoPayment;
+        $this->customerSession     = $customerSession;
     }
 
     /**
@@ -82,7 +90,11 @@ class Index extends \Magento\Framework\App\Action\Action
             );
 
             if((isset($paramsData['payment_method']) && $paramsData['payment_method'] == 'paypaloxxo') && isset($response->result)) {
-                $response = $this->oxxoPayment->createOxxoVoucher($paramsData['payment_source'], $response->result->id);
+                $paymentSource = $paramsData['payment_source'] ?? [];
+                if (empty($paymentSource['email']) && $this->customerSession->isLoggedIn()) {
+                    $paymentSource['email'] = $this->customerSession->getCustomer()->getEmail();
+                }
+                $response = $this->oxxoPayment->createOxxoVoucher($paymentSource, $response->result->id);
             }
         } catch (\Exception $e) {
             $this->_loggerHandler->error($e->getMessage());
