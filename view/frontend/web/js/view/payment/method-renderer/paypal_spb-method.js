@@ -70,25 +70,26 @@ define(
             renderedButtons: ko.observable(false),
             cardFieldsApprovalData: null,
             isPromoEnabled: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.enable_checkout : false,
-            promoMessageText: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.message_text : '',
+            promoCheckoutMessageText: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.checkout_message_text : '',
             promoLinkText: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.link_text : '',
             promoRedirectUrl: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.redirect_url : '',
             getPromoMessageHtml: function () {
-                var text = this.promoMessageText;
+                var text = this.promoCheckoutMessageText;
                 var linkText = this.promoLinkText;
                 var url = this.promoRedirectUrl;
                 if (!text) {
                     return '';
                 }
-                // Add trailing space to message if not present
-                if (text.charAt(text.length - 1) !== ' ') {
-                    text += ' ';
-                }
+                var logoUrl = require.toUrl('PayPal_CommercePlatform/images/paypal-logo.png');
+                var linkHtml = '';
                 if (url && linkText) {
-                    var escapedLinkText = linkText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    text += '<a href="' + url + '" target="_blank" class="paypal-promo-link">' + escapedLinkText + '</a>';
+                    linkHtml = '<a href="' + url + '" target="_blank" rel="noopener" style="flex:0 0 auto;color:#0070e0;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap;" onmouseover="this.style.textDecoration=\'underline\';" onmouseout="this.style.textDecoration=\'none\';">' + linkText + '</a>';
                 }
-                return text;
+                return '<div class="pp-slim-banner" style="display:flex;align-items:center;gap:10px;background:#f0f4fb;border:1px solid #d6e0f0;border-left:4px solid #0070e0;border-radius:8px;padding:8px 12px;box-sizing:border-box;width:100%;font-family:\'Helvetica Neue\',Helvetica,Arial,sans-serif;margin-top:8px;">'
+                    + '<img src="' + logoUrl + '" alt="PayPal" style="height:18px;width:auto;flex:0 0 auto;display:block;">'
+                    + '<span style="flex:1 1 auto;color:#001c64;font-size:12px;line-height:1.3;font-weight:500;">' + text + '</span>'
+                    + linkHtml
+                    + '</div>';
             },
             initialize: function () {
                 this._super();

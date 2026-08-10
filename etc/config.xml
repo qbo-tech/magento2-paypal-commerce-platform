@@ -34,6 +34,13 @@
                 <installments_type>installments_cost_to_buyer</installments_type>
                 <acdc_3ds_mode>merchant_initiated</acdc_3ds_mode>
                 <acdc_3ds_min_amount>0</acdc_3ds_min_amount>
+                <promo_checkout>0</promo_checkout>
+                <promo_pdp>0</promo_pdp>
+                <promo_cart>0</promo_cart>
+                <promo_message_text><![CDATA[Pagos Diferidos de <strong>hasta 18 meses</strong> pagando con PayPal.]]></promo_message_text>
+                <promo_checkout_message_text><![CDATA[Paga en <strong>hasta 18 meses</strong> difiriendo tus pagos con PayPal.]]></promo_checkout_message_text>
+                <promo_link_text>Conoce Más ›</promo_link_text>
+                <promo_redirect_url>https://www.paypal.com/mx/digital-wallet/mesesconpaypal</promo_redirect_url>
             </paypalcp>
             <paypalspb>
                 <active>1</active>

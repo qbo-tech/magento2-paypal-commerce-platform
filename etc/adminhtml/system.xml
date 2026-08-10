@@ -336,9 +336,15 @@
                             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                             <config_path>payment/paypalcp/promo_cart</config_path>
                         </field>
-                        <field id="promo_message_text" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                            <label>Custom Promo Message</label>
+                        <field id="promo_message_text" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label comment">
+                            <label>Custom Promo Message (PDP / Cart)</label>
+                            <comment>Supports HTML. Used on Product and Cart pages.</comment>
                             <config_path>payment/paypalcp/promo_message_text</config_path>
+                        </field>
+                        <field id="promo_checkout_message_text" type="text" sortOrder="42" showInWebsite="1" showInStore="1" showInDefault="1" translate="label comment">
+                            <label>Custom Promo Message (Checkout)</label>
+                            <comment>Supports HTML. Used on Checkout payment step.</comment>
+                            <config_path>payment/paypalcp/promo_checkout_message_text</config_path>
                         </field>
                         <field id="promo_link_text" type="text" sortOrder="45" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                             <label>Custom Promo text link</label>

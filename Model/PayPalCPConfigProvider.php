@@ -153,6 +153,7 @@ class PayPalCPConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                     'promo' => [
                         'enable_checkout' => $this->_paypalConfig->isPromoCheckoutEnabled(),
                         'message_text' => (string)$this->_paypalConfig->getPromoMessageText(),
+                        'checkout_message_text' => (string)$this->_paypalConfig->getPromoCheckoutMessageText(),
                         'link_text' => (string)$this->_paypalConfig->getPromoLinkText(),
                         'redirect_url' => (string)$this->_paypalConfig->getPromoRedirectUrl(),
                     ]

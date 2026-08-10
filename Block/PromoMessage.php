@@ -43,7 +43,7 @@ class PromoMessage extends Template
     }
 
     /**
-     * Get the promo message text.
+     * Get the promo message text (PDP / Cart).
      *
      * @return string
      */
@@ -63,39 +63,12 @@ class PromoMessage extends Template
     }
 
     /**
-     * Get the redirect URL for Learn More link.
+     * Get the redirect URL for the promo link.
      *
      * @return string
      */
     public function getPromoRedirectUrl()
     {
         return $this->config->getPromoRedirectUrl();
-    }
-
-    /**
-     * Get compiled html with link for the promotional message.
-     *
-     * @return string
-     */
-    public function getPromoMessageHtml()
-    {
-        $text = $this->getPromoMessageText();
-        $linkText = $this->getPromoLinkText();
-        $url = $this->getPromoRedirectUrl();
-
-        if (empty($text)) {
-            return '';
-        }
-
-        // Add trailing space to message if not present
-        if (substr($text, -1) !== ' ') {
-            $text .= ' ';
-        }
-
-        if (!empty($url) && !empty($linkText)) {
-            $text .= '<a href="' . $this->escapeUrl($url) . '" target="_blank" class="paypal-promo-link">' . $this->escapeHtml($linkText) . '</a>';
-        }
-
-        return $text;
     }
 }

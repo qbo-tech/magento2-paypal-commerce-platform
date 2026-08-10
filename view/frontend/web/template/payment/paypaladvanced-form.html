@@ -17,9 +17,7 @@
         <div id="paypal-button-container" style="min-height: 50px;"></div>
 
         <!-- ko if: isPromoEnabled -->
-        <div class="paypal-promo-msg-checkout" style="margin-top: 15px; margin-bottom: 15px; font-size: 13px; color: #555;">
-            <span data-bind="html: getPromoMessageHtml()"></span>
-        </div>
+        <div class="paypal-promo-msg-checkout" data-bind="html: getPromoMessageHtml()"></div>
         <!-- /ko -->
 
         <div class="checkout-agreements-block">
@@ -100,9 +98,7 @@
             <div id="paypal-button-container-ba"></div>
 
             <!-- ko if: isPromoEnabled -->
-            <div class="paypal-promo-msg-checkout" style="margin-top: 15px; margin-bottom: 15px; font-size: 13px; color: #555;">
-                <span data-bind="html: getPromoMessageHtml()"></span>
-            </div>
+            <div class="paypal-promo-msg-checkout" data-bind="html: getPromoMessageHtml()"></div>
             <!-- /ko -->
         </div>
         <!-- /ko -->
@@ -257,9 +253,7 @@
         <div class="actions-toolbar">
             <div class="primary" data-bind="attr: {'id': getCode('Express_button')}, enable: isFormValid"></div>
             <!-- ko if: isPromoEnabled -->
-            <div class="paypal-promo-msg-checkout" style="margin-top: 15px; margin-bottom: 15px; font-size: 13px; color: #555;">
-                <span data-bind="html: getPromoMessageHtml()"></span>
-            </div>
+            <div class="paypal-promo-msg-checkout" data-bind="html: getPromoMessageHtml()"></div>
             <!-- /ko -->
         </div>
     </div>

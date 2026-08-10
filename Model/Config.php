@@ -48,6 +48,7 @@ class Config
     const CONFIG_XML_PROMO_PDP            = 'promo_pdp';
     const CONFIG_XML_PROMO_CART           = 'promo_cart';
     const CONFIG_XML_PROMO_TEXT           = 'promo_message_text';
+    const CONFIG_XML_PROMO_CHECKOUT_TEXT  = 'promo_checkout_message_text';
     const CONFIG_XML_PROMO_LINK_TEXT      = 'promo_link_text';
     const CONFIG_XML_PROMO_REDIRECT_URL   = 'promo_redirect_url';
 
@@ -298,12 +299,17 @@ class Config
 
     public function getPromoMessageText()
     {
-        return $this->getConfigValue(self::CONFIG_XML_PROMO_TEXT) ?: __('Pagos Diferidos de hasta 18 meses pagando con PayPal.');
+        return $this->getConfigValue(self::CONFIG_XML_PROMO_TEXT);
+    }
+
+    public function getPromoCheckoutMessageText()
+    {
+        return $this->getConfigValue(self::CONFIG_XML_PROMO_CHECKOUT_TEXT);
     }
 
     public function getPromoLinkText()
     {
-        return $this->getConfigValue(self::CONFIG_XML_PROMO_LINK_TEXT) ?: __('Conoce más.');
+        return $this->getConfigValue(self::CONFIG_XML_PROMO_LINK_TEXT);
     }
 
     public function getPromoRedirectUrl()
