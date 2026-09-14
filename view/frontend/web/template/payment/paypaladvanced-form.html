@@ -131,6 +131,8 @@
         <!--    /ko -->
         <!-- /ko -->
 
+        <!-- ko template: 'PayPal_CommercePlatform/payment/promo-banner' --><!-- /ko -->
+
         <div class="customer-card-list" data-bind="visible: customerCards().length > 0">
             <ul>
                 <li>
@@ -142,7 +144,7 @@
                     <input type="radio" name="card" data-bind="attr: {'id': id, 'value': id}">
                     <label data-bind="attr: {for: id}">
                         <span class="brand" data-bind="css: brand"></span>
-                        <span data-bind="text: ' x-' + last_digits"> </span>
+                        <span data-bind="text: 'x-' + last_digits"></span>
                     </label>
                     <span class="card-delete" data-bind="attr: {'data-id': id}">&nbsp;</span>
                 </li>
@@ -150,8 +152,10 @@
                 <li>
                     <input id="new-card" type="radio" name="card" value="new-card">
                     <label for="new-card">
-                        <!-- ko i18n: 'New card' -->
-                        <!-- /ko -->
+                        <span>
+                            <!-- ko i18n: 'New card' -->
+                            <!-- /ko -->
+                        </span>
                     </label>
                 </li>
             </ul>
@@ -252,9 +256,6 @@
         </div>
         <div class="actions-toolbar">
             <div class="primary" data-bind="attr: {'id': getCode('Express_button')}, enable: isFormValid"></div>
-            <!-- ko if: isPromoEnabled -->
-            <div class="paypal-promo-msg-checkout" data-bind="html: getPromoMessageHtml()"></div>
-            <!-- /ko -->
         </div>
     </div>
 </div>

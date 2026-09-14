@@ -91,6 +91,19 @@ define(
                     + linkHtml
                     + '</div>';
             },
+            /**
+             * Checkout promo banner (PayPal_CommercePlatform/payment/promo-banner):
+             * label for the CTA. The arrow is drawn as an icon in the template, so a
+             * trailing chevron/arrow typed in the backoffice link text
+             * (e.g. "Conoce Más ›") is dropped to avoid a double arrow.
+             *
+             * @returns {String}
+             */
+            getPromoLinkLabel: function () {
+                var linkText = this.promoLinkText || '';
+
+                return linkText.replace(/[\s\u203a\u00bb>\u2192]+$/, '');
+            },
             initialize: function () {
                 this._super();
 

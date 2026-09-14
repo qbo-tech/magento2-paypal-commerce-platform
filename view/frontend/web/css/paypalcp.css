@@ -211,3 +211,366 @@ select#installmentsCustomerCard {
     min-height: 50px;
     margin-top: 30px;
 }
+
+/* ---------------------------------------------------------------------------
+ * PayPal promo banner (checkout: BCDC / ACDC)
+ * ------------------------------------------------------------------------- */
+.pp-promo-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 12px 0 22px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: linear-gradient(
+        90deg,
+        #eef3ff 0%,
+        #e8f0ff 55%,
+        #dfe9ff 100%
+    );
+    box-shadow: 0 2px 6px rgba(16, 38, 84, .08);
+    font-family: inherit;
+}
+
+.pp-promo-banner__icon {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: #0070e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 112, 224, .35);
+}
+
+.pp-promo-banner__icon svg {
+    width: 22px;
+    height: 22px;
+    display: block;
+}
+
+.pp-promo-banner__text {
+    flex: 1 1 auto;
+    font-size: 15px;
+    line-height: 1.35;
+    color: #2c2e30;
+}
+
+.pp-promo-banner__text p {
+    margin: 0;
+}
+
+.pp-promo-banner__text strong {
+    color: #0070e0;
+    font-weight: 700;
+}
+
+.pp-promo-banner__cta,
+.pp-promo-banner__cta:visited {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: #0070e0;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 10px 20px;
+    border-radius: 999px;
+    box-shadow: 0 2px 5px rgba(16, 38, 84, .12);
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.pp-promo-banner__cta svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+.pp-promo-banner__cta:hover,
+.pp-promo-banner__cta:focus {
+    color: #0059b3;
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(16, 38, 84, .18);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+    .pp-promo-banner {
+        flex-wrap: wrap;
+    }
+
+    .pp-promo-banner__text {
+        flex: 1 1 100%;
+        order: 2;
+    }
+
+    .pp-promo-banner__cta {
+        order: 3;
+        margin-left: 54px;
+    }
+}
+
+/* ============================================================
+ * ACDC (#acdc_card): contenedor "Pagar con" / lista de tarjetas
+ * Estilos entregados por PayPal. Los resets marcados con [reset]
+ * neutralizan reglas genéricas más arriba en este mismo archivo.
+ * ============================================================ */
+
+#acdc_card .customer-card-list {
+    background: #f8f9fb;
+    border: 1px solid #e7e9ee;
+    border-radius: 14px;
+    padding: 18px;
+    margin: 0 0 24px;
+}
+
+/* Eliminar el borde gris que hereda el <ul> del tema. */
+#acdc_card .customer-card-list > ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#acdc_card .customer-card-list > ul > li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e5ea;
+    border-radius: 10px;
+    margin: 0 0 10px;
+    padding: 0;
+    transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        background .18s ease;
+}
+
+#acdc_card .customer-card-list > ul > li:first-child {
+    display: block;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    margin: 0 0 14px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+#acdc_card .customer-card-list > ul > li:last-child {
+    margin-bottom: 0;
+}
+
+#acdc_card .customer-card-list > ul > li:not(:first-child):hover {
+    border-color: #b9c4d8;
+}
+
+/* Radio oculto: selección mediante <label for>. */
+#acdc_card .customer-card-list input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+}
+
+#acdc_card .customer-card-list > ul > li > label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 13px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 400;
+    color: #2c2e30;
+}
+
+/* Logotipo de marca: VISA, MC, AMEX, etc. (la imagen viene de .brand.VISA etc.) */
+#acdc_card .customer-card-list .brand {
+    flex: 0 0 auto;
+    display: inline-block;
+    width: 42px;
+    height: 26px;
+    padding: 0;
+    margin-right: 0; /* [reset] span.brand tenía margin-right: 5px */
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+/* Estado seleccionado e indicador de verificación. */
+#acdc_card .customer-card-list > ul > li:has(input:checked) {
+    border-color: #1e3a8a;
+    box-shadow: inset 0 0 0 1px #1e3a8a;
+    background: #f4f8ff;
+}
+
+#acdc_card .customer-card-list > ul > li:has(input:checked)::after {
+    content: "";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="%231e3a8a"/><path d="M7 12.4l3.2 3.2L17 8.8" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat center/contain;
+}
+
+/* Desplazar el indicador si la fila tiene ícono de eliminación. */
+#acdc_card .customer-card-list > ul > li:has(.card-delete):has(input:checked)::after {
+    right: 52px;
+}
+
+/* Fila "Nueva tarjeta" con ícono +. */
+#acdc_card .customer-card-list > ul > li:has(#new-card) > label::before {
+    content: "+";
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #1e3a8a;
+    color: #fff;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+/* Ícono de eliminación en rojo. */
+#acdc_card .customer-card-list .card-delete {
+    flex: 0 0 auto;
+    float: none; /* [reset] span.card-delete tenía float: right */
+    width: 20px;
+    height: 20px;
+    margin-right: 16px;
+    cursor: pointer;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23e02b1d" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 11v5M14 11v5"/></svg>') no-repeat center/contain;
+    opacity: .9;
+    transition: opacity .18s ease, transform .18s ease;
+}
+
+#acdc_card .customer-card-list .card-delete:hover {
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+/* Bloque "Pago a meses" dentro del contenedor. */
+#acdc_card .customer-card-list #customer-card-token {
+    margin-top: 16px;
+}
+
+#acdc_card .customer-card-list #customer-card-token label {
+    display: block;
+    margin: 0 0 6px; /* [reset] label genérico tenía margin-left/top: 10px */
+    font-weight: 700;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+/* ============================================================
+ * ACDC: botón Pagar (nueva tarjeta y tarjeta guardada)
+ * ============================================================ */
+
+#acdc_card button#submit.btn,
+#acdc_card button#token-submit.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 52px;
+    margin-top: 8px;
+    padding: 14px 24px;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(
+        180deg,
+        #ffd45e 0%,
+        #ffc439 45%,
+        #f7b418 100%
+    );
+    color: #0b1b34;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: .2px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow:
+        0 2px 4px rgba(11, 27, 52, .14),
+        0 6px 16px rgba(247, 180, 24, .35);
+    transition:
+        transform .15s ease,
+        box-shadow .2s ease,
+        filter .2s ease;
+}
+
+#acdc_card button#submit.btn:hover,
+#acdc_card button#token-submit.btn:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+    box-shadow:
+        0 4px 8px rgba(11, 27, 52, .16),
+        0 10px 22px rgba(247, 180, 24, .45);
+}
+
+#acdc_card button#submit.btn:active,
+#acdc_card button#token-submit.btn:active {
+    transform: translateY(0);
+    box-shadow:
+        inset 0 1px 3px rgba(11, 27, 52, .2),
+        0 2px 6px rgba(247, 180, 24, .3);
+}
+
+#acdc_card button#submit.btn:focus-visible,
+#acdc_card button#token-submit.btn:focus-visible {
+    outline: 0;
+    box-shadow:
+        0 0 0 3px #fff,
+        0 0 0 6px rgba(0, 112, 224, .55);
+}
+
+#acdc_card button#submit.btn[disabled],
+#acdc_card button#token-submit.btn[disabled] {
+    filter: grayscale(.35);
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Eliminar el recuadro del contenedor que envuelve al botón. */
+#acdc_card #card-form > div.form-group:last-child > .form-control {
+    border: 0;
+    padding: 0;
+    background: transparent;
+}
+
+/* ============================================================
+ * ACDC: responsive
+ * ============================================================ */
+
+@media (max-width: 640px) {
+    #acdc_card .customer-card-list {
+        padding: 14px;
+    }
+
+    #acdc_card .customer-card-list > ul > li > label {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+}

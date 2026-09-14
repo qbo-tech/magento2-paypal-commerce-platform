@@ -14,12 +14,11 @@
         <!-- /ko -->
         <!--         /ko -->
 
+        <!-- ko template: 'PayPal_CommercePlatform/payment/promo-banner' --><!-- /ko -->
+
         <div id="card-button-container" style="min-height: 50px;"></div>
         <div id="card-button-container-2" style="min-height: 50px;"></div>
 
-        <!-- ko if: isPromoEnabled -->
-        <div class="paypal-promo-msg-checkout" data-bind="html: getPromoMessageHtml()"></div>
-        <!-- /ko -->
         <div class="checkout-agreements-block">
             <!--             ko foreach: $parent.getRegion('before-place-order') -->
             <!--                 ko template: getTemplate() -->
