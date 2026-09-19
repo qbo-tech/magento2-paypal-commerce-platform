@@ -212,9 +212,6 @@ select#installmentsCustomerCard {
     margin-top: 30px;
 }
 
-/* ---------------------------------------------------------------------------
- * PayPal promo banner (checkout: BCDC / ACDC)
- * ------------------------------------------------------------------------- */
 .pp-promo-banner {
     display: flex;
     align-items: center;
@@ -318,10 +315,8 @@ select#installmentsCustomerCard {
 }
 
 /* ============================================================
- * ACDC (#acdc_card): contenedor "Pagar con" / lista de tarjetas
- * Estilos entregados por PayPal. Los resets marcados con [reset]
- * neutralizan reglas genéricas más arriba en este mismo archivo.
- * ============================================================ */
+CONTENEDOR "PAGAR CON" / LISTA DE TARJETAS
+============================================================ */
 
 #acdc_card .customer-card-list {
     background: #f8f9fb;
@@ -398,14 +393,14 @@ select#installmentsCustomerCard {
     color: #2c2e30;
 }
 
-/* Logotipo de marca: VISA, MC, AMEX, etc. (la imagen viene de .brand.VISA etc.) */
+/* Logotipo de marca: VISA, MC, AMEX, etc. */
 #acdc_card .customer-card-list .brand {
     flex: 0 0 auto;
     display: inline-block;
     width: 42px;
     height: 26px;
     padding: 0;
-    margin-right: 0; /* [reset] span.brand tenía margin-right: 5px */
+    margin-right: 0;
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
@@ -455,7 +450,7 @@ select#installmentsCustomerCard {
 /* Ícono de eliminación en rojo. */
 #acdc_card .customer-card-list .card-delete {
     flex: 0 0 auto;
-    float: none; /* [reset] span.card-delete tenía float: right */
+    float: none;
     width: 20px;
     height: 20px;
     margin-right: 16px;
@@ -477,15 +472,15 @@ select#installmentsCustomerCard {
 
 #acdc_card .customer-card-list #customer-card-token label {
     display: block;
-    margin: 0 0 6px; /* [reset] label genérico tenía margin-left/top: 10px */
+    margin: 0 0 6px;
     font-weight: 700;
     font-size: 14px;
     color: #1f2937;
 }
 
 /* ============================================================
- * ACDC: botón Pagar (nueva tarjeta y tarjeta guardada)
- * ============================================================ */
+BOTÓN PAGAR: NUEVA TARJETA Y TARJETA GUARDADA
+============================================================ */
 
 #acdc_card button#submit.btn,
 #acdc_card button#token-submit.btn {
@@ -561,8 +556,8 @@ select#installmentsCustomerCard {
 }
 
 /* ============================================================
- * ACDC: responsive
- * ============================================================ */
+RESPONSIVE
+============================================================ */
 
 @media (max-width: 640px) {
     #acdc_card .customer-card-list {
@@ -573,4 +568,31 @@ select#installmentsCustomerCard {
         padding: 12px 14px;
         font-size: 14px;
     }
+}
+
+.ppcp .payment-method-content [id^="paypal-button-container"],
+.ppcp .payment-method-content [id^="card-button-container"],
+.ppcp .payment-method-content .paypal-promo-msg-checkout {
+    display: block;
+    width: 100% !important;
+    max-width: 750px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box;
+}
+
+.ppcp .payment-method-content:has([id^="paypal-button-container"], [id^="card-button-container"]) .pp-promo-banner {
+    max-width: 750px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.ppcp .payment-method-content .paypal-buttons {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
 }
