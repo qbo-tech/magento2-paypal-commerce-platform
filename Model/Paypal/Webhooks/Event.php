@@ -31,6 +31,11 @@ class Event
     const PAYMENT_CAPTURE_DENIED  = 'PAYMENT.CAPTURE.DENIED';
     const CHECKOUT_ORDER_APPROVED = 'CHECKOUT.ORDER.APPROVED';
 
+    /**
+     * Payment additional information key holding the PayPal capture id
+     */
+    const TRANSACTION_ID_KEY = 'paypal_transaction_id';
+
 
     /** @var \Magento\Sales\Model\Order\Payment */
     protected $_payment;
@@ -174,6 +179,8 @@ class Event
      */
     protected function _paymentPending($eventData)
     {
+        $this->_registerTransactionId($eventData);
+
         $this->_payment->setIsTransactionClosed(0)
             ->registerCaptureNotification($eventData['resource']['amount']['value'], true);
 
@@ -219,7 +226,9 @@ class Event
                     number_format($orderTotal, 2)
                 );
 
-                $order->addCommentToStatusHistory($message);
+                $order->addCommentToStatusHistory(
+                    $this->_appendTransactionId($message, $eventData['resource']['id'] ?? null)
+                );
                 $this->_orderRepository->save($order);
 
                 $this->_logger->critical('[PAYPAL-WEBHOOK] Amount mismatch detected', [
@@ -232,6 +241,8 @@ class Event
                 return;
             }
 
+            $transactionId = $this->_registerTransactionId($eventData);
+
             $this->_payment->setIsTransactionClosed(0)
                 ->registerCaptureNotification($capturedAmount, true);
 
@@ -239,7 +250,10 @@ class Event
                 ->setStatus(\Magento\Sales\Model\Order::STATE_PROCESSING);
 
             $order->addStatusHistoryComment(
-                __('Thank you for your payment. Registered notification about captured amount.')
+                $this->_appendTransactionId(
+                    __('Thank you for your payment. Registered notification about captured amount.'),
+                    $transactionId
+                )
             )->setIsCustomerNotified(true);
 
             $this->_orderRepository->save($order);
@@ -250,6 +264,51 @@ class Event
                 'eventData' => $eventData
             ]);
         }
+    }
+
+    /**
+     * Keep the PayPal capture id on the OXXO payment so it can be shown in the order detail
+     *
+     * @param array $eventData
+     * @return string|null
+     */
+    protected function _registerTransactionId($eventData)
+    {
+        $eventType = $eventData['event_type'] ?? '';
+        $transactionId = $eventData['resource']['id'] ?? null;
+
+        if (!$transactionId
+            || strpos($eventType, 'PAYMENT.CAPTURE.') !== 0
+            || $this->_payment->getMethod() !== \PayPal\CommercePlatform\Model\Payment\Oxxo\Payment::CODE
+        ) {
+            return null;
+        }
+
+        $this->_payment->setAdditionalInformation(self::TRANSACTION_ID_KEY, $transactionId);
+
+        // The order keeps its own payment instance, which is the one persisted on order save
+        $orderPayment = $this->_payment->getOrder() ? $this->_payment->getOrder()->getPayment() : null;
+        if ($orderPayment && $orderPayment !== $this->_payment) {
+            $orderPayment->setAdditionalInformation(self::TRANSACTION_ID_KEY, $transactionId);
+        }
+
+        return $transactionId;
+    }
+
+    /**
+     * Append the transaction id to a status history message
+     *
+     * @param string|\Magento\Framework\Phrase $message
+     * @param string|null $transactionId
+     * @return string
+     */
+    protected function _appendTransactionId($message, $transactionId)
+    {
+        if (!$transactionId) {
+            return (string)$message;
+        }
+
+        return (string)$message . ' ' . __('Transaction ID: "%1"', $transactionId);
     }
 
     /**

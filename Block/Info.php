@@ -47,7 +47,7 @@ class Info extends \Magento\Payment\Block\Info
     /** @var PriceCurrencyInterface $priceCurrency */
     protected $priceCurrency;
 
-    const ALLOWED_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type", "three_d_secure"];
+    const ALLOWED_FIELDS = ["payment_id", "term", "consumer_fee_amount", "installments_type", "three_d_secure", "paypal_transaction_id"];
 
     /**
      * Constructor
@@ -97,6 +97,12 @@ class Info extends \Magento\Payment\Block\Info
     {
         if ($field === 'three_d_secure') {
             $result['3D'] = __($value);
+
+            return $result;
+        }
+
+        if ($field === 'paypal_transaction_id') {
+            $result[__('Transaction ID')->__toString()] = $value;
 
             return $result;
         }
