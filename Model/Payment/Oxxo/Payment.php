@@ -87,15 +87,19 @@ class Payment extends \PayPal\CommercePlatform\Model\Payment\Advanced\Payment
     public function createOxxoVoucher($paymentSource, $paypalOrderId)
     {
         try {
+            $store = $this->storeManager->getStore();
+            $paymentSource['experience_context'] = [
+                'locale'     => 'es-MX',
+                'return_url' => $store->getUrl('checkout/onepage/success'),
+                'cancel_url' => $store->getUrl('checkout/cart'),
+            ];
+
             $this->paypalOrderConfirmRequest = $this->_paypalApi->getOrdersConfirmRequest($paypalOrderId);
             $this->paypalOrderConfirmRequest->body = [
                 'payment_source' => [
                     'oxxo_pay' => $paymentSource
                 ],
-                'processing_instruction' => 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL',
-                'application_context' => [
-                    'locale' => 'es-MX'
-                ]
+                'processing_instruction' => 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL'
             ];
             $this->_eventManager->dispatch('paypaloxxo_create_voucher_before');
             $this->_response = $this->_paypalApi->execute($this->paypalOrderConfirmRequest);

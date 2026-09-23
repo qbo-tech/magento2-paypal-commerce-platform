@@ -267,6 +267,67 @@ class Event
     }
 
     /**
+     * Process a capture fetched on demand with the same handling as the PAYMENT.CAPTURE.* webhooks
+     *
+     * @param \Magento\Sales\Model\Order\Payment $payment
+     * @param array $capture Capture resource as returned by the PayPal Orders API
+     * @return string Capture status
+     */
+    public function processCapture(\Magento\Sales\Model\Order\Payment $payment, array $capture)
+    {
+        $status = strtoupper((string)($capture['status'] ?? ''));
+        $this->_payment = $payment;
+
+        $eventData = [
+            'event_type'    => 'PAYMENT.CAPTURE.' . $status,
+            'resource_type' => 'capture',
+            'resource'      => $capture,
+        ];
+
+        switch ($status) {
+            case 'COMPLETED':
+                $this->_paymentCompleted($eventData);
+                break;
+
+            case 'PENDING':
+                $this->_capturePending($eventData);
+                break;
+
+            case 'DECLINED':
+            case 'FAILED':
+                $this->_paymentDenied($eventData);
+                break;
+
+            default:
+                $transactionId = $this->_registerTransactionId($eventData);
+                $order = $this->_payment->getOrder();
+                $order->addCommentToStatusHistory(
+                    $this->_appendTransactionId(__('OXXO Pay transaction status: %1.', $status), $transactionId)
+                );
+                $this->_orderRepository->save($order);
+        }
+
+        return $status;
+    }
+
+    /**
+     * Manual status check while the capture is still pending: keep the transaction id and log the check
+     *
+     * @param array $eventData
+     * @return void
+     */
+    protected function _capturePending($eventData)
+    {
+        $transactionId = $this->_registerTransactionId($eventData);
+        $order = $this->_payment->getOrder();
+
+        $order->addCommentToStatusHistory(
+            $this->_appendTransactionId(__('OXXO Pay transaction status checked: still pending.'), $transactionId)
+        );
+        $this->_orderRepository->save($order);
+    }
+
+    /**
      * Keep the PayPal capture id on the OXXO payment so it can be shown in the order detail
      *
      * @param array $eventData
