@@ -30,7 +30,7 @@ class OrderView
         $subject->addButton(
             'paypalcp_oxxo_update_status',
             [
-                'label'   => __('Update Status'),
+                'label'   => __('Get OXXO Status'),
                 'class'   => 'update-status',
                 'onclick' => 'setLocation(\'' . $url . '\')',
             ]
