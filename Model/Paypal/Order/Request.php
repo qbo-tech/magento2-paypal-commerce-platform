@@ -242,10 +242,13 @@ class Request
      */
     private function buildRequestBody(bool $billingAgreement = false, $vault = null, $isCardFields = false)
     {
-        if (!$this->_quote->getReserveOrderId()) {
+        $this->_quote->setTotalsCollectedFlag(false)->collectTotals();
+
+        if (!$this->_quote->getReservedOrderId()) {
             $this->_quote->reserveOrderId();
-            $this->quoteRepository->save($this->_quote);
         }
+
+        $this->quoteRepository->save($this->_quote);
 
         $currencyCode = $this->_quote->getBaseCurrencyCode();
         $amount = $this->_formatPrice($this->_quote->getGrandTotal());

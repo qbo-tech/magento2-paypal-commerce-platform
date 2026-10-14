@@ -99,3 +99,4 @@ Order created with Paypal OxxoPay,Pedido creado con Paypal Oxxo Pay
 "The PayPal order id is missing on this payment.","El pago no tiene id de orden de PayPal."
 "PayPal did not return the order %1 (HTTP %2).","PayPal no devolvió la orden %1 (HTTP %2)."
 "Unable to update the OXXO Pay transaction status.","No se pudo actualizar el estatus de la transacción OXXO Pay."
+"We detected a change in your cart amount. Please try your payment again.","Detectamos un cambio en el monto de tu carrito. Por favor, intenta nuevamente tu pago."

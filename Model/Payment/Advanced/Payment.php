@@ -8,6 +8,7 @@ use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\Mail\Template\TransportBuilder;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use PayPal\CommercePlatform\Exception\AmountMismatchException;
 use PayPal\CommercePlatform\Model\Config;
 
 class Payment extends \Magento\Payment\Model\Method\AbstractMethod
@@ -20,6 +21,7 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
     const GATEWAY_ERROR_MESSAGE        = 'Payment has been declined by Payment Gateway';
     const BA_ERROR_MESSAGE             = 'It is not possible to use this payment agreement, please try another';
     const GATEWAY_NOT_TXN_ID_PRESENT   = 'The transaction id is not present';
+    const AMOUNT_MISMATCH_MESSAGE      = 'We detected a change in your cart amount. Please try your payment again.';
     const DENIED_ERROR_MESSAGE         = 'Gateway response error';
     const COMPLETED_SALE_CODE          = 'COMPLETED';
     const DENIED_SALE_CODE             = 'DENIED';
@@ -334,15 +336,19 @@ class Payment extends \Magento\Payment\Model\Method\AbstractMethod
             number_format($orderTotal, 2)
         );
 
+        $stopFlow = (bool)$this->getConfigValue('stop_on_amount_mismatch');
+
         $this->_logger->debug('[PAYPAL COMMERCE CAPTURE] Amount mismatch detected before capture', [
             'order_id' => $order->getIncrementId(),
             'paypal_amount' => $paypalOrderAmount,
             'order_total' => $orderTotal,
-            'paypal_order_id' => $paypalOrderId
+            'paypal_order_id' => $paypalOrderId,
+            'message' => $message,
+            'stop_flow' => $stopFlow
         ]);
 
-        if ((bool)$this->getConfigValue('stop_on_amount_mismatch')) {
-            throw new LocalizedException(__($message));
+        if ($stopFlow) {
+            throw new AmountMismatchException(__(self::AMOUNT_MISMATCH_MESSAGE));
         }
     }
 

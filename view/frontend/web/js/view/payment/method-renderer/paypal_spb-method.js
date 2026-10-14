@@ -12,6 +12,9 @@ define(
         'Magento_Checkout/js/model/totals',
         'Magento_Checkout/js/model/payment/additional-validators',
         'Magento_Checkout/js/action/redirect-on-success',
+        'Magento_Ui/js/modal/alert',
+        'Magento_Checkout/js/action/get-payment-information',
+        'Magento_Checkout/js/model/full-screen-loader'
     ],
     function (
         Component,
@@ -25,7 +28,10 @@ define(
         storage,
         totals,
         additionalValidators,
-        redirectOnSuccessAction
+        redirectOnSuccessAction,
+        alert,
+        getPaymentInformationAction,
+        fullScreenLoader
     ) {
         'use strict';
 
@@ -68,6 +74,8 @@ define(
             selectedInstallmentsBA: ko.observable(),
             isFormValid: ko.observable(false),
             renderedButtons: ko.observable(false),
+            cardFieldsRendered: false,
+            isReloadingPaymentMethod: false,
             cardFieldsApprovalData: null,
             isPromoEnabled: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.enable_checkout : false,
             promoCheckoutMessageText: window.checkoutConfig.payment.paypalcp.promo ? window.checkoutConfig.payment.paypalcp.promo.checkout_message_text : '',
@@ -118,6 +126,11 @@ define(
 
                     const currentGrandTotal = parseFloat(totals.base_grand_total);
                     const previousGrandTotal = parseFloat(self.grandTotal());
+
+                    if (self.isReloadingPaymentMethod) {
+                        self.grandTotal(currentGrandTotal);
+                        return;
+                    }
 
                     if (previousGrandTotal !== currentGrandTotal) {
                         console.log('Grand total changed ===> ', currentGrandTotal, previousGrandTotal);
@@ -396,9 +409,76 @@ define(
                 return this._super()
                     .fail(function (response) {
                         self._enableCheckout();
+
+                        if (self.isAmountMismatchResponse(response)) {
+                            self.handleAmountMismatch();
+                            return;
+                        }
+
                         console.log('Place order failed. Refreshing customer cards/agreements...');
                         self.refreshFinancingOptions();
                     });
+            },
+            isAmountMismatchResponse: function (response) {
+                return !!response && response.status === 409;
+            },
+            handleAmountMismatch: function () {
+                var self = this;
+
+                self.orderId = null;
+                self.cardFieldsApprovalData = null;
+                self.messageContainer.clear();
+                self.isPlaceOrderActionAllowed(true);
+                self.isReloadingPaymentMethod = true;
+
+                selectPaymentMethodAction(null);
+                checkoutData.setSelectedPaymentMethod(null);
+
+                fullScreenLoader.startLoader();
+
+                getPaymentInformationAction().always(function () {
+                    self.reloadPaymentMethod();
+                    self.isReloadingPaymentMethod = false;
+                    fullScreenLoader.stopLoader(true);
+
+                    var paymentList = document.getElementById('checkout-payment-method-load');
+                    if (paymentList) {
+                        paymentList.scrollIntoView({block: 'start'});
+                    }
+
+                    alert({
+                        title: '',
+                        content: $t('We detected a change in your cart amount. Please try your payment again.')
+                    });
+                });
+            },
+            reloadPaymentMethod: function () {
+                var self = this;
+
+                [
+                    '#paypal-button-container',
+                    '#paypal-button-container-ba',
+                    '#card-button-container',
+                    '#card-button-container-2',
+                    '#card-button-container-ba',
+                    '#card-number',
+                    '#expiration-date',
+                    '#cvv',
+                    '#card-holder-name'
+                ].forEach(function (selector) {
+                    $(selector).empty();
+                });
+
+                self.cardFieldsRendered = false;
+                self.installmentOptions([]);
+                self.selectedInstallments(null);
+                self.canShowInstallments(false);
+
+                if (typeof paypal !== 'undefined') {
+                    self.renderButtons();
+                }
+
+                self.refreshFinancingOptions();
             },
             submitMagentoOrder: function () {
                 var self = this,
@@ -502,6 +582,10 @@ define(
 
             renderCardFields: function () {
                 var self = this;
+
+                if (self.cardFieldsRendered) {
+                    return;
+                }
 
                 self.installmentsAvailable((this.isAcdcEnable) && (this.paypalConfigs.acdc.installments_type != 'no'));
 
@@ -649,6 +733,8 @@ define(
                 });
 
                 if (cardField.isEligible()) {
+                    self.cardFieldsRendered = true;
+
 
                     console.log("rendering fields");
 
@@ -685,7 +771,7 @@ define(
                 $('#card-form button#submit').attr('disabled', false);
 
 
-                $('#co-payment-form, #card-form').submit(function (event) {
+                $('#co-payment-form, #card-form').off('submit.ppcpCardFields').on('submit.ppcpCardFields', function (event) {
                     console.info('submitting...');
                     event.preventDefault();
 
